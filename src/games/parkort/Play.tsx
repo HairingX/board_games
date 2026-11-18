@@ -2,7 +2,10 @@ import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { useWakeLock } from '../../lib/wakeLock';
 import { FlipCard, type CardMove } from '../../ui/FlipCard';
+import { useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { common } from '../../ui/text';
+import { about } from './about';
 import { CardBack, CardFront } from './CardFaces';
 import { cards } from './cards';
 import {
@@ -15,6 +18,7 @@ import {
   restart,
   type DeckState,
 } from './deck';
+import { text } from './text';
 
 interface Props {
   deck: DeckState;
@@ -29,6 +33,9 @@ interface Props {
  * Thrown right a card goes on; thrown left the card before comes back to look at.
  */
 export function Play({ deck, onChange, onBack }: Props) {
+  const t = useMessages(text);
+  const { countOf } = useMessages(common);
+  const { title } = useMessages(about);
   const [move, setMove] = useState<CardMove>('next');
   /** How many cards back the couple is looking; 0 at the furthest card. */
   const [back, setBack] = useState(0);
@@ -48,17 +55,14 @@ export function Play({ deck, onChange, onBack }: Props) {
   if (!shown) {
     return (
       <>
-        <GameHeader title="Parkort" onBack={onBack} />
+        <GameHeader title={title} onBack={onBack} />
         <section className="pk-done">
           <span className="pk-done-icon" aria-hidden="true">
             🎉
           </span>
-          <h2>Godt snakket!</h2>
-          <p>I har været alle {total} kort i de valgte kategorier igennem.</p>
-          <p>
-            Tag gerne en ny runde om et stykke tid. Svarene ændrer sig, ligesom I gør, og de samme
-            spørgsmål giver nye samtaler.
-          </p>
+          <h2>{t.doneTitle}</h2>
+          <p>{t.doneAll(total)}</p>
+          <p>{t.doneAgain}</p>
           <div className="pk-footer">
             <button
               type="button"
@@ -67,15 +71,15 @@ export function Play({ deck, onChange, onBack }: Props) {
                 onChange(restart(deck, cards));
               }}
             >
-              Bland og start en ny runde
+              {t.newRound}
             </button>
             {canGoBack && (
               <button type="button" className="btn btn-ghost btn-block" onClick={goBack}>
-                Forrige kort
+                {t.previousCard}
               </button>
             )}
             <button type="button" className="btn btn-ghost btn-block" onClick={onBack}>
-              Vælg andre kategorier
+              {t.otherCategories}
             </button>
           </div>
         </section>
@@ -95,10 +99,10 @@ export function Play({ deck, onChange, onBack }: Props) {
   return (
     <div className="pk-play">
       <GameHeader
-        title="Parkort"
+        title={title}
         onBack={onBack}
         aside={
-          <span aria-label={`${String(seen)} af ${String(total)} kort snakket om`}>
+          <span aria-label={`${countOf(seen, total)} ${t.talkedAbout(total)}`}>
             {seen} / {total}
           </span>
         }
@@ -120,7 +124,7 @@ export function Play({ deck, onChange, onBack }: Props) {
                 if (direction === 1) goOn();
                 else if (canGoBack) goBack();
               }}
-              label="Vend kortet"
+              label={t.turnCard}
               back={<CardBack />}
               front={<CardFront card={shown} />}
             />
@@ -130,20 +134,20 @@ export function Play({ deck, onChange, onBack }: Props) {
 
       <p className="pk-hint" aria-live="polite">
         {lookingBack
-          ? 'Et kort, I har haft. Tryk »Næste kort« for at gå frem igen.'
+          ? t.lookingBack(t.next)
           : flipped
-            ? 'Læs kortet højt, og svar begge to.'
+            ? t.readAloud
             : putOffJustNow
-              ? 'Kortet ligger nu nederst i bunken.'
-              : 'Tryk på kortet for at vende det.'}
+              ? t.putAtBottom
+              : t.tapToTurn}
       </p>
 
       <div className="pk-actions">
         <button type="button" className="btn btn-ghost" disabled={!canGoBack} onClick={goBack}>
-          Forrige
+          {t.previous}
         </button>
         <button type="button" className="btn btn-primary" disabled={!flipped} onClick={goOn}>
-          Næste kort
+          {t.next}
         </button>
       </div>
       <button
@@ -155,7 +159,7 @@ export function Play({ deck, onChange, onBack }: Props) {
           onChange(putOff(deck, shown.id));
         }}
       >
-        Tag den senere
+        {t.later}
       </button>
     </div>
   );

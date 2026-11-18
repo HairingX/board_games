@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { appMeta } from '../appMeta';
+import { useMessages } from '../i18n/I18n';
+import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import { addProfile, nextColor, setPin, type Family, type PinHash, type Profile } from './family';
 import { useFamily } from './FamilyContext';
@@ -8,6 +10,7 @@ import { pinMatches } from './pin';
 import { PinPad } from './PinPad';
 import { PinSetup } from './PinSetup';
 import { ProfileForm } from './ProfileForm';
+import { familyText } from './text';
 import './family.css';
 
 type View =
@@ -24,6 +27,8 @@ const list: View = { name: 'list' };
  * added by a grown-up from the home screen.
  */
 export function WhoIsPlaying() {
+  const t = useMessages(familyText);
+  const { hello } = useMessages(common);
   const { family, save, choose } = useFamily();
   const [view, setView] = useState<View>(list);
   const back = () => {
@@ -40,8 +45,8 @@ export function WhoIsPlaying() {
     case 'enter-pin':
       return (
         <PinPad
-          title={`Hej, ${view.profile.name}`}
-          text="Skriv din kode."
+          title={hello(view.profile.name)}
+          text={t.enterPin}
           onEnter={async (pin) => {
             const right = await pinMatches(pin, view.pin);
             if (right) choose(view.profile);
@@ -56,7 +61,7 @@ export function WhoIsPlaying() {
                 setView({ name: 'forgot', profile: view.profile });
               }}
             >
-              Glemt koden?
+              {t.forgotPin}
             </button>
           }
         />
@@ -90,7 +95,7 @@ export function WhoIsPlaying() {
         />
       ) : (
         <section className="family">
-          <h1>Hvem spiller?</h1>
+          <h1>{t.whoIsPlaying}</h1>
           <ul className="family-grid">
             {family.profiles.map((profile) => (
               <li key={profile.id}>
@@ -104,7 +109,7 @@ export function WhoIsPlaying() {
                 >
                   <Avatar profile={profile} />
                   <span className="family-pick-name">{profile.name}</span>
-                  {profile.pin && <span className="family-pick-lock">Kode</span>}
+                  {profile.pin && <span className="family-pick-lock">{t.hasPin}</span>}
                 </button>
               </li>
             ))}
@@ -122,6 +127,7 @@ function FirstGrownUp({
   family: Family;
   onDone: (profile: Profile, family: Family) => void;
 }) {
+  const t = useMessages(familyText);
   const [made, setMade] = useState<Profile>();
 
   return made ? (
@@ -137,10 +143,8 @@ function FirstGrownUp({
     />
   ) : (
     <section className="family">
-      <h1>Velkommen til {appMeta.name}</h1>
-      <p className="family-intro">
-        Først et par ord om dig. Bagefter kan du tilføje resten af familien, også børnene.
-      </p>
+      <h1>{t.welcome(appMeta.name)}</h1>
+      <p className="family-intro">{t.firstIntro}</p>
       <ProfileForm color={nextColor(family)} role="voksen" onSave={setMade} />
     </section>
   );

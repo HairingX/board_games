@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import { useMessages } from '../i18n/I18n';
+import { common } from './text';
 import './GameHeader.css';
 
 interface Props {
@@ -11,14 +13,15 @@ interface Props {
 
 /** The bar at the top of a game's screen. */
 export function GameHeader({ title, onBack, aside }: Props) {
+  const t = useMessages(common);
   return (
     <header className="game-header">
       {onBack ? (
-        <button type="button" className="game-header-back" onClick={onBack} aria-label="Tilbage">
+        <button type="button" className="game-header-back" onClick={onBack} aria-label={t.back}>
           <BackArrow />
         </button>
       ) : (
-        <a className="game-header-back" href="#/" aria-label="Til forsiden">
+        <a className="game-header-back" href="#/" aria-label={t.home}>
           <BackArrow />
         </a>
       )}

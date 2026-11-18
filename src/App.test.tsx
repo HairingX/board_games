@@ -9,11 +9,12 @@ import { cards } from './games/parkort/cards';
 import { newDeck } from './games/parkort/deck';
 import type { GameInfo } from './lib/games';
 import { saves } from './lib/saves';
+import { about } from '../tests/games';
 
 const fakeGame: GameInfo = {
   id: 'testspil',
-  title: 'Testspil',
-  description: 'Bruges kun i tests',
+  about: about('Testspil', 'Bruges kun i tests'),
+  languages: ['da', 'en'],
   icon: '🎲',
   audience: 'alle',
   players: { min: 1, max: 2, progress: 'hver' },
@@ -24,7 +25,7 @@ const fakeGame: GameInfo = {
 const grownUpGame: GameInfo = {
   ...fakeGame,
   id: 'voksenspil',
-  title: 'Voksenspil',
+  about: about('Voksenspil'),
   audience: 'voksne',
 };
 

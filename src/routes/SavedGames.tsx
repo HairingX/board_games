@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { appMeta } from '../appMeta';
+import { useMessages } from '../i18n/I18n';
 import { backupFileName, makeBackup, readBackup, restoreBackup, type Backup } from '../lib/backup';
 import { useInstall } from '../lib/install';
 import { isInstalled, savesAreKept } from '../lib/persistence';
 import { saves as defaultSaves, type Saves } from '../lib/saves';
+import { common } from '../ui/text';
+import { appText } from './text';
 import './SavedGames.css';
 
 /** How long a backup's download link lives: Safari cancels a download whose link goes too soon. */
 const downloadLinkLifetime = 60_000;
-
-const longDate = new Intl.DateTimeFormat('da', { dateStyle: 'long' });
 
 function download(name: string, text: string): void {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -27,6 +28,8 @@ function download(name: string, text: string): void {
  * to keep elsewhere or move the games to another browser or phone.
  */
 export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
+  const t = useMessages(appText);
+  const { cancel } = useMessages(common);
   const install = useInstall();
   const [installed] = useState(isInstalled);
   const [kept, setKept] = useState(false);
@@ -47,7 +50,7 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
   async function saveBackup(): Promise<void> {
     const now = new Date();
     download(backupFileName(now), JSON.stringify(await makeBackup(saves, now), null, 2));
-    setMessage('Sikkerhedskopien er gemt som en fil.');
+    setMessage(t.backupSaved);
   }
 
   async function chooseFile(event: ChangeEvent<HTMLInputElement>): Promise<void> {
@@ -56,50 +59,43 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
     if (!file) return;
     const backup = readBackup(await file.text());
     setPending(backup);
-    setMessage(backup ? '' : `Filen er ikke en sikkerhedskopi fra ${appMeta.name}.`);
+    setMessage(backup ? '' : t.notBackup(appMeta.name));
   }
 
   async function restore(backup: Backup): Promise<void> {
     await restoreBackup(saves, backup);
     setPending(undefined);
-    setMessage(`Sikkerhedskopien fra ${longDate.format(new Date(backup.madeAt))} er hentet.`);
+    setMessage(t.restored(new Date(backup.madeAt)));
   }
 
   return (
-    <section className="saved" aria-labelledby="saved-title">
-      <h2 id="saved-title">Jeres gemte spil</h2>
+    <section className="panel saved" aria-labelledby="saved-title">
+      <h2 id="saved-title">{t.savedTitle}</h2>
 
       {kept ? (
-        <p>✓ Telefonen gemmer jeres spil sikkert, også når der bliver trangt om pladsen.</p>
+        <p>{t.kept}</p>
       ) : installed ? (
-        <p>Jeres spil gemmes på telefonen, hver gang I vender et kort.</p>
+        <p>{t.installed}</p>
       ) : (
         <>
-          <p>
-            Jeres spil gemmes i browseren. Føj {appMeta.name} til hjemmeskærmen, så gemmes de mere
-            sikkert, og alt virker uden internet.
-          </p>
+          <p>{t.inBrowser(appMeta.name)}</p>
           {install ? (
             <button
               type="button"
               className="btn btn-primary btn-block"
               onClick={() => void install()}
             >
-              Føj til hjemmeskærmen
+              {t.install}
             </button>
           ) : (
-            <p className="saved-steps">
-              På iPhone og iPad: Tryk på Del-knappen, og vælg »Føj til hjemmeskærm«. I andre
-              browsere finder du det i menuen. På iPhone har appen sine egne gemte spil, så tag en
-              sikkerhedskopi her, og hent den i appen.
-            </p>
+            <p className="saved-steps">{t.installSteps}</p>
           )}
         </>
       )}
 
       <div className="saved-backup">
         <button type="button" className="btn btn-ghost" onClick={() => void saveBackup()}>
-          Gem sikkerhedskopi
+          {t.saveBackup}
         </button>
         <button
           type="button"
@@ -108,24 +104,21 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
             fileInput.current?.click();
           }}
         >
-          Hent sikkerhedskopi
+          {t.restoreBackup}
         </button>
         <input
           ref={fileInput}
           type="file"
           accept="application/json,.json"
           hidden
-          aria-label="Vælg sikkerhedskopi"
+          aria-label={t.chooseBackup}
           onChange={(event) => void chooseFile(event)}
         />
       </div>
 
       {pending && (
-        <div className="saved-confirm" role="alertdialog" aria-label="Hent sikkerhedskopi">
-          <p>
-            Kopien fra {longDate.format(new Date(pending.madeAt))} erstatter de spil, der er gemt
-            her nu. Er I sikre?
-          </p>
+        <div className="saved-confirm" role="alertdialog" aria-label={t.restoreBackup}>
+          <p>{t.restoreQuestion(new Date(pending.madeAt))}</p>
           <div className="saved-actions">
             <button
               type="button"
@@ -134,10 +127,10 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
                 setPending(undefined);
               }}
             >
-              Annullér
+              {cancel}
             </button>
             <button type="button" className="btn btn-primary" onClick={() => void restore(pending)}>
-              Ja, hent kopien
+              {t.yesRestore}
             </button>
           </div>
         </div>

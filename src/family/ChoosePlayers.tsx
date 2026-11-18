@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useMessages } from '../i18n/I18n';
 import type { GameInfo } from '../lib/games';
 import { GameHeader } from '../ui/GameHeader';
+import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import { addProfile, mayPlay, nextColor, type Family, type Profile } from './family';
 import { ProfileForm } from './ProfileForm';
+import { familyText } from './text';
 import './family.css';
 
 interface Props {
@@ -15,19 +18,15 @@ interface Props {
   onStart: (players: Profile[]) => void;
 }
 
-/** How many players the game wants, in words: "Vælg 2" or "Vælg 1–6". */
-function howMany({ min, max }: GameInfo['players']): string {
-  return min === max
-    ? `Vælg ${String(min)} spillere.`
-    : `Vælg ${String(min)}–${String(max)} spillere.`;
-}
-
 /**
  * "Hvem er med?" before a game: the players are chosen from the family, without codes, and
  * someone new can be added to the family here. A child can add only children, so no one gets
  * a grown-up's profile this way.
  */
 export function ChoosePlayers({ game, family, current, onChange, onStart }: Props) {
+  const t = useMessages(familyText);
+  const { start } = useMessages(common);
+  const { title } = useMessages(game.about);
   const [chosen, setChosen] = useState<string[]>([current.id]);
   const [adding, setAdding] = useState(false);
   const { min, max } = game.players;
@@ -43,10 +42,10 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
 
   return (
     <section className="family">
-      <GameHeader title={game.title} />
+      <GameHeader title={title} />
       {adding ? (
         <>
-          <h2 className="players-title">Ny spiller</h2>
+          <h2 className="players-title">{t.newPlayer}</h2>
           <ProfileForm
             color={nextColor(family)}
             {...(newRole ? { role: newRole } : {})}
@@ -62,8 +61,8 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
         </>
       ) : (
         <>
-          <h2 className="players-title">Hvem er med?</h2>
-          <p className="family-intro">{howMany(game.players)}</p>
+          <h2 className="players-title">{t.whoIsIn}</h2>
+          <p className="family-intro">{t.howMany(min, max)}</p>
           <ul className="family-grid">
             {candidates.map((profile) => {
               const on = chosen.includes(profile.id);
@@ -93,7 +92,7 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
                 setAdding(true);
               }}
             >
-              Tilføj en ny spiller
+              {t.addPlayer}
             </button>
             <button
               type="button"
@@ -103,7 +102,7 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
                 onStart(players);
               }}
             >
-              Start
+              {start}
             </button>
           </div>
         </>

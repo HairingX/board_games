@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useMessages } from '../i18n/I18n';
+import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import { addProfile, nextColor, removeProfile, setPin, type Family, type Profile } from './family';
 import { PinSetup } from './PinSetup';
 import { ProfileForm } from './ProfileForm';
+import { familyText } from './text';
 import './family.css';
 
 interface Props {
@@ -17,6 +20,8 @@ type View = { name: 'list' } | { name: 'add' } | { name: 'pin'; profile: Profile
 
 /** Adding and taking out the family's profiles, and their codes; for grown-ups. */
 export function ManageFamily({ family, current, onChange, onDone }: Props) {
+  const t = useMessages(familyText);
+  const { cancel } = useMessages(common);
   const [view, setView] = useState<View>({ name: 'list' });
   const [leaving, setLeaving] = useState<Profile>();
   const back = () => {
@@ -26,7 +31,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
   if (view.name === 'add') {
     return (
       <section className="family">
-        <h1>Ny i familien</h1>
+        <h1>{t.newInFamily}</h1>
         <ProfileForm
           color={nextColor(family)}
           onSave={(profile) => {
@@ -62,7 +67,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
 
   return (
     <section className="family">
-      <h1>Familien</h1>
+      <h1>{t.family}</h1>
       <ul className="family-list">
         {family.profiles.map((profile) => {
           const mayLeave =
@@ -72,41 +77,38 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
               <Avatar profile={profile} size="small" />
               <span className="family-row-name">
                 {profile.name}
-                <small>{profile.role === 'voksen' ? 'Voksen' : 'Barn'}</small>
+                <small>{t.roles[profile.role]}</small>
               </span>
               <button
                 type="button"
                 className="btn btn-quiet"
-                aria-label={`Kode til ${profile.name}`}
+                aria-label={t.pinFor(profile.name)}
                 onClick={() => {
                   setView({ name: 'pin', profile });
                 }}
               >
-                {profile.pin ? 'Skift kode' : 'Kode'}
+                {profile.pin ? t.changePin : t.pin}
               </button>
               <button
                 type="button"
                 className="btn btn-quiet"
                 disabled={!mayLeave}
-                aria-label={`Fjern ${profile.name}`}
+                aria-label={t.remove(profile.name)}
                 onClick={() => {
                   setLeaving(profile);
                 }}
               >
-                Fjern
+                {t.removeShort}
               </button>
             </li>
           );
         })}
       </ul>
-      <p className="family-note">
-        En voksen med kode kan ikke vælges af børnene. Den sidste voksne bliver i familien, så længe
-        der er børn.
-      </p>
+      <p className="family-note">{t.familyNote}</p>
 
       {leaving && (
-        <div className="family-confirm" role="alertdialog" aria-label={`Fjern ${leaving.name}`}>
-          <p>Vil du fjerne {leaving.name} fra familien?</p>
+        <div className="family-confirm" role="alertdialog" aria-label={t.remove(leaving.name)}>
+          <p>{t.removeQuestion(leaving.name)}</p>
           <div className="family-actions">
             <button
               type="button"
@@ -115,7 +117,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
                 setLeaving(undefined);
               }}
             >
-              Annullér
+              {cancel}
             </button>
             <button
               type="button"
@@ -125,7 +127,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
                 setLeaving(undefined);
               }}
             >
-              Ja, fjern
+              {t.yesRemove}
             </button>
           </div>
         </div>
@@ -139,10 +141,10 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
             setView({ name: 'add' });
           }}
         >
-          Tilføj en i familien
+          {t.addToFamily}
         </button>
         <button type="button" className="btn btn-primary btn-block" onClick={onDone}>
-          Færdig
+          {t.done}
         </button>
       </div>
     </section>

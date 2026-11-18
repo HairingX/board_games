@@ -1,6 +1,8 @@
 import { lazy, type ComponentType, type CSSProperties, type ReactNode } from 'react';
 import type { Audience, Profile } from '../family/family';
+import { about as parkort, languages as parkortLanguages } from '../games/parkort/about';
 import { Emblem } from '../games/parkort/Emblem';
+import { locales, type Locale, type Translations } from '../i18n/locales';
 
 /** What a game is given when it starts. */
 export interface GameProps {
@@ -21,12 +23,22 @@ export interface Players {
   progress: 'sammen' | 'hver';
 }
 
+/** A game's name and a line on what it is, in one language. */
+export interface GameAbout {
+  title: string;
+  description: string;
+}
+
 /** A game the home screen offers. */
 export interface GameInfo {
   /** The game's part of the address, lowercase letters, digits and hyphens. */
   id: string;
-  title: string;
-  description: string;
+  about: Translations<GameAbout>;
+  /**
+   * The languages its own content, such as the questions on its cards, is written in. In any
+   * other language its screens are translated, and its tile says the content is not.
+   */
+  languages: readonly Locale[];
   /** What its tile shows beside the title. */
   icon: ReactNode;
   /** Who may play it; children never see grown-ups' games. */
@@ -71,8 +83,8 @@ export function gameTheme(game: GameInfo): CSSProperties {
 export const games: readonly GameInfo[] = [
   {
     id: 'parkort',
-    title: 'Parkort',
-    description: 'Spørgsmål der får jer til at snakke om det, der fylder.',
+    about: parkort,
+    languages: parkortLanguages,
     icon: <Emblem size={40} />,
     audience: 'voksne',
     players: { min: 2, max: 2, progress: 'sammen' },
@@ -82,8 +94,11 @@ export const games: readonly GameInfo[] = [
   },
   {
     id: 'regnespil',
-    title: 'Regnespil',
-    description: 'Plus, minus og gange på tid. Hvem er hurtigst?',
+    about: {
+      da: { title: 'Regnespil', description: 'Et eventyr, hvor regnestykker besejrer monstre.' },
+      en: { title: 'Sum Quest', description: 'An adventure where sums defeat monsters.' },
+    },
+    languages: locales,
     icon: '🧮',
     audience: 'børn',
     players: { min: 1, max: 6, progress: 'hver' },
@@ -91,8 +106,11 @@ export const games: readonly GameInfo[] = [
   },
   {
     id: 'koretur',
-    title: 'Quiz på køreturen',
-    description: 'Paratviden for hele bilen.',
+    about: {
+      da: { title: 'Quiz på køreturen', description: 'Paratviden for hele bilen.' },
+      en: { title: 'Road Trip Quiz', description: 'General knowledge for the whole car.' },
+    },
+    languages: ['da'],
     icon: '🚗',
     audience: 'alle',
     players: { min: 1, max: 6, progress: 'hver' },

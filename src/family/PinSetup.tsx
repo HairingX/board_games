@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useMessages } from '../i18n/I18n';
 import type { PinHash } from './family';
 import { hashPin } from './pin';
 import { PinPad } from './PinPad';
+import { familyText } from './text';
 
 interface Props {
   /** Whose code it is, said in the explanation. */
@@ -13,18 +15,15 @@ interface Props {
 
 /** Choosing a profile's code: typed twice, so a slip of the finger is caught; or none. */
 export function PinSetup({ name, onDone, onCancel }: Props) {
+  const t = useMessages(familyText);
   const [first, setFirst] = useState<string>();
   const [mismatch, setMismatch] = useState(false);
 
   return first === undefined ? (
     <PinPad
       key="first"
-      title={`Kode til ${name}`}
-      text={
-        mismatch
-          ? 'Koderne var ikke ens. Vælg koden igen.'
-          : `Koden skal tastes, når ${name} vælges på »Hvem spiller?«. Vælg fire cifre, som børnene ikke kender.`
-      }
+      title={t.pinFor(name)}
+      text={mismatch ? t.pinMismatch : t.pinWhy(name, t.whoIsPlaying)}
       onEnter={(pin) => {
         setFirst(pin);
         return true;
@@ -38,15 +37,15 @@ export function PinSetup({ name, onDone, onCancel }: Props) {
             onDone(null);
           }}
         >
-          Ingen kode
+          {t.noPin}
         </button>
       }
     />
   ) : (
     <PinPad
       key="again"
-      title="Skriv koden igen"
-      text="Tip: Med »Guidet adgang« på iPhone eller »Fastgør app« på Android kan børnene heller ikke forlade appen."
+      title={t.pinAgain}
+      text={t.pinTip}
       onEnter={async (pin) => {
         if (pin !== first) {
           setFirst(undefined);

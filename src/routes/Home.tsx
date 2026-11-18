@@ -1,10 +1,16 @@
 import type { CSSProperties } from 'react';
 import { appMeta } from '../appMeta';
 import { Avatar } from '../family/Avatar';
+import { familyText } from '../family/text';
+import { formatLanguages } from '../i18n/format';
+import { useLocale, useMessages } from '../i18n/I18n';
 import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
+import { common } from '../ui/text';
+import { LanguageChoice } from './LanguageChoice';
 import { SavedGames } from './SavedGames';
+import { appText } from './text';
 import './Home.css';
 
 interface Props {
@@ -24,39 +30,42 @@ interface Props {
  * ready. Children do not see how the games are saved and backed up.
  */
 export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Props) {
+  const t = useMessages(appText);
+  const { hello } = useMessages(common);
+  const { family } = useMessages(familyText);
   return (
     <>
       <div className="player">
         <Avatar profile={player} size="small" />
-        <span className="player-name">Hej, {player.name}</span>
+        <span className="player-name">{hello(player.name)}</span>
         <button type="button" className="btn btn-quiet" onClick={onSwitch}>
-          Skift spiller
+          {t.switchPlayer}
         </button>
       </div>
       {player.role === 'voksen' && (
         <button type="button" className="btn btn-ghost player-family" onClick={onManageFamily}>
-          Familien
+          {family}
         </button>
       )}
       {onUpdate && (
         <div className="update" role="status">
-          <span>Der er en ny version af {appMeta.name}.</span>
+          <span>{t.newVersion(appMeta.name)}</span>
           <button type="button" className="btn btn-primary" onClick={onUpdate}>
-            Opdatér
+            {t.update}
           </button>
         </div>
       )}
       <header className="home-header">
         <span className="badge">
           <span className="badge-dot" aria-hidden="true" />
-          Virker uden internet
+          {t.offline}
         </span>
         <h1 className="home-title">{appMeta.name}</h1>
-        <p>Små spil til sofaen, middagsbordet og køreturen.</p>
+        <p>{t.tagline}</p>
       </header>
 
       {games.length === 0 ? (
-        <p className="home-empty">Spillene er på vej.</p>
+        <p className="home-empty">{t.noGames}</p>
       ) : (
         <ul className="home-games">
           {games.map((game, index) => (
@@ -71,7 +80,7 @@ export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Prop
               ) : (
                 <div className="tile tile-soon" aria-disabled="true">
                   <TileContent game={game} />
-                  <span className="tile-pill">Kommer snart</span>
+                  <span className="tile-pill">{t.soon}</span>
                 </div>
               )}
             </li>
@@ -79,20 +88,33 @@ export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Prop
         </ul>
       )}
 
-      {player.role === 'voksen' && <SavedGames />}
+      {player.role === 'voksen' && (
+        <>
+          <LanguageChoice />
+          <SavedGames />
+        </>
+      )}
     </>
   );
 }
 
 function TileContent({ game }: { game: GameInfo }) {
+  const locale = useLocale();
+  const { title, description } = useMessages(game.about);
+  const { writtenIn } = useMessages(appText);
   return (
     <>
       <span className="tile-icon" aria-hidden="true">
         {game.icon}
       </span>
       <span className="tile-text">
-        <strong>{game.title}</strong>
-        <span>{game.description}</span>
+        <strong>{title}</strong>
+        <span>{description}</span>
+        {!game.languages.includes(locale) && (
+          <span className="tile-language">
+            {writtenIn(formatLanguages(locale, game.languages))}
+          </span>
+        )}
       </span>
     </>
   );

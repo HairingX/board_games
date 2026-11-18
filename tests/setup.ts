@@ -4,6 +4,7 @@ import { cleanup } from '@testing-library/react';
 import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
 import { familySaveKey } from '../src/family/FamilyContext';
+import { localeSaveKey } from '../src/i18n/I18n';
 import { saves } from '../src/lib/saves';
 
 MotionGlobalConfig.skipAnimations = true;
@@ -16,11 +17,15 @@ window.matchMedia = (query: string) =>
     onchange: null,
   }) as MediaQueryList;
 
+// jsdom's phone speaks American English; the tests are written for a Danish one.
+Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
+
 afterEach(async () => {
   cleanup();
   localStorage.clear();
   window.location.hash = '';
   await saves.remove(familySaveKey);
+  await saves.remove(localeSaveKey);
 });
 
 // The service worker is registered only in a built app; in tests no update is ever waiting.

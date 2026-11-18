@@ -4,11 +4,12 @@ import { far, mille, mor } from '../../tests/family';
 import type { GameInfo } from '../lib/games';
 import { ChoosePlayers } from './ChoosePlayers';
 import type { Family, Profile } from './family';
+import { about } from '../../tests/games';
 
 const together: GameInfo = {
   id: 'sammen',
-  title: 'Sammen',
-  description: '',
+  about: about('Sammen'),
+  languages: ['da', 'en'],
   icon: '',
   audience: 'voksne',
   players: { min: 2, max: 2, progress: 'sammen' },
@@ -18,7 +19,7 @@ const together: GameInfo = {
 const forAll: GameInfo = {
   ...together,
   id: 'alle',
-  title: 'Alle',
+  about: about('Alle'),
   audience: 'alle',
   players: { min: 1, max: 3, progress: 'hver' },
 };

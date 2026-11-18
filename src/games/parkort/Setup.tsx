@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { timeAgo } from '../../lib/time';
+import { timeAgo } from '../../i18n/format';
+import { useLocale, useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { common } from '../../ui/text';
+import { about } from './about';
 import { Emblem } from './Emblem';
 import { cards, categories, type CategoryId } from './cards';
 import {
@@ -12,6 +15,7 @@ import {
   type DeckState,
   type Mode,
 } from './deck';
+import { text } from './text';
 
 interface Props {
   deck: DeckState;
@@ -19,13 +23,14 @@ interface Props {
   onStart: () => void;
 }
 
-const modes: readonly { id: Mode; name: string }[] = [
-  { id: 'blandet', name: 'Blandet' },
-  { id: 'let-til-dyb', name: 'Let til dyb' },
-];
+const modes: readonly Mode[] = ['blandet', 'let-til-dyb'];
 
 /** Choosing categories and order, seeing how far you are, and starting over. */
 export function Setup({ deck, onChange, onStart }: Props) {
+  const locale = useLocale();
+  const t = useMessages(text);
+  const { cancel, start, countOf } = useMessages(common);
+  const { title } = useMessages(about);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [openedAt] = useState(Date.now);
   const { seen, later, total } = progress(deck, cards);
@@ -46,28 +51,22 @@ export function Setup({ deck, onChange, onStart }: Props) {
 
   return (
     <>
-      <GameHeader title="Parkort" />
+      <GameHeader title={title} />
 
       <section className="pk-hero">
         <span className="pk-hero-icon">
           <Emblem size={36} />
         </span>
-        <p>
-          Vend et kort, læs spørgsmålet højt, og svar begge to. Der er ingen rigtige svar – kun gode
-          samtaler.
-        </p>
+        <p>{t.intro}</p>
       </section>
 
-      <section className="pk-panel" aria-label="Fremskridt">
+      <section className="pk-panel" aria-label={t.progress}>
         <div className="pk-progress-text">
-          <strong>
-            {seen} af {total}
-          </strong>{' '}
-          kort snakket om
+          <strong>{countOf(seen, total)}</strong> {t.talkedAbout(total)}
         </div>
-        {later > 0 && <p className="pk-last">{later} kort venter til senere</p>}
+        {later > 0 && <p className="pk-last">{t.waiting(later)}</p>}
         {deck.playedAt !== null && (
-          <p className="pk-last">Sidst spillet {timeAgo(deck.playedAt, openedAt)}</p>
+          <p className="pk-last">{t.lastPlayed(timeAgo(locale, deck.playedAt, openedAt))}</p>
         )}
         <div
           className="pk-progress"
@@ -81,7 +80,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
       </section>
 
       <section className="pk-section">
-        <h2>Kategorier</h2>
+        <h2>{t.categories}</h2>
         <div className="pk-chips">
           {categories.map((category) => (
             <button
@@ -101,19 +100,19 @@ export function Setup({ deck, onChange, onStart }: Props) {
       </section>
 
       <section className="pk-section">
-        <h2>Rækkefølge</h2>
-        <div className="pk-segmented" role="radiogroup" aria-label="Rækkefølge">
+        <h2>{t.order}</h2>
+        <div className="segmented" role="radiogroup" aria-label={t.order}>
           {modes.map((mode) => (
             <button
-              key={mode.id}
+              key={mode}
               type="button"
               role="radio"
-              aria-checked={deck.mode === mode.id}
+              aria-checked={deck.mode === mode}
               onClick={() => {
-                onChange(choose(deck, { mode: mode.id }));
+                onChange(choose(deck, { mode }));
               }}
             >
-              {mode.name}
+              {t.modes[mode]}
             </button>
           ))}
         </div>
@@ -126,14 +125,14 @@ export function Setup({ deck, onChange, onStart }: Props) {
           disabled={deck.categories.length === 0}
           onClick={onStart}
         >
-          {started ? 'Fortsæt hvor I slap' : 'Start'}
+          {started ? t.carryOn : start}
         </button>
-        {deck.categories.length === 0 && <p className="pk-note">Vælg mindst én kategori.</p>}
+        {deck.categories.length === 0 && <p className="pk-note">{t.chooseOne}</p>}
 
         {started &&
           (confirmRestart ? (
-            <div className="pk-confirm" role="alertdialog" aria-label="Start forfra">
-              <p>Alle kort bliver blandet igen, og I starter fra første kort. Er I sikre?</p>
+            <div className="pk-confirm" role="alertdialog" aria-label={t.restart}>
+              <p>{t.restartQuestion}</p>
               <div className="pk-confirm-actions">
                 <button
                   type="button"
@@ -142,7 +141,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
                     setConfirmRestart(false);
                   }}
                 >
-                  Annullér
+                  {cancel}
                 </button>
                 <button
                   type="button"
@@ -152,7 +151,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
                     setConfirmRestart(false);
                   }}
                 >
-                  Ja, start forfra
+                  {t.yesRestart}
                 </button>
               </div>
             </div>
@@ -164,7 +163,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
                 setConfirmRestart(true);
               }}
             >
-              Start forfra
+              {t.restart}
             </button>
           ))}
       </div>

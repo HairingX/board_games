@@ -24,7 +24,7 @@ Progressive Web App, so every game works without a connection once it has been o
   in `src/ui/motion.ts`, the app's name, description and background colours in
   `src/appMeta.ts`, and each game's name and colours in `src/lib/games.ts`. Where best practice
   does not allow one place, say where the copy is and why.
-- The games' text is calm and kind.
+- The games' text is calm and kind, in every language.
 
 ## How it is set up on GitHub
 
@@ -101,6 +101,26 @@ game builds on them, and everything must stay smooth on a phone.
   and "Næste kort" goes forward through them again. Looking back changes nothing and is never
   saved: the game always reopens at the furthest card the couple reached. Changing the
   categories or order starts looking back afresh.
+
+## Languages
+
+- The app speaks Danish and English; more languages come later. `src/i18n/locales.ts` lists them.
+  It follows the phone's language until a grown-up chooses one on the home screen
+  (`src/routes/LanguageChoice.tsx`), saved on the phone under the key `sprog`; the page's `lang`
+  follows it. Children cannot change it.
+- Every text the app shows lives in a `text.ts` beside the screens that use it (`src/ui/text.ts`
+  for words every screen uses, `src/family/`, `src/routes/`, and each game's own). The Danish
+  messages set the shape, typed as `Translations<typeof da>`, so a message missing or with other
+  arguments in another language fails the type check. Components read them with
+  `useMessages(...)`; outside the provider, as in most component tests, the app speaks Danish.
+- Messages built from values are functions. Numbers, plurals, dates, relative times and language
+  names come from `src/i18n/format.ts`, which uses the browser's Intl; never `String(n)` in text.
+- A game's name and description are in `about` in `src/lib/games.tsx`, and `languages` says
+  which languages its own content is written in; in any other, its screens are translated and
+  its tile says the content is not. Parkort's questions, categories and levels are Danish only.
+- The manifest, the page's title and `src/appMeta.ts` stay Danish: a web app manifest has one
+  language. The app's name, Småspil, is the same in every language.
+- A test checks that every message says something and that the English ones hold no Danish.
 
 ## The family and players
 

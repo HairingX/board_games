@@ -1,5 +1,8 @@
 import { useId, useState } from 'react';
+import { useMessages } from '../i18n/I18n';
+import { common } from '../ui/text';
 import { answers, grownUpQuestion } from './pin';
+import { familyText } from './text';
 
 interface Props {
   onCorrect: () => void;
@@ -8,6 +11,8 @@ interface Props {
 
 /** For a grown-up who has forgotten the code: a sum too hard for the children. */
 export function ForgotPin({ onCorrect, onCancel }: Props) {
+  const t = useMessages(familyText);
+  const { cancel } = useMessages(common);
   const answerId = useId();
   const [question] = useState(() => grownUpQuestion());
   const [answer, setAnswer] = useState('');
@@ -22,13 +27,10 @@ export function ForgotPin({ onCorrect, onCancel }: Props) {
         else setWrong(true);
       }}
     >
-      <h1>Glemt koden?</h1>
-      <p className="pin-text">
-        Svar på regnestykket, så kan du komme ind og vælge en ny kode, næste gang et barn skal
-        spille.
-      </p>
+      <h1>{t.forgotPin}</h1>
+      <p className="pin-text">{t.forgotWhy}</p>
       <label htmlFor={answerId} className="forgot-question">
-        Hvad er {question.a} × {question.b}?
+        {t.forgotSum(question.a, question.b)}
       </label>
       <input
         id={answerId}
@@ -42,14 +44,14 @@ export function ForgotPin({ onCorrect, onCancel }: Props) {
         }}
       />
       <p className="pin-wrong" role="alert">
-        {wrong ? 'Det var ikke rigtigt. Prøv igen.' : ''}
+        {wrong ? t.wrongAnswer : ''}
       </p>
       <div className="family-actions">
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
-          Annullér
+          {cancel}
         </button>
         <button type="submit" className="btn btn-primary">
-          Svar
+          {t.answer}
         </button>
       </div>
     </form>

@@ -244,3 +244,45 @@ a {
 .btn-block {
   width: 100%;
 }
+
+/* A section of the home screen for grown-ups, such as the language or the saved games. */
+.panel {
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+}
+
+.panel h2 {
+  margin: 0 0 var(--space-3);
+  font-size: 1.15rem;
+}
+
+/* A choice of two or three, side by side, such as an order or a language. */
+.segmented {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-control);
+}
+
+.segmented button {
+  min-height: var(--touch);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--duration-press) ease;
+}
+
+.segmented button[aria-checked='true'] {
+  color: var(--on-game);
+  background: var(--game);
+}

@@ -126,32 +126,6 @@
   background: var(--game);
 }
 
-.pk-segmented {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-control);
-}
-
-.pk-segmented button {
-  min-height: var(--touch);
-  font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background var(--duration-press) ease;
-}
-
-.pk-segmented button[aria-checked='true'] {
-  color: var(--on-game);
-  background: var(--game);
-}
-
 .pk-footer {
   display: grid;
   gap: var(--space-3);

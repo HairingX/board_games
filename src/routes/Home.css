@@ -173,6 +173,15 @@ a.tile:active {
   opacity: 0.9;
 }
 
+/* Where the game's own content is in other languages than the app speaks. */
+.tile-text .tile-language {
+  font-family: var(--font-small-caps);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--game-accent);
+  opacity: 1;
+}
+
 .tile-pill {
   position: absolute;
   top: calc(var(--frame-inset) + var(--space-3));

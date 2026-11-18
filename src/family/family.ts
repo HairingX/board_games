@@ -5,16 +5,6 @@ export type Role = 'voksen' | 'barn';
 export const profileColors = ['plum', 'teal', 'terracotta', 'olive', 'ochre', 'slate'] as const;
 export type ProfileColor = (typeof profileColors)[number];
 
-/** Each colour's name, as a screen reader says it. */
-export const colorNames: Readonly<Record<ProfileColor, string>> = {
-  plum: 'Blomme',
-  teal: 'Petrol',
-  terracotta: 'Terrakotta',
-  olive: 'Oliven',
-  ochre: 'Okker',
-  slate: 'Skifer',
-};
-
 /** A four-digit code, kept only as a salted SHA-256 hash, both in hexadecimal. */
 export interface PinHash {
   salt: string;

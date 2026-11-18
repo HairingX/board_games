@@ -6,12 +6,15 @@ import { mayPlay, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { ManageFamily } from './family/ManageFamily';
 import { WhoIsPlaying } from './family/WhoIsPlaying';
+import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { moveSave, saves } from './lib/saves';
 import { parseGameId } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
 import { Home } from './routes/Home';
+import { appText } from './routes/text';
+import { common } from './ui/text';
 
 /**
  * The app: "Hvem spiller?" first, then the home screen, or the game the location's hash names.
@@ -20,9 +23,11 @@ import { Home } from './routes/Home';
 export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   return (
     <MotionConfig reducedMotion="user">
-      <FamilyProvider>
-        <Shell games={games} />
-      </FamilyProvider>
+      <I18nProvider>
+        <FamilyProvider>
+          <Shell games={games} />
+        </FamilyProvider>
+      </I18nProvider>
     </MotionConfig>
   );
 }
@@ -35,6 +40,7 @@ interface Session {
 }
 
 function Shell({ games }: { games: readonly GameInfo[] }) {
+  const t = useMessages(appText);
   const { family, current, save, leave } = useFamily();
   const [managing, setManaging] = useState(false);
   const [session, setSession] = useState<Session>();
@@ -101,8 +107,8 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
         : {})}
     />
   ) : game?.Screen ? (
-    <ErrorBoundary key={gameId} fallback={<Message text="Spillet kunne ikke hentes." />}>
-      <Suspense fallback={<p className="status">Henter spillet…</p>}>
+    <ErrorBoundary key={gameId} fallback={<Message text={t.loadFailed} />}>
+      <Suspense fallback={<p className="status">{t.loading}</p>}>
         <div className="game" style={gameTheme(game)}>
           {session?.gameId === game.id ? (
             <game.Screen players={session.players} saveKey={session.saveKey} />
@@ -129,16 +135,17 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       </Suspense>
     </ErrorBoundary>
   ) : (
-    <Message text="Det spil findes ikke." />
+    <Message text={t.noSuchGame} />
   );
 }
 
 function Message({ text }: { text: string }) {
+  const { backHome } = useMessages(common);
   return (
     <>
       <p className="status">{text}</p>
       <a className="status-link" href="#/">
-        Tilbage til forsiden
+        {backHome}
       </a>
     </>
   );
