@@ -1,29 +1,24 @@
 import js from '@eslint/js';
 import { defineConfig } from 'eslint/config';
-import svelte from 'eslint-plugin-svelte';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import ts from 'typescript-eslint';
-import svelteConfig from './svelte.config.js';
 
 export default defineConfig(
   { ignores: ['dist/', 'dev-dist/', 'coverage/', 'node_modules/'] },
   js.configs.recommended,
   ...ts.configs.strictTypeChecked,
-  ...svelte.configs.recommended,
+  reactHooks.configs.flat['recommended-latest'],
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
       parserOptions: {
         projectService: true,
-        extraFileExtensions: ['.svelte'],
         tsconfigRootDir: import.meta.dirname,
       },
     },
-  },
-  {
-    files: ['**/*.svelte', '**/*.svelte.ts'],
-    languageOptions: {
-      parserOptions: { parser: ts.parser, svelteConfig },
+    rules: {
+      'react-hooks/exhaustive-deps': 'error',
     },
   },
 );

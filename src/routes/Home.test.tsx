@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import FakeGame from '../../tests/fixtures/FakeGame';
 import { games, type GameInfo } from '../lib/games';
-import Home from './Home.svelte';
+import { Home } from './Home';
 
 const playable: GameInfo = {
   id: 'regnespil',
@@ -9,7 +10,7 @@ const playable: GameInfo = {
   description: 'Plus, minus og gange',
   icon: '🧮',
   colors: ['#22c55e', '#0ea5e9'],
-  load: () => import('../../tests/fixtures/FakeGame.svelte'),
+  Screen: FakeGame,
 };
 
 const upcoming: GameInfo = {
@@ -22,12 +23,12 @@ const upcoming: GameInfo = {
 
 describe('Home', () => {
   it('says the games are coming when there are none', () => {
-    render(Home, { games: [] });
+    render(<Home games={[]} />);
     expect(screen.getByText('Spillene er på vej.')).toBeInTheDocument();
   });
 
   it('links a playable game to its screen', () => {
-    render(Home, { games: [playable] });
+    render(<Home games={[playable]} />);
     const link = screen.getByRole('link', { name: /Regnespil/ });
     expect(link).toHaveAttribute('href', '#/spil/regnespil');
     expect(link).toHaveTextContent('Plus, minus og gange');
@@ -35,14 +36,14 @@ describe('Home', () => {
   });
 
   it('shows a game without a screen as coming soon, without a link', () => {
-    render(Home, { games: [upcoming] });
+    render(<Home games={[upcoming]} />);
     expect(screen.getByText('Parkort')).toBeInTheDocument();
     expect(screen.getByText('Kommer snart')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('shows every registered game', () => {
-    render(Home, { games });
+    render(<Home games={games} />);
     for (const game of games) {
       expect(screen.getByText(game.title)).toBeInTheDocument();
     }

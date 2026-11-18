@@ -1,0 +1,39 @@
+.game-header {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 56px;
+}
+
+.game-header-back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 50%;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 200ms var(--ease-spring);
+}
+
+.game-header-back:active {
+  transform: scale(0.9);
+}
+
+.game-header-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.game-header-aside {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

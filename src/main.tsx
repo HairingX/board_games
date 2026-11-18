@@ -1,6 +1,7 @@
-import { mount } from 'svelte';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
-import App from './App.svelte';
+import { App } from './App';
 import './app.css';
 
 registerSW({ immediate: true });
@@ -8,4 +9,8 @@ registerSW({ immediate: true });
 const target = document.getElementById('app');
 if (!target) throw new Error('The page has no #app element.');
 
-export default mount(App, { target });
+createRoot(target).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
