@@ -164,6 +164,11 @@ game builds on them, and everything must stay smooth on a phone.
   sheets of 16-pixel frames with walk, idle and attack animations, items, weapons, effects,
   tiles and interface, plus 42 minutes of music and 150 sounds converted to AAC (`.m4a`).
   Pixel art is drawn with `image-rendering: pixelated` at whole-number scales.
+- Reading aloud uses the phone's own voices through the Web Speech API (`src/lib/speech.ts`);
+  the app cannot fetch a voice. The home screen shows grown-ups the phone's voices for the
+  app's language, each with a sample to hear (`src/routes/ReadAloud.tsx`). Whether those voices
+  are good enough in Danish, or the story and tasks are recorded instead, is being tested with
+  the owner.
 
 ## Saving
 

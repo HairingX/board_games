@@ -10,6 +10,7 @@ import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { common } from '../ui/text';
 import { LanguageChoice } from './LanguageChoice';
+import { ReadAloud } from './ReadAloud';
 import { SavedGames } from './SavedGames';
 import { appText } from './text';
 import './Home.css';
@@ -101,6 +102,7 @@ export function Home({
       {player.role === 'voksen' && (
         <>
           <LanguageChoice onChange={onChangeLanguage} />
+          <ReadAloud />
           <SavedGames />
         </>
       )}
