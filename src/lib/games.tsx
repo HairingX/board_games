@@ -1,4 +1,5 @@
 import { lazy, type ComponentType, type CSSProperties, type ReactNode } from 'react';
+import type { Audience } from '../family/family';
 import { Emblem } from '../games/parkort/Emblem';
 
 /** A game the home screen offers. */
@@ -9,6 +10,8 @@ export interface GameInfo {
   description: string;
   /** What its tile shows beside the title. */
   icon: ReactNode;
+  /** Who may play it; children never see grown-ups' games. */
+  audience: Audience;
   /** The colour of its cards, and the colour of the fine lines on them. */
   colors: { card: string; accent: string };
   /**
@@ -34,6 +37,7 @@ export const games: readonly GameInfo[] = [
     title: 'Parkort',
     description: 'Spørgsmål der får jer til at snakke om det, der fylder.',
     icon: <Emblem size={40} />,
+    audience: 'voksne',
     colors: { card: '#3b2638', accent: '#c8a96b' },
     Screen: lazy(() => import('../games/parkort/Parkort')),
   },
@@ -42,6 +46,7 @@ export const games: readonly GameInfo[] = [
     title: 'Regnespil',
     description: 'Plus, minus og gange på tid. Hvem er hurtigst?',
     icon: '🧮',
+    audience: 'børn',
     colors: { card: '#1f4e5a', accent: '#e9c46a' },
   },
   {
@@ -49,6 +54,7 @@ export const games: readonly GameInfo[] = [
     title: 'Quiz på køreturen',
     description: 'Paratviden for hele bilen.',
     icon: '🚗',
+    audience: 'alle',
     colors: { card: '#9e4a30', accent: '#eed9b7' },
   },
 ];

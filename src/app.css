@@ -25,6 +25,14 @@
   --success: #5f8a4e;
   --success-halo: rgb(95 138 78 / 22%);
 
+  /* The colours a profile can have (profileColors in src/family/family.ts). */
+  --profile-plum: #6b3f63;
+  --profile-teal: #1f4e5a;
+  --profile-terracotta: #9e4a30;
+  --profile-olive: #5c6b2f;
+  --profile-ochre: #9a6a1e;
+  --profile-slate: #45546b;
+
   /* Printed cards are paper in both themes. */
   --paper: #f3ecdf;
   --paper-ink: #2a2230;

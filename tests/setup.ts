@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
+import { familySaveKey } from '../src/family/FamilyContext';
+import { saves } from '../src/lib/saves';
 
 MotionGlobalConfig.skipAnimations = true;
 
@@ -14,10 +16,11 @@ window.matchMedia = (query: string) =>
     onchange: null,
   }) as MediaQueryList;
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   localStorage.clear();
   window.location.hash = '';
+  await saves.remove(familySaveKey);
 });
 
 // The service worker is registered only in a built app; in tests no update is ever waiting.

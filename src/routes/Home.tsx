@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 import { appMeta } from '../appMeta';
+import { Avatar } from '../family/Avatar';
+import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { SavedGames } from './SavedGames';
@@ -7,14 +9,28 @@ import './Home.css';
 
 interface Props {
   games: readonly GameInfo[];
+  /** Who is playing. */
+  player: Profile;
+  /** Goes back to "Hvem spiller?". */
+  onSwitch: () => void;
   /** Loads the new version that is waiting; given only while one is. */
   onUpdate?: () => void;
 }
 
-/** The list of games, and a note when a new version of the app is ready. */
-export function Home({ games, onUpdate }: Props) {
+/**
+ * The games the player may play, who is playing, and a note when a new version of the app is
+ * ready. Children do not see how the games are saved and backed up.
+ */
+export function Home({ games, player, onSwitch, onUpdate }: Props) {
   return (
     <>
+      <div className="player">
+        <Avatar profile={player} size="small" />
+        <span className="player-name">Hej, {player.name}</span>
+        <button type="button" className="btn btn-quiet" onClick={onSwitch}>
+          Skift spiller
+        </button>
+      </div>
       {onUpdate && (
         <div className="update" role="status">
           <span>Der er en ny version af {appMeta.name}.</span>
@@ -56,7 +72,7 @@ export function Home({ games, onUpdate }: Props) {
         </ul>
       )}
 
-      <SavedGames />
+      {player.role === 'voksen' && <SavedGames />}
     </>
   );
 }
