@@ -97,7 +97,9 @@ game builds on them, and everything must stay smooth on a phone.
 ## The app shell
 
 - A new version never reloads the app by itself: it waits, and the home screen offers
-  "Opdatér" between games (`registerType: 'prompt'`).
+  "Opdatér" between games (`registerType: 'prompt'`). Browsers look for a new version only
+  when a page loads, and phones keep the app running, so the app asks itself each time it comes
+  back on screen and every hour (`src/lib/updates.ts`); the owner never has to close it.
 - A game keeps the screen on while it is played with `useWakeLock` (`src/lib/wakeLock.ts`).
 - The browser's install dialog is offered where there is one (`src/lib/install.ts`); elsewhere
   the home screen explains how to add the app. Browsers are never told apart by their name.

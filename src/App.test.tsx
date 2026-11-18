@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useRegisterSW } from 'virtual:pwa-register/react';
@@ -42,9 +42,33 @@ describe('App', () => {
       offlineReady: [false, vi.fn()],
       updateServiceWorker,
     });
+    Object.defineProperty(navigator, 'serviceWorker', {
+      configurable: true,
+      value: { controller: {} },
+    });
     render(<App />);
     screen.getByRole('button', { name: 'Opdatér' }).click();
     expect(updateServiceWorker).toHaveBeenCalledOnce();
+    Reflect.deleteProperty(navigator, 'serviceWorker');
+  });
+
+  it('asks the registered service worker for a new version when the app comes back', async () => {
+    const update = vi.fn(() => Promise.resolve());
+    vi.mocked(useRegisterSW).mockImplementationOnce((options) => {
+      setTimeout(() => {
+        options?.onRegisteredSW?.('sw.js', { update } as unknown as ServiceWorkerRegistration);
+      });
+      return {
+        needRefresh: [false, vi.fn()],
+        offlineReady: [false, vi.fn()],
+        updateServiceWorker: vi.fn(() => Promise.resolve()),
+      };
+    });
+    render(<App />);
+    await waitFor(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(update).toHaveBeenCalled();
+    });
   });
 
   it('loads a real game on demand', async () => {
