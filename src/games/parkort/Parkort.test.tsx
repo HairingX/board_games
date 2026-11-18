@@ -222,6 +222,32 @@ describe('Parkort play', () => {
     expect(screen.getByRole('button', { name: 'Forrige' })).toBeDisabled();
   });
 
+  it('goes back three cards and on again without turning them', async () => {
+    await save(deckStartingWith('os-to-1', 'os-to-2', 'os-to-3', 'os-to-4'));
+    await open();
+    click('Start');
+    for (let card = 0; card < 3; card++) {
+      click('Vend kortet');
+      click('Næste kort');
+    }
+    click('Forrige');
+    click('Forrige');
+    click('Forrige');
+    await expectSaved((deck) => {
+      expect(deck.flipped).toBe('os-to-1');
+    });
+
+    click('Næste kort');
+    click('Næste kort');
+    click('Næste kort');
+    await expectSaved((deck) => {
+      expect(deck.seen).toEqual(['os-to-1', 'os-to-2', 'os-to-3']);
+      expect(deck.flipped).toBeNull();
+      expect(deck.future).toEqual([]);
+    });
+    expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeEnabled();
+  });
+
   it('goes on when the card is thrown right, and back when thrown left', async () => {
     await save(deckStartingWith('os-to-1', 'os-to-2'));
     await open();

@@ -37,6 +37,7 @@ function firstVersion(state: DeckState): Partial<DeckState> {
   delete copy.playedAt;
   delete copy.later;
   delete copy.history;
+  delete copy.future;
   return copy;
 }
 
@@ -50,6 +51,7 @@ describe('newDeck', () => {
     expect(state.seen).toEqual([]);
     expect(state.later).toEqual([]);
     expect(state.history).toEqual([]);
+    expect(state.future).toEqual([]);
     expect(state.categories).toHaveLength(8);
     expect(state.mode).toBe('blandet');
     expect(hasStarted(state)).toBe(false);
@@ -148,6 +150,40 @@ describe('a round of play', () => {
     expect(state.seen).toEqual([]);
   });
 
+  it('goes on again through cards gone back past, as they lay, without turning them', () => {
+    let state = flip(deck(), 'a', 1);
+    state = markSeen(state, 'a');
+    state = flip(state, 'b', 2);
+    state = putOff(state, 'b');
+    state = flip(state, 'c', 3);
+    const where = state;
+
+    state = previous(previous(state));
+    expect(state.flipped).toBe('a');
+    expect(state.future).toHaveLength(2);
+
+    state = markSeen(state, 'a');
+    expect(state.flipped).toBe('b');
+    state = putOff(state, 'b');
+    expect(state).toEqual(where);
+  });
+
+  it('comes back face down to a card that lay face down', () => {
+    const back = previous(markSeen(deck(), 'a'));
+    const on = markSeen(back, 'a');
+    expect(on.flipped).toBeNull();
+    expect(on.future).toEqual([]);
+  });
+
+  it('starts a new way on when a card gone back to is put away differently', () => {
+    let state = markSeen(markSeen(deck(), 'a'), 'b');
+    state = previous(previous(state));
+    state = putOff(state, 'a');
+    expect(state.future).toEqual([]);
+    expect(state.flipped).toBeNull();
+    expect(next(state)).toBe('b');
+  });
+
   it('stays as it is when there is nothing to go back to', () => {
     const state = deck();
     expect(previous(state)).toBe(state);
@@ -160,6 +196,7 @@ describe('choose', () => {
     expect(state.categories).toEqual(['minder']);
     expect(state.mode).toBe('let-til-dyb');
     expect(state.history).toEqual([]);
+    expect(state.future).toEqual([]);
     expect(state.seen).toEqual(['a']);
   });
 });
@@ -188,6 +225,10 @@ describe('reconcile', () => {
         { id: 'gone', action: 'seen' },
         { id: 'a', action: 'seen' },
       ],
+      future: [
+        { step: { id: 'gone', action: 'seen' }, flipped: null },
+        { step: { id: 'c', action: 'seen' }, flipped: 'b' },
+      ],
       categories: ['minder', 'old' as 'minder'],
     });
     const state = reconcile(saved, testCards, keepOrder);
@@ -195,6 +236,7 @@ describe('reconcile', () => {
     expect(state.seen).toEqual(['a']);
     expect(state.later).toEqual(['c']);
     expect(state.history).toEqual([{ id: 'a', action: 'seen' }]);
+    expect(state.future).toEqual([{ step: { id: 'c', action: 'seen' }, flipped: 'b' }]);
     expect(state.categories).toEqual(['minder']);
   });
 });
@@ -220,6 +262,7 @@ describe('upgradeDeck and isDeckState', () => {
       playedAt: null,
       later: [],
       history: [],
+      future: [],
     });
   });
 
@@ -239,6 +282,10 @@ describe('upgradeDeck and isDeckState', () => {
     { ...newDeck(testCards), history: [{ id: 1, action: 'seen' }] },
     { ...newDeck(testCards), history: [{ id: 'a', action: 'gone' }] },
     { ...newDeck(testCards), history: [{ id: 'a', action: 'later', from: 'x' }] },
+    { ...newDeck(testCards), future: {} },
+    { ...newDeck(testCards), future: [null] },
+    { ...newDeck(testCards), future: [{ step: null, flipped: null }] },
+    { ...newDeck(testCards), future: [{ step: { id: 'a', action: 'seen' }, flipped: 1 }] },
   ])('refuses %j', (value) => {
     expect(upgradeDeck(value)).toBeUndefined();
     expect(isDeckState(value)).toBe(false);
@@ -250,6 +297,10 @@ describe('upgradeDeck and isDeckState', () => {
         { id: 'a', action: 'seen' },
         { id: 'b', action: 'later', from: null },
         { id: 'c', action: 'later', from: 0 },
+      ],
+      future: [
+        { step: { id: 'd', action: 'seen' }, flipped: null },
+        { step: { id: 'b', action: 'later', from: null }, flipped: 'd' },
       ],
     });
     expect(isDeckState(state)).toBe(true);
