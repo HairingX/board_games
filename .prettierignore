@@ -4,3 +4,7 @@ coverage/
 package-lock.json
 public/
 .github/rulesets/
+
+# Material from others is kept as it came, apart from our own notes.
+assets/*/
+!assets/inbox/

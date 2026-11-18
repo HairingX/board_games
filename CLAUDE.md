@@ -133,6 +133,11 @@ game builds on them, and everything must stay smooth on a phone.
 - The owner adds new material through `assets/inbox/` (uploaded on GitHub or with GitHub
   Desktop); it is checked, unpacked into its own folder and the inbox emptied again.
 - Only what a game imports is published; the build leaves the rest out.
+- `assets/ninja-adventure/`: the Ninja Adventure Asset Pack by Pixel-boy and AAA (CC0), the art
+  and sound for the math game's adventure: 95 heroes, 66 monsters and 20 bosses as sprite
+  sheets of 16-pixel frames with walk, idle and attack animations, items, weapons, effects,
+  tiles and interface, plus 42 minutes of music and 150 sounds converted to AAC (`.m4a`).
+  Pixel art is drawn with `image-rendering: pixelated` at whole-number scales.
 
 ## Saving
 
