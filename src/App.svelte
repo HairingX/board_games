@@ -18,9 +18,9 @@
 {#if gameId === undefined}
   <Home {games} />
 {:else}
-  {@const game = games.find((candidate) => candidate.id === gameId)}
-  {#if game}
-    {#await game.load()}
+  {@const load = games.find((candidate) => candidate.id === gameId)?.load}
+  {#if load}
+    {#await load()}
       <p class="status">Henter spillet…</p>
     {:then { default: Game }}
       <Game />

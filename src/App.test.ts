@@ -8,6 +8,7 @@ const fakeGame: GameInfo = {
   title: 'Testspil',
   description: 'Bruges kun i tests',
   icon: '🎲',
+  colors: ['#000', '#fff'],
   load: () => import('../tests/fixtures/FakeGame.svelte'),
 };
 

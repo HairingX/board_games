@@ -48,6 +48,20 @@ animation. Decide it with the owner before the game engine is built.
 - `.github/workflows/pages.yml` runs lint, type check, tests and build on every push and pull
   request, and publishes `dist/` to GitHub Pages from `main`.
 
+## Design
+
+The owner wants it to look and feel modern, like a polished app rather than a web page.
+
+- Light and dark themes follow the phone's setting; every colour is a custom property in
+  `src/app.css`, set for both themes.
+- Type: Bricolage Grotesque for headings, Plus Jakarta Sans for text, both bundled with
+  Fontsource so they work offline.
+- A soft, light background with faint colour glows; each game has its own two-colour gradient
+  (`colors` in `src/lib/games.ts`) on large, rounded tiles with frosted-glass details.
+- Motion is springy and quick: elements rise in, and anything tapped gives way under the
+  finger. `prefers-reduced-motion` turns it off.
+- Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
+
 ## Conventions
 
 - npm installs exactly what the committed `package-lock.json` locks: `npm ci`. The scripts the
