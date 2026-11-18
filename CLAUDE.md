@@ -11,8 +11,25 @@ Progressive Web App, so every game works without a connection once it has been o
   with" lines or footers in pull requests, issues or comments, no assistant names in branch
   names, files, code, comments or documentation. Commits are authored as the owner.
 
+## How it is built
+
+- Svelte 5 and TypeScript, bundled by Vite into one single-page app. `vite-plugin-pwa` makes it
+  installable and precaches every file, so all games work offline once the app has been opened.
+- The app is served from `/board_games/` (Vite's `base`). Screens are addressed by the location
+  hash (`#/spil/<id>`), so GitHub Pages needs no server-side routing.
+- Each game is registered in `src/lib/games.ts` and loaded on demand from its own module.
+- `.github/workflows/pages.yml` runs lint, type check, tests and build on every push and pull
+  request, and publishes `dist/` to GitHub Pages from `main`.
+
 ## Conventions
 
+- npm installs exactly what the committed `package-lock.json` locks: `npm ci`. The scripts the
+  workflow runs: `npm run lint` (eslint and prettier's check), `npm run typecheck`
+  (svelte-check, strict), `npm test` (vitest with jsdom) and `npm run build`.
+- TypeScript is strict and reports 0 errors, as does eslint: no `@ts-ignore`,
+  `@ts-expect-error`, `@ts-nocheck`, `eslint-disable` or `any`, and no rule turned off.
+- The tests cover every line, branch, function and statement under `src/` except `main.ts`;
+  vitest fails below 100%. Every problem found gets a test that fails without the fix.
 - All documentation, comments and commit messages are in English. The games' own text is in
   Danish.
 - No real IP addresses, hostnames, serial numbers, email addresses or credentials in tracked
