@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { far, mille, mor } from '../../tests/family';
 import {
   addProfile,
   mayPlay,
@@ -6,16 +7,22 @@ import {
   nextColor,
   removeProfile,
   reviveFamily,
+  setPin,
   type Profile,
 } from './family';
 
-const far: Profile = { id: 'far', name: 'Far', role: 'voksen', color: 'plum' };
-const mor: Profile = { id: 'mor', name: 'Mor', role: 'voksen', color: 'teal' };
-const mille: Profile = { id: 'mille', name: 'Mille', role: 'barn', color: 'ochre' };
+const pin = { salt: 's', hash: 'h' };
+
+/** A profile as the first version saved it, without its own code. */
+function firstVersion(profile: Profile): Partial<Profile> {
+  const copy: Partial<Profile> = { ...profile };
+  delete copy.pin;
+  return copy;
+}
 
 describe('family', () => {
-  it('starts with nobody, unlocked and without a code', () => {
-    expect(newFamily()).toEqual({ profiles: [], locked: false, pin: null });
+  it('starts with nobody', () => {
+    expect(newFamily()).toEqual({ profiles: [] });
   });
 
   it('lets children play games for children and for everyone, and grown-ups play all', () => {
@@ -35,6 +42,12 @@ describe('family', () => {
     expect(removeProfile(family, 'far').profiles).toEqual([]);
   });
 
+  it('sets and takes away one profile’s code', () => {
+    const family = setPin({ profiles: [far, mor] }, 'far', pin);
+    expect(family.profiles.map((p) => p.pin)).toEqual([pin, null]);
+    expect(setPin(family, 'far', null).profiles[0]?.pin).toBeNull();
+  });
+
   it('gives each new profile a colour no one has, then starts over', () => {
     let family = newFamily();
     expect(nextColor(family)).toBe('plum');
@@ -49,8 +62,19 @@ describe('family', () => {
 
 describe('reviveFamily', () => {
   it('keeps a saved family', () => {
-    const saved = { profiles: [far, mille], locked: true, pin: { salt: 's', hash: 'h' } };
+    const saved = { profiles: [{ ...far, pin }, mille] };
     expect(reviveFamily(saved)).toEqual(saved);
+  });
+
+  it('gives the grown-ups the family code the first version kept', () => {
+    const oldFar = firstVersion(far);
+    const oldMille = firstVersion(mille);
+    expect(reviveFamily({ profiles: [oldFar, oldMille], locked: true, pin })).toEqual({
+      profiles: [{ ...far, pin }, mille],
+    });
+    expect(reviveFamily({ profiles: [oldFar], locked: false, pin: null })).toEqual({
+      profiles: [far],
+    });
   });
 
   it.each([
@@ -58,16 +82,16 @@ describe('reviveFamily', () => {
     null,
     'text',
     {},
-    { profiles: 'x', locked: false, pin: null },
-    { profiles: [null], locked: false, pin: null },
-    { profiles: [{ ...far, id: 1 }], locked: false, pin: null },
-    { profiles: [{ ...far, name: 1 }], locked: false, pin: null },
-    { profiles: [{ ...far, role: 'konge' }], locked: false, pin: null },
-    { profiles: [{ ...far, color: 'pink' }], locked: false, pin: null },
-    { profiles: [], locked: 'yes', pin: null },
-    { profiles: [], locked: false, pin: 'abc' },
-    { profiles: [], locked: false, pin: { salt: 1, hash: 'h' } },
-    { profiles: [], locked: false, pin: { salt: 's', hash: 1 } },
+    { profiles: 'x' },
+    { profiles: [null] },
+    { profiles: [{ ...far, id: 1 }] },
+    { profiles: [{ ...far, name: 1 }] },
+    { profiles: [{ ...far, role: 'konge' }] },
+    { profiles: [{ ...far, color: 'pink' }] },
+    { profiles: [{ ...far, pin: 'abc' }] },
+    { profiles: [{ ...far, pin: { salt: 1, hash: 'h' } }] },
+    { profiles: [{ ...far, pin: { salt: 's', hash: 1 } }] },
+    { profiles: [], pin: 'abc' },
   ])('starts a new family from %j when it is not one', (value) => {
     expect(reviveFamily(value)).toEqual(newFamily());
   });

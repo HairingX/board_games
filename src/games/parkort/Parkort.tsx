@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { GameProps } from '../../lib/games';
 import { takeLegacy } from '../../lib/storage';
 import { useSaved } from '../../lib/useSaved';
 import { cards } from './cards';
@@ -6,9 +7,6 @@ import { newDeck, reconcile, upgradeDeck, type DeckState } from './deck';
 import { Play } from './Play';
 import { Setup } from './Setup';
 import './Parkort.css';
-
-/** Where the deck is saved. */
-export const saveKey = 'parkort';
 
 /** Where the first version kept the deck, in localStorage. */
 export const legacyKey = 'parkort/v1';
@@ -19,8 +17,11 @@ export function reviveDeck(saved: unknown): DeckState {
   return deck ? reconcile(deck, cards) : newDeck(cards);
 }
 
-/** Question cards for couples, remembering which cards have been talked about. */
-export default function Parkort() {
+/**
+ * Question cards for couples, remembering which cards the two players have talked about: each
+ * couple has its own deck.
+ */
+export default function Parkort({ saveKey }: GameProps) {
   const [deck, setDeck] = useSaved(saveKey, reviveDeck);
   const [playing, setPlaying] = useState(false);
 

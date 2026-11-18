@@ -42,6 +42,20 @@
   transition: transform var(--duration-press) var(--ease-spring);
 }
 
+.family-pick[aria-pressed='true'] {
+  border: 2px solid var(--game);
+  background: color-mix(in oklab, var(--game) 10%, var(--surface));
+}
+
+.family-pick:disabled {
+  opacity: 0.45;
+}
+
+.players-title {
+  margin: var(--space-6) 0 var(--space-2);
+  font-size: 1.8rem;
+}
+
 .family-pick:active {
   transform: scale(var(--press-scale));
 }
@@ -117,8 +131,15 @@
 }
 
 .family-row-name {
+  display: grid;
   flex: 1;
   font-weight: 600;
+}
+
+.family-row-name small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .family-confirm {

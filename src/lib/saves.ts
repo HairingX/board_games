@@ -70,3 +70,15 @@ export function openSaves(): Saves {
 
 /** The saves every game shares. */
 export const saves: Saves = openSaves();
+
+/**
+ * Moves the value saved under one key to another, unless there is already one there or nothing
+ * to move: so a save can move to a new key once, without overwriting.
+ */
+export async function moveSave(saves: Saves, from: string, to: string): Promise<void> {
+  if ((await saves.read(to)) !== undefined) return;
+  const value = await saves.read(from);
+  if (value === undefined) return;
+  await saves.write(to, value);
+  await saves.remove(from);
+}

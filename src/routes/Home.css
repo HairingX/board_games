@@ -5,6 +5,11 @@
   margin-top: var(--space-2);
 }
 
+.player-family {
+  min-height: var(--touch);
+  margin-top: var(--space-2);
+}
+
 .player-name {
   flex: 1;
   font-weight: 600;

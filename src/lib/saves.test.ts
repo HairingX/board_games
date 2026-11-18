@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { openSaves } from './saves';
+import { moveSave, openSaves } from './saves';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -31,5 +31,23 @@ describe('openSaves', () => {
     expect(await saves.entries()).toEqual([['spil', 1]]);
     await saves.remove('spil');
     expect(await saves.read('spil')).toBeUndefined();
+  });
+});
+
+describe('moveSave', () => {
+  it('moves a save once, never over one that is there, and not from nothing', async () => {
+    const saves = openSaves();
+    await saves.write('flyt/fra', 'gammel');
+    await moveSave(saves, 'flyt/fra', 'flyt/til');
+    expect(await saves.read('flyt/til')).toBe('gammel');
+    expect(await saves.read('flyt/fra')).toBeUndefined();
+
+    await saves.write('flyt/fra', 'ny');
+    await moveSave(saves, 'flyt/fra', 'flyt/til');
+    expect(await saves.read('flyt/til')).toBe('gammel');
+
+    await moveSave(saves, 'flyt/intet', 'flyt/andet');
+    expect(await saves.read('flyt/andet')).toBeUndefined();
+    for (const key of ['flyt/fra', 'flyt/til']) await saves.remove(key);
   });
 });

@@ -25,7 +25,7 @@ export function ProfileForm({ color: suggested, role: fixedRole, onSave, onCance
       className="profile-form"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave({ id: crypto.randomUUID(), name: trimmed, role, color });
+        onSave({ id: crypto.randomUUID(), name: trimmed, role, color, pin: null });
       }}
     >
       <label htmlFor={nameId}>Navn</label>

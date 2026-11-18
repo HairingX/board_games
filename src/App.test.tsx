@@ -2,10 +2,13 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { far, mille, playAs, seedFamily } from '../tests/family';
+import { far, mille, mor, playAs, seedFamily } from '../tests/family';
 import FakeGame from '../tests/fixtures/FakeGame';
 import { App } from './App';
+import { cards } from './games/parkort/cards';
+import { newDeck } from './games/parkort/deck';
 import type { GameInfo } from './lib/games';
+import { saves } from './lib/saves';
 
 const fakeGame: GameInfo = {
   id: 'testspil',
@@ -13,6 +16,7 @@ const fakeGame: GameInfo = {
   description: 'Bruges kun i tests',
   icon: '🎲',
   audience: 'alle',
+  players: { min: 1, max: 2, progress: 'hver' },
   colors: { card: '#000', accent: '#fff' },
   Screen: FakeGame,
 };
@@ -30,6 +34,10 @@ const brokenGame: GameInfo = {
   Screen: lazy(() => Promise.reject(new Error('offline'))),
 };
 
+const click = (name: string | RegExp) => {
+  fireEvent.click(screen.getByRole('button', { name }));
+};
+
 function goTo(hash: string): void {
   act(() => {
     window.location.hash = hash;
@@ -37,9 +45,9 @@ function goTo(hash: string): void {
   });
 }
 
-/** Renders the app with a family of Far and Mille, playing as the one named. */
+/** Renders the app with a family of Far, Mor and Mille, playing as the one named. */
 async function startAs(name: string, games?: readonly GameInfo[]): Promise<void> {
-  await seedFamily({ profiles: [far, mille], pin: { salt: 's', hash: 'h' } });
+  await seedFamily({ profiles: [far, mor, mille] });
   render(games ? <App games={games} /> : <App />);
   await playAs(name);
 }
@@ -62,8 +70,58 @@ describe('App', () => {
     expect(screen.getByText('Det spil findes ikke.')).toBeInTheDocument();
 
     goTo('#/');
-    fireEvent.click(screen.getByRole('button', { name: 'Skift spiller' }));
+    click('Skift spiller');
     expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
+  });
+
+  it('lets a grown-up look after the family from the home screen', async () => {
+    await startAs('Far');
+    click('Familien');
+    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+    click('Færdig');
+    expect(screen.getByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
+  });
+
+  it('asks who joins a game before it starts', async () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    await startAs('Far', [fakeGame]);
+
+    goTo('#/spil/testspil');
+    expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+    click(/^Mille/);
+    click('Start');
+    expect(await screen.findByText('Et testspil')).toBeInTheDocument();
+    goTo('#/spil/testspil');
+    expect(screen.getByText('Et testspil')).toBeInTheDocument();
+
+    goTo('#/');
+    expect(screen.getByRole('link', { name: /Testspil/ })).toBeInTheDocument();
+    goTo('#/spil/testspil');
+    expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
+  });
+
+  it('gives a couple the Parkort deck that was played before players were chosen', async () => {
+    await saves.write('parkort', { ...newDeck(cards), seen: ['os-to-1'] });
+    window.location.hash = '#/spil/parkort';
+    await startAs('Far');
+    click(/^Mor/);
+    click('Start');
+    expect(await screen.findByText(`1 af ${String(cards.length)}`)).toBeInTheDocument();
+    expect(await saves.read('parkort')).toBeUndefined();
+    expect(await saves.read('parkort/far+mor')).toMatchObject({ seen: ['os-to-1'] });
+    await saves.remove('parkort/far+mor');
+  });
+
+  it('starts the game even when the old save cannot be moved', async () => {
+    const read = vi.spyOn(saves, 'read');
+    window.location.hash = '#/spil/parkort';
+    await startAs('Far');
+    read.mockRejectedValueOnce(new Error('broken'));
+    click(/^Mor/);
+    click('Start');
+    expect(await screen.findByText(`0 af ${String(cards.length)}`)).toBeInTheDocument();
+    read.mockRestore();
   });
 
   it('offers a waiting new version on the home screen, and loads it when asked', async () => {
@@ -79,7 +137,7 @@ describe('App', () => {
       value: { controller: {} },
     });
     await startAs('Far');
-    screen.getByRole('button', { name: 'Opdatér' }).click();
+    click('Opdatér');
     expect(updateServiceWorker).toHaveBeenCalledOnce();
     Reflect.deleteProperty(navigator, 'serviceWorker');
     if (original) vi.mocked(useRegisterSW).mockImplementation(original);
@@ -104,28 +162,11 @@ describe('App', () => {
     });
   });
 
-  it('loads a real game on demand', async () => {
-    window.location.hash = '#/spil/parkort';
-    await startAs('Far');
-    expect(await screen.findByRole('heading', { name: 'Parkort' })).toBeInTheDocument();
-  });
-
-  it('opens a game when the hash names it, and returns home', async () => {
-    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
-    await startAs('Far', [fakeGame]);
-
-    goTo('#/spil/testspil');
-    expect(screen.getByText('Et testspil')).toBeInTheDocument();
-    expect(scrollTo).toHaveBeenCalledWith(0, 0);
-
-    goTo('#/');
-    expect(screen.getByRole('link', { name: /Testspil/ })).toBeInTheDocument();
-  });
-
   it('says so when a game cannot be loaded', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     window.location.hash = '#/spil/i-stykker';
     await startAs('Far', [brokenGame]);
+    click('Start');
     expect(await screen.findByText('Spillet kunne ikke hentes.')).toBeInTheDocument();
   });
 

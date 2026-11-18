@@ -7,13 +7,8 @@ interface FamilyApi {
   /** Who is playing now; undefined while "Hvem spiller?" is shown. */
   current: Profile | undefined;
   save: (family: Family) => void;
-  /**
-   * Plays as the profile; a child locks the app, so grown-ups need the code to get back. Give
-   * the family when it has just changed and is not saved yet.
-   */
-  choose: (profile: Profile, family?: Family) => void;
-  /** Plays as a grown-up once the code is given, unlocking the app. */
-  unlock: (profile: Profile, family?: Family) => void;
+  /** Shows the home screen for the profile, once its code, if it has one, is given. */
+  choose: (profile: Profile) => void;
   /** Goes back to "Hvem spiller?". */
   leave: () => void;
 }
@@ -23,7 +18,10 @@ const FamilyContext = createContext<FamilyApi | undefined>(undefined);
 /** Where the family is saved on the phone. */
 export const familySaveKey = 'familie';
 
-/** The family on this phone and who is playing; "Hvem spiller?" is asked at every start. */
+/**
+ * The family on this phone and who is on the home screen; "Hvem spiller?" is asked at every
+ * start. Who is on the home screen decides which games are offered.
+ */
 export function FamilyProvider({ children }: { children: ReactNode }) {
   const [family, save] = useSaved(familySaveKey, reviveFamily);
   const [current, setCurrent] = useState<Profile>();
@@ -33,12 +31,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     family,
     current,
     save,
-    choose(profile, from = family) {
-      if (profile.role === 'barn') save({ ...from, locked: true });
-      setCurrent(profile);
-    },
-    unlock(profile, from = family) {
-      save({ ...from, locked: false });
+    choose(profile) {
       setCurrent(profile);
     },
     leave() {

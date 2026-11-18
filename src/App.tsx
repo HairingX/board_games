@@ -1,11 +1,14 @@
 import { MotionConfig } from 'motion/react';
 import { Suspense, useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { mayPlay } from './family/family';
+import { ChoosePlayers } from './family/ChoosePlayers';
+import { mayPlay, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
+import { ManageFamily } from './family/ManageFamily';
 import { WhoIsPlaying } from './family/WhoIsPlaying';
 import { ErrorBoundary } from './ui/ErrorBoundary';
-import { games as allGames, gameTheme, type GameInfo } from './lib/games';
+import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
+import { moveSave, saves } from './lib/saves';
 import { parseGameId } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
 import { Home } from './routes/Home';
@@ -24,8 +27,17 @@ export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   );
 }
 
+/** A game being played: who plays it and where it saves. */
+interface Session {
+  gameId: string;
+  players: Profile[];
+  saveKey: string;
+}
+
 function Shell({ games }: { games: readonly GameInfo[] }) {
-  const { current, leave } = useFamily();
+  const { family, current, save, leave } = useFamily();
+  const [managing, setManaging] = useState(false);
+  const [session, setSession] = useState<Session>();
   const [gameId, setGameId] = useState(() => parseGameId(window.location.hash));
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
   const {
@@ -40,7 +52,10 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
 
   useEffect(() => {
     function onHashChange(): void {
-      setGameId(parseGameId(window.location.hash));
+      const next = parseGameId(window.location.hash);
+      setGameId(next);
+      // The players are chosen again only when another game opens, not when the same is named.
+      setSession((playing) => (playing?.gameId === next ? playing : undefined));
       window.scrollTo(0, 0);
     }
     window.addEventListener('hashchange', onHashChange);
@@ -50,6 +65,18 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   }, []);
 
   if (!current) return <WhoIsPlaying />;
+  if (managing) {
+    return (
+      <ManageFamily
+        family={family}
+        current={current}
+        onChange={save}
+        onDone={() => {
+          setManaging(false);
+        }}
+      />
+    );
+  }
   const playable = games.filter((candidate) => mayPlay(current.role, candidate.audience));
   const game = playable.find((candidate) => candidate.id === gameId);
 
@@ -58,6 +85,9 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       games={playable}
       player={current}
       onSwitch={leave}
+      onManageFamily={() => {
+        setManaging(true);
+      }}
       {...(updateWaiting
         ? {
             onUpdate: () => {
@@ -74,7 +104,27 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     <ErrorBoundary key={gameId} fallback={<Message text="Spillet kunne ikke hentes." />}>
       <Suspense fallback={<p className="status">Henter spillet…</p>}>
         <div className="game" style={gameTheme(game)}>
-          <game.Screen />
+          {session?.gameId === game.id ? (
+            <game.Screen players={session.players} saveKey={session.saveKey} />
+          ) : (
+            <ChoosePlayers
+              game={game}
+              family={family}
+              current={current}
+              onChange={save}
+              onStart={(players) => {
+                const saveKey = gameSaveKey(game, players);
+                const moved = game.formerSaveKey
+                  ? moveSave(saves, game.formerSaveKey, saveKey)
+                  : Promise.resolve();
+                void moved
+                  .catch(() => undefined)
+                  .then(() => {
+                    setSession({ gameId: game.id, players, saveKey });
+                  });
+              }}
+            />
+          )}
         </div>
       </Suspense>
     </ErrorBoundary>

@@ -4,29 +4,43 @@ import { hashPin } from './pin';
 import { PinPad } from './PinPad';
 
 interface Props {
-  onDone: (pin: PinHash) => void;
+  /** Whose code it is, said in the explanation. */
+  name: string;
+  /** Called with the new code, or with null when the profile is to have none. */
+  onDone: (pin: PinHash | null) => void;
   onCancel: () => void;
 }
 
-/** Choosing the code: typed twice, so a slip of the finger is caught. */
-export function PinSetup({ onDone, onCancel }: Props) {
+/** Choosing a profile's code: typed twice, so a slip of the finger is caught; or none. */
+export function PinSetup({ name, onDone, onCancel }: Props) {
   const [first, setFirst] = useState<string>();
   const [mismatch, setMismatch] = useState(false);
 
   return first === undefined ? (
     <PinPad
       key="first"
-      title="Vælg en kode"
+      title={`Kode til ${name}`}
       text={
         mismatch
           ? 'Koderne var ikke ens. Vælg koden igen.'
-          : 'Når et barn spiller, skal de voksne bruge koden for at komme tilbage. Vælg fire cifre, som børnene ikke kender.'
+          : `Koden skal tastes, når ${name} vælges på »Hvem spiller?«. Vælg fire cifre, som børnene ikke kender.`
       }
       onEnter={(pin) => {
         setFirst(pin);
         return true;
       }}
       onCancel={onCancel}
+      footer={
+        <button
+          type="button"
+          className="btn btn-quiet btn-block"
+          onClick={() => {
+            onDone(null);
+          }}
+        >
+          Ingen kode
+        </button>
+      }
     />
   ) : (
     <PinPad

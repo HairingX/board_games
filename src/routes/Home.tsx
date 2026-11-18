@@ -13,6 +13,8 @@ interface Props {
   player: Profile;
   /** Goes back to "Hvem spiller?". */
   onSwitch: () => void;
+  /** Opens the family's profiles; offered to grown-ups only. */
+  onManageFamily: () => void;
   /** Loads the new version that is waiting; given only while one is. */
   onUpdate?: () => void;
 }
@@ -21,7 +23,7 @@ interface Props {
  * The games the player may play, who is playing, and a note when a new version of the app is
  * ready. Children do not see how the games are saved and backed up.
  */
-export function Home({ games, player, onSwitch, onUpdate }: Props) {
+export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Props) {
   return (
     <>
       <div className="player">
@@ -31,6 +33,11 @@ export function Home({ games, player, onSwitch, onUpdate }: Props) {
           Skift spiller
         </button>
       </div>
+      {player.role === 'voksen' && (
+        <button type="button" className="btn btn-ghost player-family" onClick={onManageFamily}>
+          Familien
+        </button>
+      )}
       {onUpdate && (
         <div className="update" role="status">
           <span>Der er en ny version af {appMeta.name}.</span>

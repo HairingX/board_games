@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { appMeta } from '../appMeta';
 import { Avatar } from './Avatar';
-import { addProfile, nextColor, type Family, type PinHash, type Profile } from './family';
+import { addProfile, nextColor, setPin, type Family, type PinHash, type Profile } from './family';
 import { useFamily } from './FamilyContext';
 import { ForgotPin } from './ForgotPin';
-import { ManageFamily } from './ManageFamily';
 import { pinMatches } from './pin';
 import { PinPad } from './PinPad';
 import { PinSetup } from './PinSetup';
@@ -13,66 +12,39 @@ import './family.css';
 
 type View =
   | { name: 'list' }
-  | { name: 'add' }
-  | { name: 'manage' }
-  | { name: 'set-pin'; then: (pin: PinHash) => void }
   | { name: 'enter-pin'; profile: Profile; pin: PinHash }
-  | { name: 'forgot'; profile: Profile };
+  | { name: 'forgot'; profile: Profile }
+  | { name: 'new-pin'; profile: Profile; family: Family };
 
 const list: View = { name: 'list' };
 
 /**
- * "Hvem spiller?", asked at every start. A child goes straight in and locks the app; while it
- * is locked, a grown-up needs the code. The family is set up and changed here, unlocked only.
+ * "Hvem spiller?", asked at every start. A profile with a code needs it, so children cannot
+ * choose a grown-up. The first time, the first grown-up is made here; the rest of the family is
+ * added by a grown-up from the home screen.
  */
 export function WhoIsPlaying() {
-  const { family, save, choose, unlock } = useFamily();
+  const { family, save, choose } = useFamily();
   const [view, setView] = useState<View>(list);
   const back = () => {
     setView(list);
   };
 
-  function pick(profile: Profile): void {
-    if (profile.role === 'voksen' && family.locked && family.pin) {
-      setView({ name: 'enter-pin', profile, pin: family.pin });
-    } else if (profile.role === 'barn' && !family.pin) {
-      setView({
-        name: 'set-pin',
-        then: (pin) => {
-          choose(profile, { ...family, pin });
-        },
-      });
-    } else {
-      choose(profile);
-    }
-  }
-
-  function add(profile: Profile): void {
-    if (profile.role === 'barn' && !family.pin) {
-      setView({
-        name: 'set-pin',
-        then: (pin) => {
-          save(addProfile({ ...family, pin }, profile));
-          back();
-        },
-      });
-    } else {
-      save(addProfile(family, profile));
-      back();
-    }
+  /** Saves the family with the profile's new code, or none, and goes in as the profile. */
+  function enterWith(profile: Profile, from: Family, pin: PinHash | null): void {
+    save(setPin(from, profile.id, pin));
+    choose({ ...profile, pin });
   }
 
   switch (view.name) {
-    case 'set-pin':
-      return <PinSetup onDone={view.then} onCancel={back} />;
     case 'enter-pin':
       return (
         <PinPad
-          title="Skriv koden"
-          text={`Koden skal til for at spille som ${view.profile.name}.`}
+          title={`Hej, ${view.profile.name}`}
+          text="Skriv din kode."
           onEnter={async (pin) => {
             const right = await pinMatches(pin, view.pin);
-            if (right) unlock(view.profile);
+            if (right) choose(view.profile);
             return right;
           }}
           onCancel={back}
@@ -93,99 +65,83 @@ export function WhoIsPlaying() {
       return (
         <ForgotPin
           onCorrect={() => {
-            unlock(view.profile, { ...family, pin: null });
+            setView({ name: 'new-pin', profile: view.profile, family });
           }}
           onCancel={back}
         />
       );
-    case 'manage':
+    case 'new-pin':
       return (
-        <ManageFamily
-          family={family}
-          onChange={save}
-          onChangePin={() => {
-            setView({
-              name: 'set-pin',
-              then: (pin) => {
-                save({ ...family, pin });
-                setView({ name: 'manage' });
-              },
-            });
+        <PinSetup
+          name={view.profile.name}
+          onDone={(pin) => {
+            enterWith(view.profile, view.family, pin);
           }}
-          onDone={back}
+          onCancel={back}
         />
-      );
-    case 'add':
-      return (
-        <section className="family">
-          <h1>Ny i familien</h1>
-          <ProfileForm color={nextColor(family)} onSave={add} onCancel={back} />
-        </section>
       );
     case 'list':
       return family.profiles.length === 0 ? (
-        <section className="family">
-          <h1>Velkommen til {appMeta.name}</h1>
-          <p className="family-intro">
-            Først et par ord om dig. Bagefter kan du tilføje resten af familien, også børnene.
-          </p>
-          <ProfileForm color={nextColor(family)} role="voksen" onSave={add} />
-        </section>
-      ) : (
-        <PickProfile
+        <FirstGrownUp
           family={family}
-          onPick={pick}
-          onAdd={() => {
-            setView({ name: 'add' });
-          }}
-          onManage={() => {
-            setView({ name: 'manage' });
+          onDone={(profile, from) => {
+            enterWith(profile, from, profile.pin);
           }}
         />
+      ) : (
+        <section className="family">
+          <h1>Hvem spiller?</h1>
+          <ul className="family-grid">
+            {family.profiles.map((profile) => (
+              <li key={profile.id}>
+                <button
+                  type="button"
+                  className="family-pick"
+                  onClick={() => {
+                    if (profile.pin) setView({ name: 'enter-pin', profile, pin: profile.pin });
+                    else choose(profile);
+                  }}
+                >
+                  <Avatar profile={profile} />
+                  <span className="family-pick-name">{profile.name}</span>
+                  {profile.pin && <span className="family-pick-lock">Kode</span>}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       );
   }
 }
 
-interface PickProps {
+/** The first time: the first grown-up, and their code. */
+function FirstGrownUp({
+  family,
+  onDone,
+}: {
   family: Family;
-  onPick: (profile: Profile) => void;
-  onAdd: () => void;
-  onManage: () => void;
-}
+  onDone: (profile: Profile, family: Family) => void;
+}) {
+  const [made, setMade] = useState<Profile>();
 
-function PickProfile({ family, onPick, onAdd, onManage }: PickProps) {
-  return (
+  return made ? (
+    <PinSetup
+      name={made.name}
+      onDone={(pin) => {
+        const profile = { ...made, pin };
+        onDone(profile, addProfile(family, profile));
+      }}
+      onCancel={() => {
+        setMade(undefined);
+      }}
+    />
+  ) : (
     <section className="family">
-      <h1>Hvem spiller?</h1>
-      <ul className="family-grid">
-        {family.profiles.map((profile) => (
-          <li key={profile.id}>
-            <button
-              type="button"
-              className="family-pick"
-              onClick={() => {
-                onPick(profile);
-              }}
-            >
-              <Avatar profile={profile} />
-              <span className="family-pick-name">{profile.name}</span>
-              {profile.role === 'voksen' && family.locked && family.pin && (
-                <span className="family-pick-lock">Kode</span>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
-      {!family.locked && (
-        <div className="family-footer">
-          <button type="button" className="btn btn-ghost btn-block" onClick={onAdd}>
-            Tilføj en i familien
-          </button>
-          <button type="button" className="btn btn-quiet btn-block" onClick={onManage}>
-            Rediger familien
-          </button>
-        </div>
-      )}
+      <h1>Velkommen til {appMeta.name}</h1>
+      <p className="family-intro">
+        Først et par ord om dig. Bagefter kan du tilføje resten af familien, også børnene.
+      </p>
+      <ProfileForm color={nextColor(family)} role="voksen" onSave={setMade} />
     </section>
   );
 }

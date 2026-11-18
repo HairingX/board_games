@@ -4,7 +4,10 @@ import { saves } from '../../lib/saves';
 import { drag } from '../../../tests/drag';
 import { cards, type CategoryId } from './cards';
 import { newDeck, type DeckState } from './deck';
-import Parkort, { legacyKey, reviveDeck, saveKey } from './Parkort';
+import { far, mor } from '../../../tests/family';
+import Parkort, { legacyKey, reviveDeck } from './Parkort';
+
+const saveKey = 'parkort/test';
 
 afterEach(async () => {
   await saves.remove(saveKey);
@@ -30,7 +33,7 @@ const click = (name: string | RegExp) => {
 };
 
 async function open(): Promise<void> {
-  render(<Parkort />);
+  render(<Parkort players={[far, mor]} saveKey={saveKey} />);
   await screen.findByRole('heading', { name: 'Parkort' });
 }
 
@@ -234,7 +237,7 @@ describe('Parkort play', () => {
 
   it('reopens at the furthest card even after looking back', async () => {
     await save(deckStartingWith('os-to-1', 'os-to-2'));
-    const { unmount } = render(<Parkort />);
+    const { unmount } = render(<Parkort players={[far, mor]} saveKey={saveKey} />);
     await screen.findByRole('heading', { name: 'Parkort' });
     click('Start');
     click('Vend kortet');
@@ -332,7 +335,7 @@ describe('Parkort play', () => {
 
   it('shows the cards underneath only while there are any', async () => {
     await save({ ...newDeck(cards), categories: ['minder'], seen: minder.slice(2) });
-    const { container } = render(<Parkort />);
+    const { container } = render(<Parkort players={[far, mor]} saveKey={saveKey} />);
     await screen.findByRole('heading', { name: 'Parkort' });
     act(() => {
       click('Fortsæt hvor I slap');

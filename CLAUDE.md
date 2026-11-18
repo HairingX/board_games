@@ -81,23 +81,28 @@ game builds on them, and everything must stay smooth on a phone.
   saved: the game always reopens at the furthest card the couple reached. Changing the
   categories or order starts looking back afresh.
 
-## The family and children
+## The family and players
 
 - "Hvem spiller?" (`src/family/WhoIsPlaying.tsx`) is asked at every start. The family is saved
-  on the phone (`src/family/family.ts`, under the key `familie`); who is playing is not.
-- Each profile is a grown-up or a child. Each game says who may play it (`audience` in
-  `src/lib/games.tsx`: `voksne`, `børn` or `alle`); children see and open only games for
-  children and everyone, and never the saves and backups on the home screen. Parkort is for
-  grown-ups, and its progress is shared by the grown-ups.
-- Choosing a child locks the app, and it stays locked after closing; while locked, a grown-up
-  needs the four-digit code, chosen when the first child is added. The code is kept only as a
-  salted hash. "Glemt koden?" lets a grown-up in with a sum too hard for children, and a new
-  code is chosen the next time a child plays.
-- The lock works inside the app only; the app tells the owner about the phone's own Guided
-  Access (iPhone) and app pinning (Android), which keep children in the app.
-- Games for children save per player, so each child has their own progress, and show who is
-  playing with a way to switch player between rounds. That comes with the first children's
-  game.
+  on the phone (`src/family/family.ts`, under the key `familie`); who is on the home screen is
+  not. The first time, the first grown-up is made there.
+- Each profile is a grown-up or a child and may have its own four-digit code, asked for when it
+  is chosen on "Hvem spiller?", so children cannot choose a grown-up with a code. A code is kept
+  only as a salted hash. "Glemt koden?" lets someone in with a sum too hard for children and a
+  new code, or none.
+- Who is on the home screen decides what is offered. Each game says who may play it
+  (`audience` in `src/lib/games.tsx`: `voksne`, `børn` or `alle`); children see and open only
+  games for children and everyone, and never the family, the saves or the backups. Grown-ups
+  look after the family from the home screen (`src/family/ManageFamily.tsx`).
+- Before a game, "Hvem er med?" (`src/family/ChoosePlayers.tsx`) chooses its players from the
+  family, without codes, within the game's `players.min` and `players.max`; someone new can be
+  added there, but a child can add only children, so no one gets a grown-up's profile that way.
+- A game's progress belongs either to the group (`players.progress: 'sammen'`), saved under
+  one key per group whatever the order (`gameSaveKey`), or to each player (`'hver'`), saved
+  under `playerSaveKey`. Parkort is for two grown-ups and saved per couple; the deck saved
+  before players were chosen went to the first couple to play (`formerSaveKey`).
+- The lock works inside the app only; the code screen tells the owner about the phone's own
+  Guided Access (iPhone) and app pinning (Android), which keep children in the app.
 
 ## Saving
 
