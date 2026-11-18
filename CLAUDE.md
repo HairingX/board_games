@@ -46,11 +46,24 @@ game builds on them, and everything must stay smooth on a phone.
    higher grades mix operations in one expression and add fractions, powers and parentheses.
    Every task has three answers to choose from, the wrong ones made from typical mistakes.
    Points and time per answer, so children can compete, with a winner at the end.
-3. Shared engine as games need it: a setup screen, presets such as Arkade, Party and Rolig, a
+3. A turn engine, shared by every turn-based game and built with the first one (the math
+   game), so it is never unused:
+   - One player is active at a time; "Færdig" passes the turn to the next, who becomes active.
+   - Everything is drawn from the active player's point of view: their own hidden things (such
+     as a hand of cards) face up, other players' face down or as a count, and the table for all.
+   - Between turns: a game with hidden things always shows a cover, "Giv telefonen til <navn>",
+     until that player taps "Jeg har fået den – vis mine kort"; a player who gets the phone
+     without the cover knows someone looked. An open game (Ludo, the math game) shows a light
+     "Nu er det <navn>s tur".
+   - In board games each player has a seat, and the board turns with a gentle animation to
+     face the active player.
+   - The game is saved after every move; a game with hidden things always reopens on the cover.
+   - The cover stops accidents and easy peeking, not a determined cheat at the same table.
+4. Shared engine as games need it: a setup screen, presets such as Arkade, Party and Rolig, a
    school grade that picks the settings, players and their names, turns, points, a timer and a
    winner screen.
-4. Trivia for the car.
-5. A separate, more intimate card game for couples. It never mixes with Parkort, and nothing
+5. Trivia for the car.
+6. A separate, more intimate card game for couples. It never mixes with Parkort, and nothing
    about it may be reachable by the children; how it is kept apart is decided with the owner.
 
 ## Parkort
