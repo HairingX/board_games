@@ -41,11 +41,19 @@ from square to square (such as Ludo). Shared pieces go in `src/ui/` and `src/lib
 game builds on them, and everything must stay smooth on a phone.
 
 1. Done: Parkort, question cards for couples (`src/games/parkort/`).
-2. Next: a math game. The tasks are generated, never stored: the operations (plus, minus,
-   times, division), the range of the numbers and the school grade are chosen in setup, and the
-   higher grades mix operations in one expression and add fractions, powers and parentheses.
-   Every task has three answers to choose from, the wrong ones made from typical mistakes.
-   Points and time per answer, so children can compete, with a winner at the end.
+2. Next: a math game, "Regnespil", for one child alone or several taking turns.
+   - Difficulty is set as a level, not a school grade; each level says roughly which grade
+     ("ca. 2. klasse") as guidance only, based on what Danish schools teach when.
+   - A level decides what the tasks hold (operations, number ranges, and for the higher levels
+     mixed operations, parentheses, fractions and powers); "Tilpas" turns parts on or off for
+     one child, such as no powers or parentheses.
+   - Each child's level and adjustments are saved on their profile, and they continue there next
+     time. Children playing together each get tasks at their own level on their turn.
+   - Tasks are generated, never stored, and come in short rounds; each answer shows at once
+     whether it was right. Every task has three answers to choose from, the wrong ones made from
+     typical mistakes.
+   - How time, rounds, rewards and moving between levels are used follows research on what
+     motivates children without making them anxious, and is decided with the owner.
 3. A turn engine, shared by every turn-based game and built with the first one (the math
    game), so it is never unused:
    - One player is active at a time; "Færdig" passes the turn to the next, who becomes active.
