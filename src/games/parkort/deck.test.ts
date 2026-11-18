@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { QuestionCard } from './cards';
 import {
+  flip,
   isDeckState,
   markSeen,
   newDeck,
@@ -9,10 +10,19 @@ import {
   remaining,
   restart,
   skip,
+  upgradeDeck,
   type DeckState,
 } from './deck';
 
 const keepOrder = () => 0.999;
+
+/** The deck as the first version saved it, without the face-up card and time. */
+function firstVersion(state: DeckState): Partial<DeckState> {
+  const copy: Partial<DeckState> = { ...state };
+  delete copy.flipped;
+  delete copy.playedAt;
+  return copy;
+}
 
 const testCards: QuestionCard[] = [
   { id: 'a', category: 'os-to', level: 3, text: 'A?' },
@@ -61,15 +71,22 @@ describe('progress', () => {
   });
 });
 
-describe('markSeen and skip', () => {
-  it('marks a card seen once', () => {
-    const once = markSeen(deck(), 'a');
-    expect(once.seen).toEqual(['a']);
-    expect(markSeen(once, 'a')).toBe(once);
+describe('flip, markSeen and skip', () => {
+  it('remembers the card face up and when', () => {
+    expect(flip(deck(), 'a', 1234)).toMatchObject({ flipped: 'a', playedAt: 1234 });
   });
 
-  it('moves a skipped card to the bottom', () => {
-    expect(skip(deck(), 'a').order).toEqual(['b', 'c', 'd', 'a']);
+  it('marks a card seen once and puts it away', () => {
+    const once = markSeen(flip(deck(), 'a', 1), 'a');
+    expect(once.seen).toEqual(['a']);
+    expect(once.flipped).toBeNull();
+    expect(markSeen(once, 'a').seen).toEqual(['a']);
+  });
+
+  it('moves a skipped card to the bottom and puts it away', () => {
+    const state = skip(flip(deck(), 'a', 1), 'a');
+    expect(state.order).toEqual(['b', 'c', 'd', 'a']);
+    expect(state.flipped).toBeNull();
   });
 });
 
@@ -114,7 +131,25 @@ describe('isDeckState', () => {
     { ...newDeck(testCards), seen: 'a' },
     { ...newDeck(testCards), categories: undefined },
     { ...newDeck(testCards), mode: 'other' },
+    { ...newDeck(testCards), flipped: 1 },
+    { ...newDeck(testCards), playedAt: '2026' },
   ])('refuses %j', (value) => {
     expect(isDeckState(value)).toBe(false);
+  });
+});
+
+describe('upgradeDeck', () => {
+  it('keeps a current deck as it is', () => {
+    const current = deck({ flipped: 'a', playedAt: 5 });
+    expect(upgradeDeck(current)).toBe(current);
+  });
+
+  it('brings a deck from the first version up to date', () => {
+    const old = firstVersion(deck({ seen: ['a'] }));
+    expect(upgradeDeck(old)).toEqual({ ...old, flipped: null, playedAt: null });
+  });
+
+  it('gives nothing for something that is no deck', () => {
+    expect(upgradeDeck({ order: 'a' })).toBeUndefined();
   });
 });

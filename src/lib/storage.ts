@@ -1,23 +1,14 @@
 /**
- * Reads a value saved under the key, or undefined when there is none, it is not valid JSON, it
- * fails the check, or storage is unavailable (private browsing, blocked site data).
+ * Takes the value an earlier version saved in localStorage under the key, removing it, so it
+ * can move to the saves. Undefined when there is none, it is not JSON, or storage is blocked.
  */
-export function readStored<T>(key: string, isValid: (value: unknown) => value is T): T | undefined {
+export function takeLegacy(key: string): unknown {
   try {
     const text = localStorage.getItem(key);
     if (text === null) return undefined;
-    const value: unknown = JSON.parse(text);
-    return isValid(value) ? value : undefined;
+    localStorage.removeItem(key);
+    return JSON.parse(text) as unknown;
   } catch {
     return undefined;
-  }
-}
-
-/** Saves the value under the key; it is silently lost when storage is unavailable. */
-export function writeStored(key: string, value: unknown): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Without storage the game still plays; it only forgets on reload.
   }
 }

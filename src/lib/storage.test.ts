@@ -1,38 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { readStored, writeStored } from './storage';
-
-const isNumber = (value: unknown): value is number => typeof value === 'number';
+import { takeLegacy } from './storage';
 
 afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe('storage', () => {
-  it('reads back what was written', () => {
-    writeStored('key', 42);
-    expect(readStored('key', isNumber)).toBe(42);
+describe('takeLegacy', () => {
+  it('takes the saved value out of localStorage', () => {
+    localStorage.setItem('key', '{"a":1}');
+    expect(takeLegacy('key')).toEqual({ a: 1 });
+    expect(localStorage.getItem('key')).toBeNull();
   });
 
-  it('reads nothing when nothing is saved', () => {
-    expect(readStored('missing', isNumber)).toBeUndefined();
+  it('takes nothing when nothing is saved', () => {
+    expect(takeLegacy('missing')).toBeUndefined();
   });
 
-  it('reads nothing when the saved value fails the check', () => {
-    writeStored('key', 'text');
-    expect(readStored('key', isNumber)).toBeUndefined();
-  });
-
-  it('reads nothing when the saved text is not JSON', () => {
+  it('takes nothing when the saved text is not JSON', () => {
     localStorage.setItem('key', '{broken');
-    expect(readStored('key', isNumber)).toBeUndefined();
+    expect(takeLegacy('key')).toBeUndefined();
   });
 
-  it('carries on when storage refuses to save', () => {
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+  it('takes nothing when storage is blocked', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new Error('blocked');
     });
-    expect(() => {
-      writeStored('key', 1);
-    }).not.toThrow();
+    expect(takeLegacy('key')).toBeUndefined();
   });
 });

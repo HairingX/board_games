@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { timeAgo } from '../../lib/time';
 import { GameHeader } from '../../ui/GameHeader';
 import { cards, categories, type CategoryId } from './cards';
 import { progress, remaining, restart, type DeckState, type Mode } from './deck';
@@ -17,7 +18,9 @@ const modes: readonly { id: Mode; name: string }[] = [
 /** Choosing categories and order, seeing how far you are, and starting over. */
 export function Setup({ deck, onChange, onStart }: Props) {
   const [confirmRestart, setConfirmRestart] = useState(false);
+  const [openedAt] = useState(Date.now);
   const { seen, total } = progress(deck, cards);
+  const started = seen > 0 || deck.flipped !== null;
   const left = remaining({ ...deck, categories: categories.map((c) => c.id) }, cards);
   const leftIn = (id: CategoryId) => left.filter((card) => card.category === id).length;
   const chosen = new Set(deck.categories);
@@ -52,6 +55,9 @@ export function Setup({ deck, onChange, onStart }: Props) {
           </strong>{' '}
           kort snakket om
         </div>
+        {deck.playedAt !== null && (
+          <p className="pk-last">Sidst spillet {timeAgo(deck.playedAt, openedAt)}</p>
+        )}
         <div
           className="pk-progress"
           role="progressbar"
@@ -110,11 +116,11 @@ export function Setup({ deck, onChange, onStart }: Props) {
           disabled={deck.categories.length === 0}
           onClick={onStart}
         >
-          {seen > 0 ? 'Fortsæt' : 'Start'}
+          {started ? 'Fortsæt hvor I slap' : 'Start'}
         </button>
         {deck.categories.length === 0 && <p className="pk-note">Vælg mindst én kategori.</p>}
 
-        {deck.seen.length > 0 &&
+        {(deck.seen.length > 0 || deck.flipped !== null) &&
           (confirmRestart ? (
             <div className="pk-confirm" role="alertdialog" aria-label="Start forfra">
               <p>Alle kort bliver blandet igen, og I starter fra første kort. Er I sikre?</p>

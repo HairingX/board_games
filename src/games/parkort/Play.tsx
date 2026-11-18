@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { FlipCard } from '../../ui/FlipCard';
 import { GameHeader } from '../../ui/GameHeader';
 import { cards, categoryById, levelNames, type QuestionCard } from './cards';
-import { markSeen, progress, remaining, restart, skip, type DeckState } from './deck';
+import { flip, markSeen, progress, remaining, restart, skip, type DeckState } from './deck';
 
 interface Props {
   deck: DeckState;
@@ -13,10 +13,10 @@ interface Props {
 
 /** The deck: tap the top card to turn it, then go on to the next or skip it. */
 export function Play({ deck, onChange, onBack }: Props) {
-  const [flipped, setFlipped] = useState(false);
   const [direction, setDirection] = useState<-1 | 1>(1);
   const queue = remaining(deck, cards);
   const card = queue[0];
+  const flipped = card !== undefined && deck.flipped === card.id;
   const { seen, total } = progress(deck, cards);
 
   if (!card) {
@@ -50,7 +50,6 @@ export function Play({ deck, onChange, onBack }: Props) {
 
   function leave(towards: -1 | 1, next: DeckState): void {
     setDirection(towards);
-    setFlipped(false);
     onChange(next);
   }
 
@@ -79,7 +78,7 @@ export function Play({ deck, onChange, onBack }: Props) {
             key={card.id}
             flipped={flipped}
             onFlip={() => {
-              setFlipped(true);
+              onChange(flip(deck, current.id, Date.now()));
             }}
             onSwipe={talkedAbout}
             label="Vend kortet"

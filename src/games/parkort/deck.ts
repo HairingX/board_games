@@ -13,6 +13,10 @@ export interface DeckState {
   /** The categories played. */
   categories: CategoryId[];
   mode: Mode;
+  /** The id of the card lying face up, so it is face up again when the game is reopened. */
+  flipped: string | null;
+  /** When a card was last turned, in milliseconds since 1970; null before the first. */
+  playedAt: number | null;
 }
 
 const allCategories = categories.map((category) => category.id);
@@ -27,6 +31,8 @@ export function newDeck(cards: readonly QuestionCard[], random?: Random): DeckSt
     seen: [],
     categories: [...allCategories],
     mode: 'blandet',
+    flipped: null,
+    playedAt: null,
   };
 }
 
@@ -77,14 +83,23 @@ export function progress(
   return { seen: inPlay.filter((card) => seen.has(card.id)).length, total: inPlay.length };
 }
 
-/** The deck with the card talked about. */
-export function markSeen(state: DeckState, id: string): DeckState {
-  return state.seen.includes(id) ? state : { ...state, seen: [...state.seen, id] };
+/** The deck with the card turned face up at the given time. */
+export function flip(state: DeckState, id: string, now: number): DeckState {
+  return { ...state, flipped: id, playedAt: now };
 }
 
-/** The deck with the card moved to the bottom, to come back after the others. */
+/** The deck with the card talked about and put away. */
+export function markSeen(state: DeckState, id: string): DeckState {
+  return {
+    ...state,
+    seen: state.seen.includes(id) ? state.seen : [...state.seen, id],
+    flipped: null,
+  };
+}
+
+/** The deck with the card put away at the bottom, to come back after the others. */
 export function skip(state: DeckState, id: string): DeckState {
-  return { ...state, order: [...state.order.filter((other) => other !== id), id] };
+  return { ...state, order: [...state.order.filter((other) => other !== id), id], flipped: null };
 }
 
 /** The deck with nothing seen and a new shuffle, keeping the chosen categories and mode. */
@@ -98,6 +113,24 @@ export function restart(
 
 /** Whether a stored value has the shape of a deck. */
 export function isDeckState(value: unknown): value is DeckState {
+  if (!isSavedDeck(value)) return false;
+  const state = value as Record<string, unknown>;
+  return (
+    (state.flipped === null || typeof state.flipped === 'string') &&
+    (state.playedAt === null || typeof state.playedAt === 'number')
+  );
+}
+
+/**
+ * The deck saved by an earlier version of the game, which knew no face-up card or time, brought
+ * to the current shape; undefined when the value is no deck at all.
+ */
+export function upgradeDeck(value: unknown): DeckState | undefined {
+  if (isDeckState(value)) return value;
+  return isSavedDeck(value) ? { ...value, flipped: null, playedAt: null } : undefined;
+}
+
+function isSavedDeck(value: unknown): value is Omit<DeckState, 'flipped' | 'playedAt'> {
   if (typeof value !== 'object' || value === null) return false;
   const state = value as Record<string, unknown>;
   return (
