@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import { afterEach, describe, expect, it } from 'vitest';
 import { saves } from '../../lib/saves';
 import { drag } from '../../../tests/drag';
-import { cards } from './cards';
+import { cards, type CategoryId } from './cards';
 import { newDeck, type DeckState } from './deck';
 import Parkort, { legacyKey, reviveDeck, saveKey } from './Parkort';
 
@@ -48,6 +48,9 @@ function firstVersion(state: DeckState): Partial<DeckState> {
   return copy;
 }
 
+const total = cards.length;
+const countIn = (category: CategoryId) => cards.filter((card) => card.category === category).length;
+
 const minder = cards.filter((card) => card.category === 'minder').map((card) => card.id);
 
 describe('reviveDeck', () => {
@@ -62,19 +65,19 @@ describe('reviveDeck', () => {
 
   it('starts a new deck from nothing, or from something unreadable', () => {
     expect(reviveDeck(undefined).seen).toEqual([]);
-    expect(reviveDeck({ order: 1 }).order).toHaveLength(200);
+    expect(reviveDeck({ order: 1 }).order).toHaveLength(total);
   });
 });
 
 describe('Parkort setup', () => {
   it('starts with every category chosen and nothing talked about', async () => {
     await open();
-    expect(screen.getByText('0 af 200')).toBeInTheDocument();
+    expect(screen.getByText(`0 af ${String(total)}`)).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
     expect(screen.getAllByRole('button', { pressed: true })).toHaveLength(8);
-    for (const chip of screen.getAllByRole('button', { pressed: true })) {
-      expect(chip).toHaveTextContent('25');
-    }
+    expect(screen.getByRole('button', { name: /Minder/ })).toHaveTextContent(
+      String(countIn('minder')),
+    );
     expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
     expect(screen.queryByText(/Sidst spillet/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Start forfra' })).not.toBeInTheDocument();
@@ -83,7 +86,7 @@ describe('Parkort setup', () => {
   it('turns categories off and on, keeping their order, and needs at least one', async () => {
     await save({ ...newDeck(cards), categories: ['os-to'] });
     await open();
-    expect(screen.getByText('0 af 25')).toBeInTheDocument();
+    expect(screen.getByText(`0 af ${String(countIn('os-to'))}`)).toBeInTheDocument();
 
     click(/Minder/);
     await expectSaved((deck) => {
@@ -120,7 +123,7 @@ describe('Parkort setup', () => {
   it('continues where it was left, and starts over only once confirmed', async () => {
     await save({ ...newDeck(cards), seen: ['os-to-1', 'minder-2'], playedAt: Date.now() });
     await open();
-    expect(screen.getByText('2 af 200')).toBeInTheDocument();
+    expect(screen.getByText(`2 af ${String(total)}`)).toBeInTheDocument();
     expect(screen.getByText('Sidst spillet lige nu')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Fortsæt hvor I slap' })).toBeInTheDocument();
 
@@ -134,7 +137,7 @@ describe('Parkort setup', () => {
     await expectSaved((deck) => {
       expect(deck.seen).toEqual([]);
     });
-    expect(screen.getByText('0 af 200')).toBeInTheDocument();
+    expect(screen.getByText(`0 af ${String(total)}`)).toBeInTheDocument();
   });
 });
 
@@ -161,7 +164,7 @@ describe('Parkort play', () => {
       expect(deck.seen).toEqual(['os-to-1']);
       expect(deck.flipped).toBeNull();
     });
-    expect(screen.getByLabelText('1 af 200 kort snakket om')).toBeInTheDocument();
+    expect(screen.getByLabelText(`1 af ${String(total)} kort snakket om`)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeEnabled();
   });
 
@@ -208,7 +211,7 @@ describe('Parkort play', () => {
 
     click('Forrige');
     await waitFor(() => {
-      expect(screen.getByText('Hvad er din yndlingsting at lave sammen med mig?')).toBeVisible();
+      expect(screen.getByText('Hvad kan du bedst lide at lave sammen med mig?')).toBeVisible();
     });
     expect(screen.getByText(/Et kort, I har haft/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tag den senere' })).toBeDisabled();
@@ -282,10 +285,13 @@ describe('Parkort play', () => {
 
     expect(screen.getByRole('heading', { name: 'Godt snakket!' })).toBeInTheDocument();
     expect(
-      screen.getByText('I har været alle 25 kort i de valgte kategorier igennem.'),
+      screen.getByText(
+        `I har været alle ${String(minder.length)} kort i de valgte kategorier igennem.`,
+      ),
     ).toBeVisible();
+    expect(screen.getByText(/Svarene ændrer sig, ligesom I gør/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Forrige kort' })).not.toBeInTheDocument();
-    click('Start forfra');
+    click('Bland og start en ny runde');
     await expectSaved((deck) => {
       expect(deck.seen).toEqual([]);
     });
@@ -309,13 +315,19 @@ describe('Parkort play', () => {
     await open();
     click('Fortsæt hvor I slap');
     click('Tilbage');
-    expect(screen.getByText('24 af 25')).toBeInTheDocument();
+    expect(
+      screen.getByText(`${String(minder.length - 1)} af ${String(minder.length)}`),
+    ).toBeInTheDocument();
 
     click('Fortsæt hvor I slap');
     click('Vend kortet');
     click('Næste kort');
     click('Vælg andre kategorier');
-    expect(within(screen.getByLabelText('Fremskridt')).getByText('25 af 25')).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText('Fremskridt')).getByText(
+        `${String(minder.length)} af ${String(minder.length)}`,
+      ),
+    ).toBeInTheDocument();
   });
 
   it('shows the cards underneath only while there are any', async () => {

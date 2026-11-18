@@ -55,6 +55,10 @@ export function Play({ deck, onChange, onBack }: Props) {
           </span>
           <h2>Godt snakket!</h2>
           <p>I har været alle {total} kort i de valgte kategorier igennem.</p>
+          <p>
+            Tag gerne en ny runde om et stykke tid. Svarene ændrer sig, ligesom I gør, og de samme
+            spørgsmål giver nye samtaler.
+          </p>
           <div className="pk-footer">
             <button
               type="button"
@@ -63,7 +67,7 @@ export function Play({ deck, onChange, onBack }: Props) {
                 onChange(restart(deck, cards));
               }}
             >
-              Start forfra
+              Bland og start en ny runde
             </button>
             {canGoBack && (
               <button type="button" className="btn btn-ghost btn-block" onClick={goBack}>

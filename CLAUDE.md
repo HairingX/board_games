@@ -61,9 +61,16 @@ game builds on them, and everything must stay smooth on a phone.
   conversation (Aron's 36 questions, Gottman's Love Maps, Danish SNAK cards). Never copy text
   from commercial games. Each question is open, positive, specific, invites a story, and works
   for whoever answers it.
-- `src/games/parkort/cards.ts`: 8 categories of 25 cards, at three levels (Let, Mellem, Dyb).
-  A card's id is stored as progress, so it never changes; a new card takes the category's next
-  unused number, and a removed card's number is not reused.
+- `src/games/parkort/cards.ts`: 8 categories of at least 25 cards, 217 in all, at three levels
+  (Let, Mellem, Dyb). The cards were reviewed for overlap: no two cards may ask the same thing
+  in other words, across categories too. Big decks hold 100–150 cards; grow it to fill themes
+  that are missing, not to reach a number.
+- A card's id is stored as progress, so it never changes. A new card takes the category's next
+  unused number. A card whose question changes is taken out and added as a new card; the
+  numbers taken out are listed in `retired` and never used again. Only a correction of wording
+  keeps the number.
+- When every chosen card has been talked about, the end screen suggests a new round some time
+  later, as answers change over time, and "Bland og start en ny runde" reshuffles.
 - Progress is saved the moment a card is turned: the card face up, the cards talked about, the
   cards put off, the shuffled order, the chosen categories and the order mode (Blandet, or Let
   til dyb). Reopened, the game offers "Fortsæt hvor I slap" or "Start forfra", which asks first.
