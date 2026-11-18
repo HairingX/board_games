@@ -4,23 +4,16 @@ import { categories, type CategoryId, type QuestionCard } from './cards';
 /** The order cards are drawn in: all shuffled, or light cards before deeper ones. */
 export type Mode = 'blandet' | 'let-til-dyb';
 
-/**
- * A card put away, remembered so that "Forrige" can bring it back exactly as it was: talked
- * about, or put off till later from the given place in `later`, or null when it was not there.
- */
-export type Step =
-  { id: string; action: 'seen' } | { id: string; action: 'later'; from: number | null };
-
-/**
- * A card gone back past with "Forrige", remembered so that going on brings back the same cards
- * without turning them again: the step to take again, and the card that lay face up before.
- */
-export interface Redo {
-  step: Step;
-  flipped: string | null;
+/** A card put away: talked about, or put off till later. */
+export interface Step {
+  id: string;
+  action: 'seen' | 'later';
 }
 
-/** What the game remembers between sessions. */
+/**
+ * What the game remembers between sessions: always the furthest point the couple has reached.
+ * Looking back at earlier cards is not part of it, so it is never saved.
+ */
 export interface DeckState {
   /** Every card's id in the order they are drawn. */
   order: string[];
@@ -28,10 +21,8 @@ export interface DeckState {
   seen: string[];
   /** The ids of the cards put off till later, drawn after every other card, first put off first. */
   later: string[];
-  /** The cards put away in this round, the latest last. */
+  /** The cards put away in this round, the latest last, to look back at. */
   history: Step[];
-  /** The cards gone back past, the next to go on to last. */
-  future: Redo[];
   /** The categories played. */
   categories: CategoryId[];
   mode: Mode;
@@ -53,7 +44,6 @@ export function newDeck(cards: readonly QuestionCard[], random?: Random): DeckSt
     seen: [],
     later: [],
     history: [],
-    future: [],
     categories: [...allCategories],
     mode: 'blandet',
     flipped: null,
@@ -83,7 +73,6 @@ export function reconcile(
     seen: state.seen.filter((id) => ids.has(id)),
     later: state.later.filter((id) => ids.has(id)),
     history: state.history.filter((step) => ids.has(step.id)),
-    future: state.future.filter((redo) => ids.has(redo.step.id)),
     categories: state.categories.filter((id) => allCategories.includes(id)),
   };
 }
@@ -105,6 +94,15 @@ export function remaining(state: DeckState, cards: readonly QuestionCard[]): Que
   const now = inPlay(state.order).filter((card) => !later.has(card.id));
   if (state.mode === 'let-til-dyb') now.sort((a, b) => a.level - b.level);
   return [...now, ...inPlay(state.later)];
+}
+
+/** The cards put away in this round, latest first, to look back at. */
+export function putAway(state: DeckState, cards: readonly QuestionCard[]): QuestionCard[] {
+  const byId = new Map(cards.map((card) => [card.id, card]));
+  return state.history
+    .map((step) => byId.get(step.id))
+    .filter((card): card is QuestionCard => card !== undefined)
+    .reverse();
 }
 
 /** How many cards of the chosen categories have been talked about and put off, of how many. */
@@ -133,35 +131,14 @@ export function flip(state: DeckState, id: string, now: number): DeckState {
   return { ...state, flipped: id, playedAt: now };
 }
 
-/**
- * The deck with the card talked about and put away. Going on through cards gone back past, the
- * card after it comes back as it lay, face up if it was.
- */
+/** The deck with the card talked about and put away. */
 export function markSeen(state: DeckState, id: string): DeckState {
-  return goOn(state, { id, action: 'seen' });
+  return { ...take(state, { id, action: 'seen' }), flipped: null };
 }
 
-/**
- * The deck with the card put off till later: it comes back after every other card. Going on
- * through cards gone back past, the card after it comes back as it lay.
- */
+/** The deck with the card put off till later: it comes back after every other card. */
 export function putOff(state: DeckState, id: string): DeckState {
-  const from = state.later.indexOf(id);
-  return goOn(state, { id, action: 'later', from: from === -1 ? null : from });
-}
-
-/**
- * The deck with the step taken. When it is the step gone back past last, the card after it
- * lies as it did then, and the way on is kept; any other step starts a new way on.
- */
-function goOn(state: DeckState, step: Step): DeckState {
-  const redo = state.future.at(-1);
-  const again = redo?.step.id === step.id && redo.step.action === step.action;
-  return {
-    ...take(state, step),
-    flipped: again ? redo.flipped : null,
-    future: again ? state.future.slice(0, -1) : [],
-  };
+  return { ...take(state, { id, action: 'later' }), flipped: null };
 }
 
 function take(state: DeckState, step: Step): DeckState {
@@ -176,34 +153,14 @@ function take(state: DeckState, step: Step): DeckState {
 }
 
 /**
- * The deck with the latest card put away brought back on top, face up, as it was. Going on
- * afterwards brings back the same cards again.
- */
-export function previous(state: DeckState): DeckState {
-  const step = state.history.at(-1);
-  if (!step) return state;
-  const back = {
-    history: state.history.slice(0, -1),
-    future: [...state.future, { step, flipped: state.flipped }],
-    flipped: step.id,
-  };
-  if (step.action === 'seen') {
-    return { ...state, ...back, seen: state.seen.filter((id) => id !== step.id) };
-  }
-  const later = state.later.filter((id) => id !== step.id);
-  if (step.from !== null) later.splice(step.from, 0, step.id);
-  return { ...state, ...back, later };
-}
-
-/**
- * The deck with other categories or another order. "Forrige" starts afresh, as the cards put
- * away before may no longer be in play.
+ * The deck with other categories or another order. Looking back starts afresh, as the cards
+ * put away before may no longer be in play.
  */
 export function choose(
   state: DeckState,
   choice: { categories?: CategoryId[]; mode?: Mode },
 ): DeckState {
-  return { ...state, ...choice, history: [], future: [] };
+  return { ...state, ...choice, history: [] };
 }
 
 /** The deck with nothing seen or put off and a new shuffle, keeping the choices. */
@@ -215,19 +172,15 @@ export function restart(
   return { ...newDeck(cards, random), categories: state.categories, mode: state.mode };
 }
 
-/** Whether a stored value has the shape of a deck. */
-export function isDeckState(value: unknown): value is DeckState {
-  return upgradeDeck(value) === value;
-}
-
 /**
  * The deck from a saved value, filling in what an earlier version of the game did not save:
- * the face-up card, the time, the cards put off, and the ways back and on. Undefined when the value is
- * no deck at all.
+ * the face-up card, the time, the cards put off and the history. One version saved going back
+ * as taking cards back, with the way on in `future`; that way is taken again, so the deck is at
+ * the furthest point the couple reached. Undefined when the value is no deck at all.
  */
 export function upgradeDeck(value: unknown): DeckState | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
-  const saved = value as Partial<Record<keyof DeckState, unknown>>;
+  const saved = value as Partial<Record<keyof DeckState | 'future', unknown>>;
   const { order, seen, categories: chosen, mode } = saved;
   const flipped = saved.flipped ?? null;
   const playedAt = saved.playedAt ?? null;
@@ -249,36 +202,32 @@ export function upgradeDeck(value: unknown): DeckState | undefined {
   ) {
     return undefined;
   }
-  const complete =
-    'flipped' in saved &&
-    'playedAt' in saved &&
-    'later' in saved &&
-    'history' in saved &&
-    'future' in saved;
-  return complete
-    ? (value as DeckState)
-    : {
-        order,
-        seen,
-        later,
-        history,
-        future,
-        categories: chosen as CategoryId[],
-        mode,
-        flipped,
-        playedAt,
-      };
+  const deck: DeckState = {
+    order,
+    seen,
+    later,
+    history: history.map(({ id, action }) => ({ id, action })),
+    categories: chosen as CategoryId[],
+    mode,
+    flipped,
+    playedAt,
+  };
+  return [...future]
+    .reverse()
+    .reduce<DeckState>(
+      (state, redo) => ({ ...take(state, redo.step), flipped: redo.flipped }),
+      deck,
+    );
 }
 
 function isStep(value: unknown): value is Step {
   if (typeof value !== 'object' || value === null) return false;
   const step = value as Record<string, unknown>;
-  if (typeof step.id !== 'string') return false;
-  if (step.action === 'seen') return true;
-  return step.action === 'later' && (step.from === null || typeof step.from === 'number');
+  return typeof step.id === 'string' && (step.action === 'seen' || step.action === 'later');
 }
 
-function isRedo(value: unknown): value is Redo {
+/** A step to take again, as one earlier version saved it. */
+function isRedo(value: unknown): value is { step: Step; flipped: string | null } {
   if (typeof value !== 'object' || value === null) return false;
   const redo = value as Record<string, unknown>;
   return isStep(redo.step) && (redo.flipped === null || typeof redo.flipped === 'string');

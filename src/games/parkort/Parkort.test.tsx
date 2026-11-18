@@ -190,62 +190,62 @@ describe('Parkort play', () => {
     expect(screen.getByText('Kortet ligger nu nederst i bunken.')).toBeInTheDocument();
   });
 
-  it('goes back to the card before, face up, whether talked about or put off', async () => {
-    await save(deckStartingWith('os-to-1', 'os-to-2', 'os-to-3'));
+  it('looks back at earlier cards and forward again, without changing or saving anything', async () => {
+    await save(deckStartingWith('os-to-1', 'os-to-2', 'os-to-3', 'os-to-4'));
     await open();
     click('Start');
     expect(screen.getByRole('button', { name: 'Forrige' })).toBeDisabled();
-
     click('Vend kortet');
     click('Næste kort');
     click('Vend kortet');
     click('Tag den senere');
+    click('Vend kortet');
+    click('Næste kort');
+    await expectSaved((deck) => {
+      expect(deck.seen).toEqual(['os-to-1', 'os-to-3']);
+    });
+    const furthest = await saved();
+
     click('Forrige');
     await waitFor(() => {
-      expect(screen.getByText('Hvilken sang minder dig mest om os?')).toBeVisible();
+      expect(screen.getByText('Hvad er din yndlingsting at lave sammen med mig?')).toBeVisible();
     });
-    expect(screen.getByRole('button', { name: 'Næste kort' })).toBeEnabled();
-    await expectSaved((deck) => {
-      expect(deck.later).toEqual([]);
-    });
-
+    expect(screen.getByText(/Et kort, I har haft/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tag den senere' })).toBeDisabled();
+    click('Forrige');
     click('Forrige');
     await waitFor(() => {
       expect(
         screen.getByText('Hvad lagde du først mærke til ved mig, da vi mødtes?'),
       ).toBeVisible();
     });
-    await expectSaved((deck) => {
-      expect(deck.seen).toEqual([]);
-      expect(deck.flipped).toBe('os-to-1');
-    });
     expect(screen.getByRole('button', { name: 'Forrige' })).toBeDisabled();
+    expect(await saved()).toEqual(furthest);
+
+    click('Næste kort');
+    click('Næste kort');
+    click('Næste kort');
+    expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeEnabled();
+    expect(await saved()).toEqual(furthest);
   });
 
-  it('goes back three cards and on again without turning them', async () => {
-    await save(deckStartingWith('os-to-1', 'os-to-2', 'os-to-3', 'os-to-4'));
-    await open();
+  it('reopens at the furthest card even after looking back', async () => {
+    await save(deckStartingWith('os-to-1', 'os-to-2'));
+    const { unmount } = render(<Parkort />);
+    await screen.findByRole('heading', { name: 'Parkort' });
     click('Start');
-    for (let card = 0; card < 3; card++) {
-      click('Vend kortet');
-      click('Næste kort');
-    }
-    click('Forrige');
-    click('Forrige');
-    click('Forrige');
+    click('Vend kortet');
+    click('Næste kort');
     await expectSaved((deck) => {
-      expect(deck.flipped).toBe('os-to-1');
+      expect(deck.seen).toEqual(['os-to-1']);
     });
+    click('Forrige');
+    unmount();
 
-    click('Næste kort');
-    click('Næste kort');
-    click('Næste kort');
-    await expectSaved((deck) => {
-      expect(deck.seen).toEqual(['os-to-1', 'os-to-2', 'os-to-3']);
-      expect(deck.flipped).toBeNull();
-      expect(deck.future).toEqual([]);
-    });
+    await open();
+    click('Fortsæt hvor I slap');
     expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeEnabled();
+    expect((await saved()).seen).toEqual(['os-to-1']);
   });
 
   it('goes on when the card is thrown right, and back when thrown left', async () => {
@@ -269,10 +269,10 @@ describe('Parkort play', () => {
 
     click('Vend kortet');
     await drag(card(), -300);
-    await expectSaved((deck) => {
-      expect(deck.seen).toEqual([]);
-      expect(deck.flipped).toBe('os-to-1');
+    await waitFor(() => {
+      expect(screen.getByText(/Et kort, I har haft/)).toBeInTheDocument();
     });
+    expect((await saved()).seen).toEqual(['os-to-1']);
   });
 
   it('celebrates when every chosen card has been talked about, and can start over', async () => {
@@ -292,14 +292,16 @@ describe('Parkort play', () => {
     expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeInTheDocument();
   });
 
-  it('can go back to the last card from the end', async () => {
+  it('can look back at the last card from the end, and return to it', async () => {
     await save({ ...newDeck(cards), categories: ['minder'], seen: minder.slice(1) });
     await open();
     click('Fortsæt hvor I slap');
     click('Vend kortet');
     click('Næste kort');
     click('Forrige kort');
-    expect(screen.getByRole('button', { name: 'Næste kort' })).toBeEnabled();
+    expect(screen.getByText(/Et kort, I har haft/)).toBeInTheDocument();
+    click('Næste kort');
+    expect(screen.getByRole('heading', { name: 'Godt snakket!' })).toBeInTheDocument();
   });
 
   it('goes back to the setup from the deck and from the end', async () => {

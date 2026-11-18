@@ -68,11 +68,11 @@ game builds on them, and everything must stay smooth on a phone.
   cards put off, the shuffled order, the chosen categories and the order mode (Blandet, or Let
   til dyb). Reopened, the game offers "Fortsæt hvor I slap" or "Start forfra", which asks first.
 - "Næste kort" (or throwing the face-up card right) puts the card away as talked about; "Tag den
-  senere" puts it at the bottom of the whole pile, after every other card; "Forrige" (or
-  throwing it left) brings back the card put away last, face up, exactly as it was. Going on
-  from there replays the same cards, face up, without turning them again, until the couple is
-  back where they were; doing anything else with a card starts a new way on, like undo and
-  redo. Changing the categories or order starts the way back afresh.
+  senere" puts it at the bottom of the whole pile, after every other card.
+- "Forrige" (or throwing the face-up card left) only looks back at the cards put away, face up,
+  and "Næste kort" goes forward through them again. Looking back changes nothing and is never
+  saved: the game always reopens at the furthest card the couple reached. Changing the
+  categories or order starts looking back afresh.
 
 ## Saving
 

@@ -7,8 +7,8 @@ import { cards, categoryById, levelNames, levels, type QuestionCard } from './ca
 import {
   flip,
   markSeen,
-  previous,
   progress,
+  putAway,
   putOff,
   remaining,
   restart,
@@ -22,27 +22,29 @@ interface Props {
 }
 
 /**
- * The deck: tap the top card to turn it, then go on to the next card, put it off till later,
- * or go back to the card before. Thrown right it goes on; thrown left the card before comes back.
+ * The deck: tap the top card to turn it, then go on to the next card or put it off till later.
+ * "Forrige" looks back at the cards put away, face up, and "Næste kort" goes forward again; looking
+ * back changes nothing and is never saved, so the game always reopens at the furthest card.
+ * Thrown right a card goes on; thrown left the card before comes back to look at.
  */
 export function Play({ deck, onChange, onBack }: Props) {
   const [move, setMove] = useState<CardMove>('next');
+  /** How many cards back the couple is looking; 0 at the furthest card. */
+  const [back, setBack] = useState(0);
   useWakeLock(true);
   const queue = remaining(deck, cards);
-  const card = queue[0];
-  const canGoBack = deck.history.length > 0;
+  const past = putAway(deck, cards);
   const { seen, total } = progress(deck, cards);
-
-  function go(nextMove: CardMove, next: DeckState): void {
-    setMove(nextMove);
-    onChange(next);
-  }
+  const canGoBack = back < past.length;
 
   const goBack = () => {
-    go('previous', previous(deck));
+    setMove('previous');
+    setBack(back + 1);
   };
 
-  if (!card) {
+  const lookingBack = back > 0;
+  const shown = lookingBack ? past[back - 1] : queue[0];
+  if (!shown) {
     return (
       <>
         <GameHeader title="Parkort" onBack={onBack} />
@@ -76,9 +78,14 @@ export function Play({ deck, onChange, onBack }: Props) {
     );
   }
 
-  const current = card;
-  const flipped = deck.flipped === current.id;
+  const flipped = lookingBack || deck.flipped === shown.id;
   const putOffJustNow = !flipped && deck.history.at(-1)?.action === 'later';
+
+  const goOn = () => {
+    setMove('next');
+    if (lookingBack) setBack(back - 1);
+    else onChange(markSeen(deck, shown.id));
+  };
 
   return (
     <div className="pk-play">
@@ -97,52 +104,48 @@ export function Play({ deck, onChange, onBack }: Props) {
         {queue.length > 1 && <div className="pk-stack pk-stack-1" aria-hidden="true" />}
         <AnimatePresence custom={move} initial={false}>
           <FlipCard
-            key={current.id}
+            key={`${shown.id}@${String(back)}`}
             move={move}
             flipped={flipped}
             onFlip={() => {
-              onChange(flip(deck, current.id, Date.now()));
+              onChange(flip(deck, shown.id, Date.now()));
             }}
             onSwipe={(direction) => {
-              if (direction === 1) go('next', markSeen(deck, current.id));
+              if (direction === 1) goOn();
               else if (canGoBack) goBack();
             }}
             label="Vend kortet"
             back={<CardBack />}
-            front={<CardFront card={current} />}
+            front={<CardFront card={shown} />}
           />
         </AnimatePresence>
       </div>
 
       <p className="pk-hint" aria-live="polite">
-        {flipped
-          ? 'Læs kortet højt, og svar begge to.'
-          : putOffJustNow
-            ? 'Kortet ligger nu nederst i bunken.'
-            : 'Tryk på kortet for at vende det.'}
+        {lookingBack
+          ? 'Et kort, I har haft. Tryk »Næste kort« for at gå frem igen.'
+          : flipped
+            ? 'Læs kortet højt, og svar begge to.'
+            : putOffJustNow
+              ? 'Kortet ligger nu nederst i bunken.'
+              : 'Tryk på kortet for at vende det.'}
       </p>
 
       <div className="pk-actions">
         <button type="button" className="btn btn-ghost" disabled={!canGoBack} onClick={goBack}>
           Forrige
         </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={!flipped}
-          onClick={() => {
-            go('next', markSeen(deck, current.id));
-          }}
-        >
+        <button type="button" className="btn btn-primary" disabled={!flipped} onClick={goOn}>
           Næste kort
         </button>
       </div>
       <button
         type="button"
         className="btn btn-quiet btn-block"
-        disabled={!flipped}
+        disabled={!flipped || lookingBack}
         onClick={() => {
-          go('later', putOff(deck, current.id));
+          setMove('later');
+          onChange(putOff(deck, shown.id));
         }}
       >
         Tag den senere
