@@ -1,5 +1,6 @@
 import { MotionConfig } from 'motion/react';
 import { Suspense, useEffect, useState } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { parseGameId } from './lib/router';
@@ -8,6 +9,10 @@ import { Home } from './routes/Home';
 /** The app: the home screen, or the game the location's hash names. */
 export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   const [gameId, setGameId] = useState(() => parseGameId(window.location.hash));
+  const {
+    needRefresh: [updateWaiting],
+    updateServiceWorker,
+  } = useRegisterSW();
 
   useEffect(() => {
     function onHashChange(): void {
@@ -25,7 +30,10 @@ export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   return (
     <MotionConfig reducedMotion="user">
       {gameId === undefined ? (
-        <Home games={games} />
+        <Home
+          games={games}
+          {...(updateWaiting ? { onUpdate: () => void updateServiceWorker() } : {})}
+        />
       ) : game?.Screen ? (
         <ErrorBoundary key={gameId} fallback={<Message text="Spillet kunne ikke hentes." />}>
           <Suspense fallback={<p className="status">Henter spillet…</p>}>

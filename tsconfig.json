@@ -19,7 +19,7 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node", "vite/client", "vite-plugin-pwa/client", "@testing-library/jest-dom"]
+    "types": ["node", "vite/client", "vite-plugin-pwa/react", "@testing-library/jest-dom"]
   },
   "include": ["src", "tests", "vite.config.ts", "eslint.config.js"]
 }

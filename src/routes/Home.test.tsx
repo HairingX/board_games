@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import FakeGame from '../../tests/fixtures/FakeGame';
 import { games, type GameInfo } from '../lib/games';
 import { Home } from './Home';
@@ -40,6 +40,16 @@ describe('Home', () => {
     expect(screen.getByText('Parkort')).toBeInTheDocument();
     expect(screen.getByText('Kommer snart')).toBeInTheDocument();
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('offers a waiting new version, and says nothing when there is none', () => {
+    const onUpdate = vi.fn();
+    const { rerender } = render(<Home games={[]} onUpdate={onUpdate} />);
+    expect(screen.getByText('Der er en ny version af Småspil.')).toBeInTheDocument();
+    screen.getByRole('button', { name: 'Opdatér' }).click();
+    expect(onUpdate).toHaveBeenCalledOnce();
+    rerender(<Home games={[]} />);
+    expect(screen.queryByText('Der er en ny version af Småspil.')).not.toBeInTheDocument();
   });
 
   it('shows every registered game', () => {

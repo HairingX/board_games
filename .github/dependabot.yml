@@ -1,0 +1,24 @@
+# Proposes updates as pull requests once a week, each version only once it is three days old:
+# the npm packages that are no new major version together in one pull request, and the
+# actions the workflow uses.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    labels:
+      - dependencies
+    groups:
+      packages:
+        update-types: [minor, patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 3
+    labels:
+      - dependencies

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { appMeta } from '../appMeta';
 import { backupFileName, makeBackup, readBackup, restoreBackup, type Backup } from '../lib/backup';
 import { useInstall } from '../lib/install';
 import { isInstalled, savesAreKept } from '../lib/persistence';
@@ -55,7 +56,7 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
     if (!file) return;
     const backup = readBackup(await file.text());
     setPending(backup);
-    setMessage(backup ? '' : 'Filen er ikke en sikkerhedskopi fra Småspil.');
+    setMessage(backup ? '' : `Filen er ikke en sikkerhedskopi fra ${appMeta.name}.`);
   }
 
   async function restore(backup: Backup): Promise<void> {
@@ -75,8 +76,8 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
       ) : (
         <>
           <p>
-            Jeres spil gemmes i browseren. Føj Småspil til hjemmeskærmen, så gemmes de mere sikkert,
-            og alt virker uden internet.
+            Jeres spil gemmes i browseren. Føj {appMeta.name} til hjemmeskærmen, så gemmes de mere
+            sikkert, og alt virker uden internet.
           </p>
           {install ? (
             <button
@@ -96,7 +97,7 @@ export function SavedGames({ saves = defaultSaves }: { saves?: Saves }) {
         </>
       )}
 
-      <div className="saved-actions">
+      <div className="saved-backup">
         <button type="button" className="btn btn-ghost" onClick={() => void saveBackup()}>
           Gem sikkerhedskopi
         </button>

@@ -1,19 +1,34 @@
 import type { CSSProperties } from 'react';
+import { appMeta } from '../appMeta';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { SavedGames } from './SavedGames';
 import './Home.css';
 
-/** The list of games. */
-export function Home({ games }: { games: readonly GameInfo[] }) {
+interface Props {
+  games: readonly GameInfo[];
+  /** Loads the new version that is waiting; given only while one is. */
+  onUpdate?: () => void;
+}
+
+/** The list of games, and a note when a new version of the app is ready. */
+export function Home({ games, onUpdate }: Props) {
   return (
     <>
+      {onUpdate && (
+        <div className="update" role="status">
+          <span>Der er en ny version af {appMeta.name}.</span>
+          <button type="button" className="btn btn-primary" onClick={onUpdate}>
+            Opdatér
+          </button>
+        </div>
+      )}
       <header className="home-header">
         <span className="badge">
           <span className="badge-dot" aria-hidden="true" />
           Virker uden internet
         </span>
-        <h1 className="home-title">Småspil</h1>
+        <h1 className="home-title">{appMeta.name}</h1>
         <p>Små spil til sofaen, middagsbordet og køreturen.</p>
       </header>
 

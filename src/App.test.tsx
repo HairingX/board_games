@@ -1,6 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 import FakeGame from '../tests/fixtures/FakeGame';
 import { App } from './App';
 import type { GameInfo } from './lib/games';
@@ -32,6 +33,18 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Parkort/ })).toBeInTheDocument();
+  });
+
+  it('offers a waiting new version on the home screen, and loads it when asked', () => {
+    const updateServiceWorker = vi.fn(() => Promise.resolve());
+    vi.mocked(useRegisterSW).mockReturnValueOnce({
+      needRefresh: [true, vi.fn()],
+      offlineReady: [false, vi.fn()],
+      updateServiceWorker,
+    });
+    render(<App />);
+    screen.getByRole('button', { name: 'Opdatér' }).click();
+    expect(updateServiceWorker).toHaveBeenCalledOnce();
   });
 
   it('loads a real game on demand', async () => {

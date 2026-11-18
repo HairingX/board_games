@@ -21,6 +21,11 @@
   font-size: 0.9rem;
 }
 
+.saved-backup {
+  display: grid;
+  gap: var(--space-3);
+}
+
 .saved-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

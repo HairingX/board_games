@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
+import { useWakeLock } from '../../lib/wakeLock';
 import { FlipCard, type CardMove } from '../../ui/FlipCard';
 import { GameHeader } from '../../ui/GameHeader';
 import { cards, categoryById, levelNames, levels, type QuestionCard } from './cards';
@@ -26,6 +27,7 @@ interface Props {
  */
 export function Play({ deck, onChange, onBack }: Props) {
   const [move, setMove] = useState<CardMove>('next');
+  useWakeLock(true);
   const queue = remaining(deck, cards);
   const card = queue[0];
   const canGoBack = deck.history.length > 0;

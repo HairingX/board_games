@@ -13,7 +13,7 @@
   --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Bricolage Grotesque Variable', var(--font-body);
 
-  /* Colours */
+  /* Colours. --bg matches appMeta.background in src/appMeta.ts, which the phone shows. */
   --bg: light-dark(#f5f4f9, #0b0a10);
   --surface: light-dark(rgb(255 255 255 / 72%), rgb(255 255 255 / 6%));
   --surface-border: light-dark(rgb(20 18 40 / 8%), rgb(255 255 255 / 9%));
