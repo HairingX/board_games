@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
+import { SavedGames } from './SavedGames';
 import './Home.css';
 
 /** The list of games. */
@@ -39,6 +40,8 @@ export function Home({ games }: { games: readonly GameInfo[] }) {
           ))}
         </ul>
       )}
+
+      <SavedGames />
     </>
   );
 }

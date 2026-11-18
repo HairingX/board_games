@@ -14,6 +14,13 @@ describe('openSaves', () => {
     expect(await saves.read('spil')).toBeUndefined();
   });
 
+  it('lists every key and value', async () => {
+    const saves = openSaves();
+    await saves.write('liste/a', 1);
+    expect(await saves.entries()).toContainEqual(['liste/a', 1]);
+    await saves.remove('liste/a');
+  });
+
   it('keeps the values in memory when IndexedDB cannot be opened', async () => {
     vi.spyOn(indexedDB, 'open').mockImplementation(() => {
       throw new Error('blocked');
@@ -21,6 +28,7 @@ describe('openSaves', () => {
     const saves = openSaves();
     await saves.write('spil', 1);
     expect(await saves.read('spil')).toBe(1);
+    expect(await saves.entries()).toEqual([['spil', 1]]);
     await saves.remove('spil');
     expect(await saves.read('spil')).toBeUndefined();
   });

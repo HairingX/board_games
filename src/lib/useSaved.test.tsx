@@ -8,6 +8,7 @@ function fakeSaves(stored: unknown, failRead = false): Saves {
     read: vi.fn(() => (failRead ? Promise.reject(new Error('broken')) : Promise.resolve(stored))),
     write: vi.fn(() => Promise.reject(new Error('full'))),
     remove: vi.fn(() => Promise.resolve()),
+    entries: vi.fn(() => Promise.resolve([])),
   };
 }
 

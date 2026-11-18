@@ -1,0 +1,42 @@
+.saved {
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+}
+
+.saved h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.15rem;
+}
+
+.saved p {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+}
+
+.saved-steps {
+  font-size: 0.9rem;
+}
+
+.saved-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.saved-confirm {
+  margin-top: var(--space-4);
+}
+
+.saved-confirm p {
+  color: var(--text);
+}
+
+.saved .saved-message {
+  min-height: 1.45em;
+  margin: var(--space-3) 0 0;
+  font-size: 0.9rem;
+}

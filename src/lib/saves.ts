@@ -1,13 +1,20 @@
-import { openDB, type IDBPDatabase } from 'idb';
+import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 
 const databaseName = 'smaaspil';
 const storeName = 'saves';
+
+/** The database's shape: one store of values under text keys. */
+interface SavesSchema extends DBSchema {
+  saves: { key: string; value: unknown };
+}
 
 /** Where the games keep their progress: one value per key. */
 export interface Saves {
   read: (key: string) => Promise<unknown>;
   write: (key: string, value: unknown) => Promise<void>;
   remove: (key: string) => Promise<void>;
+  /** Every saved key and value. */
+  entries: () => Promise<[string, unknown][]>;
 }
 
 /**
@@ -17,9 +24,9 @@ export interface Saves {
  */
 export function openSaves(): Saves {
   // Opened inside a promise, because openDB throws at once where IndexedDB is missing.
-  const database: Promise<IDBPDatabase | undefined> = Promise.resolve()
+  const database: Promise<IDBPDatabase<SavesSchema> | undefined> = Promise.resolve()
     .then(() =>
-      openDB(databaseName, 1, {
+      openDB<SavesSchema>(databaseName, 1, {
         upgrade(db) {
           db.createObjectStore(storeName);
         },
@@ -47,6 +54,16 @@ export function openSaves(): Saves {
       const db = await database;
       if (db) await db.delete(storeName, key);
       else memory.delete(key);
+    },
+    async entries() {
+      const db = await database;
+      if (!db) return [...memory.entries()];
+      const transaction = db.transaction(storeName);
+      const [keys, values] = await Promise.all([
+        transaction.store.getAllKeys(),
+        transaction.store.getAll(),
+      ]);
+      return keys.map((key, index): [string, unknown] => [key, values[index]]);
     },
   };
 }
