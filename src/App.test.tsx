@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { far, mille, mor, playAs, savedFamily, seedFamily } from '../tests/family';
+import { far, mille, mor, playAs, savedFamily, seedFamily, typePin } from '../tests/family';
 import FakeGame from '../tests/fixtures/FakeGame';
 import { App } from './App';
 import { cards } from './games/parkort/cards';
@@ -75,36 +75,45 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
   });
 
-  it('speaks the phone’s language until someone is chosen, then theirs', async () => {
-    Object.defineProperty(navigator, 'languages', { value: ['en-GB'], configurable: true });
-    await seedFamily({ profiles: [far, { ...mille, language: 'en' }] });
+  it('speaks the language chosen on the first screen, whoever plays', async () => {
+    await seedFamily({ profiles: [far, mille] });
     render(<App />);
+    await screen.findByRole('heading', { name: 'Hvem spiller?' });
+    fireEvent.change(screen.getByLabelText('Sprog'), { target: { value: 'en' } });
     expect(await screen.findByRole('heading', { name: 'Who’s playing?' })).toBeInTheDocument();
-    await playAs('Far');
-    expect(screen.getByText('Hej, Far')).toBeInTheDocument();
-    expect(document.documentElement.lang).toBe('da');
-    click('Skift spiller');
     await playAs('Mille');
     expect(screen.getByText('Hi, Mille')).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('en');
-    Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
   });
 
-  it('lets a grown-up change their own language, and keeps it on their profile', async () => {
+  it('lets a grown-up open the settings from the home screen, and come back', async () => {
     await startAs('Far');
-    fireEvent.click(screen.getByRole('radio', { name: 'English' }));
-    expect(await screen.findByText('Hi, Far')).toBeInTheDocument();
-    await waitFor(async () => {
-      expect((await savedFamily()).profiles.map((p) => p.language)).toEqual(['en', 'da', 'da']);
-    });
-  });
-
-  it('lets a grown-up look after the family from the home screen', async () => {
-    await startAs('Far');
-    click('Familien');
+    click('Indstillinger');
+    expect(screen.getByRole('heading', { name: 'Indstillinger' })).toBeInTheDocument();
+    click(/^Familien/);
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
-    click('Færdig');
+    click('Tilbage');
+    click('Tilbage');
     expect(screen.getByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
+  });
+
+  it('asks for the grown-ups’ code when the lock is turned on in the settings', async () => {
+    await startAs('Far');
+    click('Indstillinger');
+    click(/^Voksenlås/);
+    click('Slå voksenlåsen til');
+    typePin('1357');
+    await screen.findByRole('heading', { name: 'Skriv koden igen' });
+    typePin('1357');
+    await screen.findByRole('button', { name: 'Slå voksenlåsen fra' });
+    await waitFor(async () => {
+      expect((await savedFamily()).lock).not.toBeNull();
+    });
+    click('Tilbage');
+    click('Tilbage');
+    click('Skift spiller');
+    await playAs('Far');
+    expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
   });
 
   it('asks who joins a game before it starts', async () => {

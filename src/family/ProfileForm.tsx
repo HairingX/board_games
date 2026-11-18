@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
 import { useMessages } from '../i18n/I18n';
-import { localeNames, locales } from '../i18n/locales';
 import { common } from '../ui/text';
 import { profileColors, type ProfileValues, type Role } from './family';
 import { familyText } from './text';
@@ -14,16 +13,14 @@ interface Props {
   onCancel?: () => void;
 }
 
-/** A profile's name, whether it is a grown-up or a child, its colour and its language. */
+/** A profile's name, whether it is a grown-up or a child, and its colour. */
 export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
   const t = useMessages(familyText);
-  const { cancel, language: languageLabel } = useMessages(common);
+  const { cancel } = useMessages(common);
   const nameId = useId();
-  const languageId = useId();
   const [name, setName] = useState(start.name);
   const [role, setRole] = useState<Role>(start.role);
   const [color, setColor] = useState(start.color);
-  const [language, setLanguage] = useState(start.language);
   const trimmed = name.trim();
 
   return (
@@ -31,7 +28,7 @@ export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
       className="profile-form"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave({ name: trimmed, role, color, language });
+        onSave({ name: trimmed, role, color });
       }}
     >
       <label htmlFor={nameId}>{t.name}</label>
@@ -78,26 +75,6 @@ export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
               setColor(option);
             }}
           />
-        ))}
-      </div>
-
-      <span id={languageId} className="profile-label">
-        {languageLabel}
-      </span>
-      <div className="segmented" role="radiogroup" aria-labelledby={languageId}>
-        {locales.map((option) => (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            lang={option}
-            aria-checked={language === option}
-            onClick={() => {
-              setLanguage(option);
-            }}
-          >
-            {localeNames[option]}
-          </button>
         ))}
       </div>
 

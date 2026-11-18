@@ -105,15 +105,10 @@ game builds on them, and everything must stay smooth on a phone.
 ## Languages
 
 - The app speaks Danish and English; more languages come later. `src/i18n/locales.ts` lists them.
-  Each profile has its own language (`language` on the profile), and the app speaks the language
-  of the one on the home screen; "Hvem spiller?" speaks the phone's. The page's `lang` follows.
-  A new profile starts in the language of the one adding it, and a profile saved before
-  profiles had a language gets the phone's.
-- Grown-ups change their own language on the home screen (`src/routes/LanguageChoice.tsx`), and
-  anyone's under "Familien", where each profile opens to change its name, colour and language,
-  its code, or to take it out. Children cannot change a language.
-- In a turn-based game each player's own language is meant to be spoken on their turn, such as
-  their tasks and what is read aloud to them; this is built with the turn engine.
+  The language belongs to the app on this phone, not to a person: it starts as the phone's own
+  and is chosen in the corner of the first screen ("Hvem spiller?") or in the settings
+  (`src/ui/LanguageSelect.tsx`), saved on the phone under the key `sprog`. The page's `lang`
+  follows it. The family shares one language, so there is no language per profile.
 - Every text the app shows lives in a `text.ts` beside the screens that use it (`src/ui/text.ts`
   for words every screen uses, `src/family/`, `src/routes/`, and each game's own). The Danish
   messages set the shape, typed as `Translations<typeof da>`, so a message missing or with other
@@ -132,15 +127,20 @@ game builds on them, and everything must stay smooth on a phone.
 
 - "Hvem spiller?" (`src/family/WhoIsPlaying.tsx`) is asked at every start. The family is saved
   on the phone (`src/family/family.ts`, under the key `familie`); who is on the home screen is
-  not. The first time, the first grown-up is made there.
-- Each profile is a grown-up or a child and may have its own four-digit code, asked for when it
-  is chosen on "Hvem spiller?", so children cannot choose a grown-up with a code. A code is kept
-  only as a salted hash. "Glemt koden?" lets someone in with a sum too hard for children and a
-  new code, or none.
+  not. The first time, the first grown-up is made there, without being asked for a code.
+- A profile is a name, a colour, and whether it is a grown-up or a child; profiles have no codes,
+  and anyone may choose anyone. The owner decided this: codes per person were a nuisance.
+- The grown-ups' lock (`src/family/AdultLock.tsx`) is off until a grown-up turns it on in the
+  settings with one four-digit code, kept only as a salted hash. While it is on, the code is
+  asked for before a grown-up is chosen on "Hvem spiller?"; children still switch freely.
+  "Glemt koden?" lets a grown-up in with a sum too hard for children, to choose a new code or
+  turn the lock off. Nothing prompts anyone to turn it on.
 - Who is on the home screen decides what is offered. Each game says who may play it
   (`audience` in `src/lib/games.tsx`: `voksne`, `børn` or `alle`); children see and open only
-  games for children and everyone, and never the family, the saves or the backups. Grown-ups
-  look after the family from the home screen (`src/family/ManageFamily.tsx`).
+  games for children and everyone. Grown-ups open the settings (`src/routes/Settings.tsx`) with
+  the cog on the home screen: the language, the family (`src/family/ManageFamily.tsx`, where
+  each person opens to change their name and colour, or be taken out), the grown-ups' lock, and
+  the saved games and backups. Children never see the settings.
 - Before a game, "Hvem er med?" (`src/family/ChoosePlayers.tsx`) chooses its players from the
   family, without codes, within the game's `players.min` and `players.max`; someone new can be
   added there, but a child can add only children, so no one gets a grown-up's profile that way.
@@ -148,7 +148,7 @@ game builds on them, and everything must stay smooth on a phone.
   one key per group whatever the order (`gameSaveKey`), or to each player (`'hver'`), saved
   under `playerSaveKey`. Parkort is for two grown-ups and saved per couple; the deck saved
   before players were chosen went to the first couple to play (`formerSaveKey`).
-- The lock works inside the app only; the code screen tells the owner about the phone's own
+- The lock works inside the app only; choosing its code tells the owner about the phone's own
   Guided Access (iPhone) and app pinning (Android), which keep children in the app.
 
 ## Art, sound and music
@@ -164,11 +164,11 @@ game builds on them, and everything must stay smooth on a phone.
   sheets of 16-pixel frames with walk, idle and attack animations, items, weapons, effects,
   tiles and interface, plus 42 minutes of music and 150 sounds converted to AAC (`.m4a`).
   Pixel art is drawn with `image-rendering: pixelated` at whole-number scales.
-- Reading aloud uses the phone's own voices through the Web Speech API (`src/lib/speech.ts`);
-  the app cannot fetch a voice. The home screen shows grown-ups the phone's voices for the
-  app's language, each with a sample to hear (`src/routes/ReadAloud.tsx`). Whether those voices
-  are good enough in Danish, or the story and tasks are recorded instead, is being tested with
-  the owner.
+- Reading aloud does not use the phone's own voices: the owner heard them and found the Danish
+  ones unnatural. Speech is made ahead of time with a natural AI voice and kept as audio files;
+  generated sums are put together from recorded numbers and words. Which provider, and how its
+  key is given, is decided with the owner. (An iPhone's silent switch also silences speech and
+  sound in the browser.)
 
 ## Saving
 

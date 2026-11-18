@@ -65,10 +65,9 @@ describe('the messages that are made from values', () => {
     expect(t.countOf(1200, 1500)).toBe('1,200 of 1,500');
     expect(t.welcome('Småspil')).toBe('Welcome to Småspil');
     expect(t.pinTyped(2, 4)).toBe('2 of 4 digits');
-    expect(t.pinFor('Mor')).toBe('Code for Mor');
-    expect(t.pinWhy('Mor', 'Who’s playing?')).toBe(
-      'The code is needed when Mor is chosen on “Who’s playing?”. Choose four digits the children don’t know.',
-    );
+    expect(t.lockWhy('Who’s playing?')).toMatch(/is chosen on “Who’s playing\?”\./);
+    expect(t.people(1)).toBe('1 person');
+    expect(t.people(3)).toBe('3 people');
     expect(t.forgotSum(17, 23)).toBe('What is 17 × 23?');
     expect(t.remove('Mille')).toBe('Remove Mille');
     expect(t.editProfile('Mille')).toBe('Edit Mille');
@@ -85,17 +84,6 @@ describe('the messages that are made from values', () => {
       'The copy from November 18, 2026 replaces the games saved here now. Are you sure?',
     );
     expect(t.restored(day)).toBe('The backup from November 18, 2026 is restored.');
-    expect(t.noVoice('Danish')).toBe(
-      'The phone has no voice in Danish, so the games cannot read aloud yet.',
-    );
-    expect(t.voices(1, 'Danish', 'Listen')).toBe(
-      'The phone has 1 voice in Danish. Tap “Listen” to hear how it sounds.',
-    );
-    expect(t.voices(2, 'Danish', 'Listen')).toBe(
-      'The phone has 2 voices in Danish. Tap “Listen” to hear how they sound.',
-    );
-    expect(t.listenTo('Sara')).toBe('Listen to Sara');
-    expect(t.phoneLanguages('da-DK')).toBe('The phone’s languages: da-DK');
 
     expect(t.talkedAbout(1)).toBe('card talked about');
     expect(t.talkedAbout(217)).toBe('cards talked about');

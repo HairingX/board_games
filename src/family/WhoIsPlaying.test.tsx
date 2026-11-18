@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { far, mille, savedFamily, seedFamily, typePin } from '../../tests/family';
+import { I18nProvider } from '../i18n/I18n';
 import { FamilyProvider, useFamily } from './FamilyContext';
 import { hashPin } from './pin';
 import { WhoIsPlaying } from './WhoIsPlaying';
@@ -22,9 +23,11 @@ function Start() {
 
 async function open(): Promise<void> {
   render(
-    <FamilyProvider>
-      <Start />
-    </FamilyProvider>,
+    <I18nProvider>
+      <FamilyProvider>
+        <Start />
+      </FamilyProvider>
+    </I18nProvider>,
   );
   await screen.findByRole('heading');
 }
@@ -33,8 +36,17 @@ const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
 };
 
+/** Answers the grown-ups' sum on "Glemt koden?". */
+function answerSum(): void {
+  const [a, b] = screen.getByText(/Hvad er/).textContent.match(/\d+/g) ?? [];
+  fireEvent.change(screen.getByRole('textbox'), {
+    target: { value: String(Number(a) * Number(b)) },
+  });
+  click('Svar');
+}
+
 describe('WhoIsPlaying', () => {
-  it('welcomes a new family with its first grown-up, and a code', async () => {
+  it('welcomes a new family with its first grown-up, without asking for a code', async () => {
     await open();
     expect(screen.getByRole('heading', { name: 'Velkommen til Småspil' })).toBeInTheDocument();
     expect(screen.queryByRole('radiogroup', { name: 'Voksen eller barn' })).not.toBeInTheDocument();
@@ -42,51 +54,40 @@ describe('WhoIsPlaying', () => {
     fireEvent.change(screen.getByLabelText('Navn'), { target: { value: '  Far ' } });
     click('Gem');
 
-    expect(screen.getByRole('heading', { name: 'Kode til Far' })).toBeInTheDocument();
-    click('Annullér');
-    fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Far' } });
-    click('Gem');
-    typePin('1234');
-    expect(await screen.findByRole('heading', { name: 'Skriv koden igen' })).toBeInTheDocument();
-    expect(screen.getByText(/Guidet adgang/)).toBeInTheDocument();
-    typePin('1111');
-    expect(await screen.findByText('Koderne var ikke ens. Vælg koden igen.')).toBeInTheDocument();
-    typePin('1234');
-    await screen.findByRole('heading', { name: 'Skriv koden igen' });
-    typePin('1234');
-
     expect(await screen.findByText('Spiller: Far')).toBeInTheDocument();
-    const [saved] = (await savedFamily()).profiles;
-    expect(saved).toMatchObject({ name: 'Far', role: 'voksen', color: 'plum' });
-    expect(saved?.pin).not.toBeNull();
-  });
-
-  it('lets the first grown-up go without a code', async () => {
-    await open();
-    fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Mor' } });
-    click('Gem');
-    click('Ingen kode');
-    expect(await screen.findByText('Spiller: Mor')).toBeInTheDocument();
     await waitFor(async () => {
-      expect((await savedFamily()).profiles[0]?.pin).toBeNull();
+      const saved = await savedFamily();
+      expect(saved.lock).toBeNull();
+      expect(saved.profiles).toEqual([
+        { id: expect.any(String) as string, name: 'Far', role: 'voksen', color: 'plum' },
+      ]);
     });
   });
 
-  it('lets anyone without a code straight in', async () => {
+  it('lets anyone straight in while the grown-ups’ lock is off', async () => {
     await seedFamily({ profiles: [far, mille] });
     await open();
-    expect(screen.queryByText('Kode')).not.toBeInTheDocument();
+    expect(screen.queryByText('Låst')).not.toBeInTheDocument();
+    click(/^Far/);
+    expect(screen.getByText('Spiller: Far')).toBeInTheDocument();
+    click('Skift');
     click(/^Mille/);
     expect(screen.getByText('Spiller: Mille')).toBeInTheDocument();
   });
 
-  it('asks for the code of a profile that has one, and lets in with the right one', async () => {
-    await seedFamily({ profiles: [{ ...far, pin: await hashPin('1234') }, mille] });
+  it('asks for the code before a grown-up when the lock is on, but lets children in', async () => {
+    await seedFamily({ profiles: [far, mille], lock: await hashPin('1234') });
     await open();
-    expect(screen.getByText('Kode')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Far/ })).toHaveTextContent('Låst');
+    expect(screen.getByRole('button', { name: /^Mille/ })).not.toHaveTextContent('Låst');
     click(/^Far/);
     expect(screen.getByRole('heading', { name: 'Hej, Far' })).toBeInTheDocument();
+    expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
     click('Annullér');
+    click(/^Mille/);
+    expect(screen.getByText('Spiller: Mille')).toBeInTheDocument();
+    click('Skift');
+
     click(/^Far/);
     expect(screen.getByRole('button', { name: 'Slet' })).toBeDisabled();
     click('9');
@@ -99,39 +100,51 @@ describe('WhoIsPlaying', () => {
     expect(await screen.findByText('Spiller: Far')).toBeInTheDocument();
   });
 
-  it('lets someone who forgot the code in with a sum and a new code, or none', async () => {
-    await seedFamily({ profiles: [{ ...far, pin: await hashPin('1234') }] });
+  it('lets a grown-up who forgot the code in with a sum, and a new code or the lock off', async () => {
+    const old = await hashPin('1234');
+    await seedFamily({ profiles: [far], lock: old });
     await open();
     click(/^Far/);
     click('Glemt koden?');
     click('Annullér');
     click(/^Far/);
     click('Glemt koden?');
-
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '1' } });
     click('Svar');
     expect(screen.getByText('Det var ikke rigtigt. Prøv igen.')).toBeInTheDocument();
-    const [a, b] = screen.getByText(/Hvad er/).textContent.match(/\d+/g) ?? [];
-    fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: String(Number(a) * Number(b)) },
-    });
-    click('Svar');
+    answerSum();
 
-    expect(screen.getByRole('heading', { name: 'Kode til Far' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Vælg en kode' })).toBeInTheDocument();
     click('Annullér');
     click(/^Far/);
     click('Glemt koden?');
-    const [c, d] = screen.getByText(/Hvad er/).textContent.match(/\d+/g) ?? [];
-    fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: String(Number(c) * Number(d)) },
-    });
-    click('Svar');
-    click('Ingen kode');
-
+    answerSum();
+    typePin('5678');
+    await screen.findByRole('heading', { name: 'Skriv koden igen' });
+    typePin('5678');
     expect(await screen.findByText('Spiller: Far')).toBeInTheDocument();
     await waitFor(async () => {
-      expect((await savedFamily()).profiles[0]?.pin).toBeNull();
+      const { lock } = await savedFamily();
+      expect(lock).not.toBeNull();
+      expect(lock).not.toEqual(old);
     });
+
+    click('Skift');
+    click(/^Far/);
+    click('Glemt koden?');
+    answerSum();
+    click('Slå voksenlåsen fra');
+    expect(await screen.findByText('Spiller: Far')).toBeInTheDocument();
+    await waitFor(async () => {
+      expect((await savedFamily()).lock).toBeNull();
+    });
+  });
+
+  it('offers the app’s language in the corner, the first time too', async () => {
+    await open();
+    fireEvent.change(screen.getByLabelText('Sprog'), { target: { value: 'en' } });
+    expect(await screen.findByRole('heading', { name: 'Welcome to Småspil' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Language')).toHaveValue('en');
   });
 
   it('needs to be used inside the family', () => {

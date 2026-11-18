@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { appMeta } from '../appMeta';
-import { useLocale, useMessages } from '../i18n/I18n';
+import { useMessages } from '../i18n/I18n';
+import { LanguageSelect } from '../ui/LanguageSelect';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import {
   addProfile,
+  isLocked,
   newProfile,
   nextColor,
-  setPin,
+  setLock,
   type Family,
   type PinHash,
   type Profile,
@@ -23,16 +25,16 @@ import './family.css';
 
 type View =
   | { name: 'list' }
-  | { name: 'enter-pin'; profile: Profile; pin: PinHash }
+  | { name: 'enter-lock'; profile: Profile; lock: PinHash }
   | { name: 'forgot'; profile: Profile }
-  | { name: 'new-pin'; profile: Profile; family: Family };
+  | { name: 'new-lock'; profile: Profile };
 
 const list: View = { name: 'list' };
 
 /**
- * "Hvem spiller?", asked at every start. A profile with a code needs it, so children cannot
- * choose a grown-up. The first time, the first grown-up is made here; the rest of the family is
- * added by a grown-up from the home screen.
+ * "Hvem spiller?", asked at every start, with the app's language in the corner. Anyone may be
+ * chosen, unless the grown-ups' lock is on: then choosing a grown-up asks for its code. The
+ * first time, the first grown-up is made here; the rest of the family is added in the settings.
  */
 export function WhoIsPlaying() {
   const t = useMessages(familyText);
@@ -43,20 +45,20 @@ export function WhoIsPlaying() {
     setView(list);
   };
 
-  /** Saves the family with the profile's new code, or none, and goes in as the profile. */
-  function enterWith(profile: Profile, from: Family, pin: PinHash | null): void {
-    save(setPin(from, profile.id, pin));
+  /** Saves the family with the lock changed, and goes in as the profile. */
+  function enterWith(profile: Profile, lock: PinHash | null): void {
+    save(setLock(family, lock));
     choose(profile);
   }
 
   switch (view.name) {
-    case 'enter-pin':
+    case 'enter-lock':
       return (
         <PinPad
           title={hello(view.profile.name)}
-          text={t.enterPin}
+          text={t.enterLock}
           onEnter={async (pin) => {
-            const right = await pinMatches(pin, view.pin);
+            const right = await pinMatches(pin, view.lock);
             if (right) choose(view.profile);
             return right;
           }}
@@ -78,87 +80,86 @@ export function WhoIsPlaying() {
       return (
         <ForgotPin
           onCorrect={() => {
-            setView({ name: 'new-pin', profile: view.profile, family });
+            setView({ name: 'new-lock', profile: view.profile });
           }}
           onCancel={back}
         />
       );
-    case 'new-pin':
+    case 'new-lock':
       return (
         <PinSetup
-          name={view.profile.name}
           onDone={(pin) => {
-            enterWith(view.profile, view.family, pin);
+            enterWith(view.profile, pin);
           }}
           onCancel={back}
+          footer={
+            <button
+              type="button"
+              className="btn btn-quiet btn-block"
+              onClick={() => {
+                enterWith(view.profile, null);
+              }}
+            >
+              {t.turnLockOff}
+            </button>
+          }
         />
       );
     case 'list':
       return family.profiles.length === 0 ? (
         <FirstGrownUp
           family={family}
-          onDone={(profile, from) => {
-            enterWith(profile, from, profile.pin);
+          onDone={(profile) => {
+            save(addProfile(family, profile));
+            choose(profile);
           }}
         />
       ) : (
         <section className="family">
+          <LanguageSelect compact />
           <h1>{t.whoIsPlaying}</h1>
           <ul className="family-grid">
-            {family.profiles.map((profile) => (
-              <li key={profile.id}>
-                <button
-                  type="button"
-                  className="family-pick"
-                  onClick={() => {
-                    if (profile.pin) setView({ name: 'enter-pin', profile, pin: profile.pin });
-                    else choose(profile);
-                  }}
-                >
-                  <Avatar profile={profile} />
-                  <span className="family-pick-name">{profile.name}</span>
-                  {profile.pin && <span className="family-pick-lock">{t.hasPin}</span>}
-                </button>
-              </li>
-            ))}
+            {family.profiles.map((profile) => {
+              const locked = isLocked(family, profile);
+              return (
+                <li key={profile.id}>
+                  <button
+                    type="button"
+                    className="family-pick"
+                    onClick={() => {
+                      if (family.lock && locked) {
+                        setView({ name: 'enter-lock', profile, lock: family.lock });
+                      } else {
+                        choose(profile);
+                      }
+                    }}
+                  >
+                    <Avatar profile={profile} />
+                    <span className="family-pick-name">{profile.name}</span>
+                    {locked && <span className="family-pick-lock">{t.locked}</span>}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </section>
       );
   }
 }
 
-/** The first time: the first grown-up, and their code. */
-function FirstGrownUp({
-  family,
-  onDone,
-}: {
-  family: Family;
-  onDone: (profile: Profile, family: Family) => void;
-}) {
+/** The first time: the first grown-up. */
+function FirstGrownUp({ family, onDone }: { family: Family; onDone: (profile: Profile) => void }) {
   const t = useMessages(familyText);
-  const language = useLocale();
-  const [made, setMade] = useState<Profile>();
-
-  return made ? (
-    <PinSetup
-      name={made.name}
-      onDone={(pin) => {
-        const profile = { ...made, pin };
-        onDone(profile, addProfile(family, profile));
-      }}
-      onCancel={() => {
-        setMade(undefined);
-      }}
-    />
-  ) : (
+  return (
     <section className="family">
+      <LanguageSelect compact />
       <h1>{t.welcome(appMeta.name)}</h1>
       <p className="family-intro">{t.firstIntro}</p>
       <ProfileForm
-        start={{ name: '', role: 'voksen', color: nextColor(family), language }}
+        start={{ name: '', role: 'voksen', color: nextColor(family) }}
         chooseRole={false}
         onSave={(values) => {
-          setMade(newProfile(values));
+          onDone(newProfile(values));
         }}
       />
     </section>

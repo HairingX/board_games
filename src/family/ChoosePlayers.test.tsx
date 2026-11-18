@@ -24,7 +24,7 @@ const forAll: GameInfo = {
   players: { min: 1, max: 3, progress: 'hver' },
 };
 
-const family: Family = { profiles: [far, mor, mille] };
+const family: Family = { profiles: [far, mor, mille], lock: null };
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));

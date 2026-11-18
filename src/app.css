@@ -183,6 +183,16 @@ a {
   --game-accent-ink: color-mix(in oklab, var(--game-accent), black 40%);
 }
 
+/* Said to screen readers, not shown. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .status {
   margin-top: 40vh;
   text-align: center;

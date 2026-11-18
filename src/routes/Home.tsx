@@ -1,17 +1,12 @@
 import type { CSSProperties } from 'react';
 import { appMeta } from '../appMeta';
 import { Avatar } from '../family/Avatar';
-import { familyText } from '../family/text';
 import { formatLanguages } from '../i18n/format';
 import { useLocale, useMessages } from '../i18n/I18n';
-import type { Locale } from '../i18n/locales';
 import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { common } from '../ui/text';
-import { LanguageChoice } from './LanguageChoice';
-import { ReadAloud } from './ReadAloud';
-import { SavedGames } from './SavedGames';
 import { appText } from './text';
 import './Home.css';
 
@@ -21,29 +16,19 @@ interface Props {
   player: Profile;
   /** Goes back to "Hvem spiller?". */
   onSwitch: () => void;
-  /** Opens the family's profiles; offered to grown-ups only. */
-  onManageFamily: () => void;
-  /** Changes the player's language; offered to grown-ups, whose children's is set for them. */
-  onChangeLanguage: (locale: Locale) => void;
+  /** Opens the settings; offered to grown-ups only. */
+  onSettings: () => void;
   /** Loads the new version that is waiting; given only while one is. */
   onUpdate?: () => void;
 }
 
 /**
  * The games the player may play, who is playing, and a note when a new version of the app is
- * ready. Children do not see how the games are saved and backed up.
+ * ready. Grown-ups open the settings from here; children never see them.
  */
-export function Home({
-  games,
-  player,
-  onSwitch,
-  onManageFamily,
-  onChangeLanguage,
-  onUpdate,
-}: Props) {
+export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
   const t = useMessages(appText);
   const { hello } = useMessages(common);
-  const { family } = useMessages(familyText);
   return (
     <>
       <div className="player">
@@ -52,12 +37,17 @@ export function Home({
         <button type="button" className="btn btn-quiet" onClick={onSwitch}>
           {t.switchPlayer}
         </button>
+        {player.role === 'voksen' && (
+          <button
+            type="button"
+            className="player-settings"
+            aria-label={t.settings}
+            onClick={onSettings}
+          >
+            <Gear />
+          </button>
+        )}
       </div>
-      {player.role === 'voksen' && (
-        <button type="button" className="btn btn-ghost player-family" onClick={onManageFamily}>
-          {family}
-        </button>
-      )}
       {onUpdate && (
         <div className="update" role="status">
           <span>{t.newVersion(appMeta.name)}</span>
@@ -98,14 +88,6 @@ export function Home({
           ))}
         </ul>
       )}
-
-      {player.role === 'voksen' && (
-        <>
-          <LanguageChoice onChange={onChangeLanguage} />
-          <ReadAloud />
-          <SavedGames />
-        </>
-      )}
     </>
   );
 }
@@ -129,5 +111,20 @@ function TileContent({ game }: { game: GameInfo }) {
         )}
       </span>
     </>
+  );
+}
+
+/** The settings' sign: a cog. */
+function Gear() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path
+        d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Zm8-3.2c0-.5 0-1-.1-1.4l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-2.4-1.4L14.7 2h-4l-.4 2.6a7.6 7.6 0 0 0-2.4 1.4l-2.4-1-2 3.4 2 1.6a7.7 7.7 0 0 0 0 2.8l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 2.4 1.4l.4 2.6h4l.4-2.6a7.6 7.6 0 0 0 2.4-1.4l2.4 1 2-3.4-2-1.6c.1-.4.1-.9.1-1.4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

@@ -1,5 +1,3 @@
-import { bestLocale, isLocale, type Locale } from '../i18n/locales';
-
 /** Whether a profile is a grown-up, who may see every game, or a child, who sees their own. */
 export type Role = 'voksen' | 'barn';
 
@@ -18,25 +16,27 @@ export interface Profile {
   name: string;
   role: Role;
   color: ProfileColor;
-  /** Asked for when the profile is chosen on "Hvem spiller?"; null for none. */
-  pin: PinHash | null;
-  /** The language the app speaks while the profile is on the home screen. */
-  language: Locale;
 }
 
 /** What is chosen about a profile in its form. */
-export type ProfileValues = Pick<Profile, 'name' | 'role' | 'color' | 'language'>;
+export type ProfileValues = Omit<Profile, 'id'>;
 
 /** The family on this phone, saved on it. Who is playing right now is not saved. */
 export interface Family {
   profiles: Profile[];
+  /**
+   * The grown-ups' lock: when set, this code is asked for before a grown-up is chosen, which
+   * keeps the grown-ups' games and settings from the children. Null when it is off, as it is
+   * until a grown-up turns it on in the settings.
+   */
+  lock: PinHash | null;
 }
 
 /** Who may play a game: grown-ups only, children, or everyone. */
 export type Audience = 'voksne' | 'børn' | 'alle';
 
 export function newFamily(): Family {
-  return { profiles: [] };
+  return { profiles: [], lock: null };
 }
 
 /** Whether a profile may open a game for this audience: children never see grown-ups' games. */
@@ -44,9 +44,9 @@ export function mayPlay(role: Role, audience: Audience): boolean {
   return role === 'voksen' || audience !== 'voksne';
 }
 
-/** A new profile, without a code. */
+/** A new profile. */
 export function newProfile(values: ProfileValues): Profile {
-  return { id: crypto.randomUUID(), pin: null, ...values };
+  return { id: crypto.randomUUID(), ...values };
 }
 
 /** The family with the profile added at the end. */
@@ -62,12 +62,14 @@ export function updateProfile(family: Family, changed: Profile): Family {
   };
 }
 
-/** The family with the profile's code set, or taken away with null. */
-export function setPin(family: Family, id: string, pin: PinHash | null): Family {
-  return {
-    ...family,
-    profiles: family.profiles.map((profile) => (profile.id === id ? { ...profile, pin } : profile)),
-  };
+/** The family with the grown-ups' lock set to the code, or turned off with null. */
+export function setLock(family: Family, lock: PinHash | null): Family {
+  return { ...family, lock };
+}
+
+/** Whether choosing the profile asks for the grown-ups' code first. */
+export function isLocked(family: Family, profile: Profile): boolean {
+  return family.lock !== null && profile.role === 'voksen';
 }
 
 /**
@@ -89,44 +91,37 @@ export function nextColor(family: Family): ProfileColor {
 }
 
 /**
- * The family from a saved value, or a new family when the value is no family. The first
- * version kept one code for the family, used by the grown-ups; it becomes each grown-up's own.
- * A profile saved before profiles had a language, or with one the app no longer speaks, gets
- * the phone's.
+ * The family from a saved value, or a new family when the value is no family. Earlier versions
+ * kept codes otherwise: the first one code for the family, used by the grown-ups, the next a
+ * code on each profile. The family's code, or else the first grown-up's, becomes the
+ * grown-ups' lock, so a code that worked still does; children's codes and anything else an
+ * earlier version kept on a profile are left behind.
  */
 export function reviveFamily(value: unknown): Family {
   if (typeof value !== 'object' || value === null) return newFamily();
-  const { profiles, pin: familyPin } = value as Record<string, unknown>;
-  if (
-    !Array.isArray(profiles) ||
-    !(familyPin === undefined || familyPin === null || isPinHash(familyPin))
-  ) {
-    return newFamily();
-  }
-  const revived = profiles.map((profile) => reviveProfile(profile, familyPin ?? null));
-  return revived.every((profile) => profile !== undefined) ? { profiles: revived } : newFamily();
+  const { profiles, lock, pin: familyPin } = value as Record<string, unknown>;
+  if (!Array.isArray(profiles)) return newFamily();
+  const revived = profiles.map(reviveProfile);
+  if (!revived.every((profile) => profile !== undefined)) return newFamily();
+  const grownUpPin = profiles
+    .map((profile) => profile as Record<string, unknown>)
+    .find((profile) => profile.role === 'voksen' && isPinHash(profile.pin))?.pin;
+  const kept = [lock, familyPin, grownUpPin].find(isPinHash) ?? null;
+  const malformed = [lock, familyPin].some(
+    (code) => code !== undefined && code !== null && !isPinHash(code),
+  );
+  return malformed ? newFamily() : { profiles: revived, lock: kept };
 }
 
-function reviveProfile(value: unknown, familyPin: PinHash | null): Profile | undefined {
+function reviveProfile(value: unknown): Profile | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
-  const profile = value as Record<string, unknown>;
-  const { id, name, role, color, language } = profile;
-  const pin = 'pin' in profile ? profile.pin : role === 'voksen' ? familyPin : null;
+  const { id, name, role, color } = value as Record<string, unknown>;
   const valid =
     typeof id === 'string' &&
     typeof name === 'string' &&
     (role === 'voksen' || role === 'barn') &&
-    profileColors.includes(color as ProfileColor) &&
-    (pin === null || isPinHash(pin));
-  if (!valid) return undefined;
-  return {
-    id,
-    name,
-    role,
-    color: color as ProfileColor,
-    pin,
-    language: isLocale(language) ? language : bestLocale(navigator.languages),
-  };
+    profileColors.includes(color as ProfileColor);
+  return valid ? { id, name, role, color: color as ProfileColor } : undefined;
 }
 
 function isPinHash(value: unknown): value is PinHash {

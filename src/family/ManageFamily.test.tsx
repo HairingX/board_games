@@ -1,9 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { far, mille, mor, typePin } from '../../tests/family';
+import { far, mille, mor } from '../../tests/family';
 import type { Family } from './family';
 import { ManageFamily } from './ManageFamily';
-import { hashPin } from './pin';
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
@@ -14,100 +13,74 @@ const open = (name: string) => {
   click(new RegExp(`^${name} `));
 };
 
-function renderWith(family: Family) {
+function renderWith(profiles: Family['profiles'], current = far) {
   const onChange = vi.fn<(family: Family) => void>();
-  const onDone = vi.fn();
+  const onBack = vi.fn();
   const view = render(
-    <ManageFamily family={family} current={far} onChange={onChange} onDone={onDone} />,
+    <ManageFamily
+      family={{ profiles, lock: null }}
+      current={current}
+      onChange={onChange}
+      onBack={onBack}
+    />,
   );
   const changed = () => onChange.mock.lastCall?.[0];
-  return { ...view, onChange, onDone, changed };
+  return { ...view, onChange, onBack, changed };
 }
 
 describe('ManageFamily', () => {
-  it('adds a child without a code', () => {
-    const { changed } = renderWith({ profiles: [far] });
+  it('lists the family, and goes back to the settings', () => {
+    const { onBack } = renderWith([far, mille]);
+    expect(screen.getByRole('button', { name: 'Far Voksen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mille Barn' })).toBeInTheDocument();
+    click('Tilbage');
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('adds a child or a grown-up, without a code', () => {
+    const { changed } = renderWith([far]);
     click('Tilføj en i familien');
     click('Annullér');
+    click('Tilføj en i familien');
+    click('Tilbage');
     click('Tilføj en i familien');
     fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Oscar' } });
     fireEvent.click(screen.getByRole('radio', { name: 'Skifer' }));
     click('Gem');
-    expect(changed()?.profiles.map((p) => [p.name, p.role, p.color, p.pin])).toEqual([
-      ['Far', 'voksen', 'plum', null],
-      ['Oscar', 'barn', 'slate', null],
+    expect(changed()?.profiles.map((p) => [p.name, p.role, p.color])).toEqual([
+      ['Far', 'voksen', 'plum'],
+      ['Oscar', 'barn', 'slate'],
     ]);
+    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+
+    click('Tilføj en i familien');
+    fireEvent.click(screen.getByRole('radio', { name: 'Voksen' }));
+    fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Mor' } });
+    click('Gem');
+    expect(changed()?.profiles.at(-1)).toMatchObject({ name: 'Mor', role: 'voksen' });
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
   });
 
-  it('changes a profile’s name, colour and language, keeping its role and code', () => {
-    const { changed } = renderWith({
-      profiles: [far, { ...mille, pin: { salt: 's', hash: 'h' } }],
-    });
-    expect(screen.getByText('Barn · dansk')).toBeInTheDocument();
+  it('changes a profile’s name and colour, keeping its role', () => {
+    const { changed } = renderWith([far, mille]);
     open('Mille');
     click('Annullér');
     open('Mille');
     expect(screen.getByRole('heading', { name: 'Ret Mille' })).toBeInTheDocument();
     expect(screen.queryByRole('radiogroup', { name: 'Voksen eller barn' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Navn')).toHaveValue('Mille');
-    expect(screen.getByRole('radio', { name: 'Dansk' })).toBeChecked();
     fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Milla' } });
     fireEvent.click(screen.getByRole('radio', { name: 'Petrol' }));
-    fireEvent.click(screen.getByRole('radio', { name: 'English' }));
     click('Gem');
-    expect(changed()?.profiles[1]).toEqual({
-      ...mille,
-      name: 'Milla',
-      color: 'teal',
-      language: 'en',
-      pin: { salt: 's', hash: 'h' },
-    });
+    expect(changed()?.profiles[1]).toEqual({ ...mille, name: 'Milla', color: 'teal' });
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
   });
 
-  it('asks for a code when a grown-up is added', async () => {
-    const { changed } = renderWith({ profiles: [far] });
-    click('Tilføj en i familien');
-    fireEvent.click(screen.getByRole('radio', { name: 'Voksen' }));
-    fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Mor' } });
-    click('Gem');
-    expect(screen.getByRole('heading', { name: 'Kode til Mor' })).toBeInTheDocument();
-    typePin('2222');
-    await screen.findByRole('heading', { name: 'Skriv koden igen' });
-    typePin('2222');
-    await screen.findByRole('heading', { name: 'Familien' });
-    expect(changed()?.profiles[1]).toMatchObject({ name: 'Mor', role: 'voksen' });
-    expect(changed()?.profiles[1]?.pin).not.toBeNull();
-  });
-
-  it('gives a profile a code, changes it, or takes it away', async () => {
-    const { changed, rerender, onChange, onDone } = renderWith({ profiles: [far, mille] });
-    open('Mille');
-    click('Kode til Mille');
-    click('Annullér');
-    open('Mille');
-    click('Kode til Mille');
-    typePin('3333');
-    await screen.findByRole('heading', { name: 'Skriv koden igen' });
-    typePin('3333');
-    await screen.findByRole('heading', { name: 'Familien' });
-    expect(changed()?.profiles[1]?.pin).not.toBeNull();
-
-    const withPin: Family = { profiles: [far, { ...mille, pin: await hashPin('3333') }] };
-    rerender(<ManageFamily family={withPin} current={far} onChange={onChange} onDone={onDone} />);
-    open('Mille');
-    expect(screen.getByRole('button', { name: 'Kode til Mille' })).toHaveTextContent('Skift kode');
-    click('Kode til Mille');
-    click('Ingen kode');
-    expect(changed()?.profiles[1]?.pin).toBeNull();
-  });
-
   it('takes someone out once confirmed, but not oneself or the last grown-up', () => {
-    const { changed, onDone } = renderWith({ profiles: [far, mor, mille] });
+    const { changed } = renderWith([far, mor, mille]);
     open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeDisabled();
-    click('Annullér');
+    click('Tilbage');
     open('Mor');
     click('Fjern Mor');
     fireEvent.click(
@@ -118,30 +91,14 @@ describe('ManageFamily', () => {
     click('Ja, fjern');
     expect(changed()?.profiles.map((p) => p.id)).toEqual(['far', 'mille']);
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
-    click('Færdig');
-    expect(onDone).toHaveBeenCalledOnce();
   });
 
   it('keeps the last grown-up while there are children', () => {
-    const { unmount } = render(
-      <ManageFamily
-        family={{ profiles: [far, mor, mille] }}
-        current={mor}
-        onChange={vi.fn()}
-        onDone={vi.fn()}
-      />,
-    );
+    const { unmount } = renderWith([far, mor, mille], mor);
     open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeEnabled();
     unmount();
-    render(
-      <ManageFamily
-        family={{ profiles: [far, mille] }}
-        current={mor}
-        onChange={vi.fn()}
-        onDone={vi.fn()}
-      />,
-    );
+    renderWith([far, mille], mor);
     open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeDisabled();
   });

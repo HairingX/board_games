@@ -2,29 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { far, mille, mor } from '../../tests/family';
 import {
   addProfile,
+  isLocked,
   mayPlay,
   newFamily,
   newProfile,
   nextColor,
   removeProfile,
   reviveFamily,
-  setPin,
+  setLock,
   updateProfile,
-  type Profile,
 } from './family';
 
 const pin = { salt: 's', hash: 'h' };
-
-/** A profile as the first version saved it, without its own code. */
-function firstVersion(profile: Profile): Partial<Profile> {
-  const copy: Partial<Profile> = { ...profile };
-  delete copy.pin;
-  return copy;
-}
+const other = { salt: 't', hash: 'i' };
 
 describe('family', () => {
-  it('starts with nobody', () => {
-    expect(newFamily()).toEqual({ profiles: [] });
+  it('starts with nobody and no lock', () => {
+    expect(newFamily()).toEqual({ profiles: [], lock: null });
   });
 
   it('lets children play games for children and for everyone, and grown-ups play all', () => {
@@ -44,22 +38,24 @@ describe('family', () => {
     expect(removeProfile(family, 'far').profiles).toEqual([]);
   });
 
-  it('makes a new profile without a code, with an id of its own', () => {
-    const values = { name: 'Oscar', role: 'barn', color: 'slate', language: 'en' } as const;
+  it('makes a new profile with an id of its own', () => {
+    const values = { name: 'Oscar', role: 'barn', color: 'slate' } as const;
     const oscar = newProfile(values);
-    expect(oscar).toMatchObject({ ...values, pin: null });
+    expect(oscar).toMatchObject(values);
     expect(newProfile(values).id).not.toBe(oscar.id);
   });
 
   it('changes one profile', () => {
-    const family = updateProfile({ profiles: [far, mor] }, { ...mor, language: 'en' });
-    expect(family.profiles.map((p) => p.language)).toEqual(['da', 'en']);
+    const family = updateProfile({ profiles: [far, mor], lock: null }, { ...mor, name: 'Mama' });
+    expect(family.profiles.map((p) => p.name)).toEqual(['Far', 'Mama']);
   });
 
-  it('sets and takes away one profile’s code', () => {
-    const family = setPin({ profiles: [far, mor] }, 'far', pin);
-    expect(family.profiles.map((p) => p.pin)).toEqual([pin, null]);
-    expect(setPin(family, 'far', null).profiles[0]?.pin).toBeNull();
+  it('locks the grown-ups, not the children, while the lock is on', () => {
+    const family = setLock({ profiles: [far, mille], lock: null }, pin);
+    expect(family.lock).toBe(pin);
+    expect(isLocked(family, far)).toBe(true);
+    expect(isLocked(family, mille)).toBe(false);
+    expect(isLocked(setLock(family, null), far)).toBe(false);
   });
 
   it('gives each new profile a colour no one has, then starts over', () => {
@@ -76,29 +72,30 @@ describe('family', () => {
 
 describe('reviveFamily', () => {
   it('keeps a saved family', () => {
-    const saved = { profiles: [{ ...far, pin }, mille] };
+    const saved = { profiles: [far, mille], lock: pin };
     expect(reviveFamily(saved)).toEqual(saved);
   });
 
-  it('gives the grown-ups the family code the first version kept', () => {
-    const oldFar = firstVersion(far);
-    const oldMille = firstVersion(mille);
-    expect(reviveFamily({ profiles: [oldFar, oldMille], locked: true, pin })).toEqual({
-      profiles: [{ ...far, pin }, mille],
+  it('makes the first version’s family code the grown-ups’ lock', () => {
+    expect(reviveFamily({ profiles: [far, mille], locked: true, pin })).toEqual({
+      profiles: [far, mille],
+      lock: pin,
     });
-    expect(reviveFamily({ profiles: [oldFar], locked: false, pin: null })).toEqual({
+    expect(reviveFamily({ profiles: [far], locked: false, pin: null })).toEqual({
       profiles: [far],
+      lock: null,
     });
   });
 
-  it('gives the phone’s language to a profile saved without one or with one it does not speak', () => {
-    Object.defineProperty(navigator, 'languages', { value: ['en-US'], configurable: true });
-    const withoutLanguage: Partial<Profile> = { ...mille };
-    delete withoutLanguage.language;
-    expect(reviveFamily({ profiles: [withoutLanguage, { ...far, language: 'tlh' }, mor] })).toEqual(
-      { profiles: [{ ...mille, language: 'en' }, { ...far, language: 'en' }, mor] },
-    );
-    Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
+  it('makes the first grown-up’s own code the lock, and leaves other codes and languages', () => {
+    const saved = {
+      profiles: [
+        { ...mille, pin: other, language: 'en' },
+        { ...far, pin: null, language: 'da' },
+        { ...mor, pin },
+      ],
+    };
+    expect(reviveFamily(saved)).toEqual({ profiles: [mille, far, mor], lock: pin });
   });
 
   it.each([
@@ -112,10 +109,9 @@ describe('reviveFamily', () => {
     { profiles: [{ ...far, name: 1 }] },
     { profiles: [{ ...far, role: 'konge' }] },
     { profiles: [{ ...far, color: 'pink' }] },
-    { profiles: [{ ...far, pin: 'abc' }] },
-    { profiles: [{ ...far, pin: { salt: 1, hash: 'h' } }] },
-    { profiles: [{ ...far, pin: { salt: 's', hash: 1 } }] },
     { profiles: [], pin: 'abc' },
+    { profiles: [], lock: { salt: 1, hash: 'h' } },
+    { profiles: [], lock: { salt: 's', hash: 1 } },
   ])('starts a new family from %j when it is not one', (value) => {
     expect(reviveFamily(value)).toEqual(newFamily());
   });

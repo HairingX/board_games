@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocale, useMessages } from '../i18n/I18n';
+import { useMessages } from '../i18n/I18n';
 import type { GameInfo } from '../lib/games';
 import { GameHeader } from '../ui/GameHeader';
 import { common } from '../ui/text';
@@ -25,7 +25,6 @@ interface Props {
  */
 export function ChoosePlayers({ game, family, current, onChange, onStart }: Props) {
   const t = useMessages(familyText);
-  const language = useLocale();
   const { start } = useMessages(common);
   const { title } = useMessages(game.about);
   const [chosen, setChosen] = useState<string[]>([current.id]);
@@ -48,7 +47,7 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
         <>
           <h2 className="players-title">{t.newPlayer}</h2>
           <ProfileForm
-            start={{ name: '', role: newRole ?? 'barn', color: nextColor(family), language }}
+            start={{ name: '', role: newRole ?? 'barn', color: nextColor(family) }}
             chooseRole={newRole === undefined}
             onSave={(values) => {
               const profile = newProfile(values);

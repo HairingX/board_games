@@ -1,45 +1,34 @@
 import { MotionConfig } from 'motion/react';
-import { Suspense, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ChoosePlayers } from './family/ChoosePlayers';
-import { mayPlay, updateProfile, type Profile } from './family/family';
+import { mayPlay, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
-import { ManageFamily } from './family/ManageFamily';
 import { WhoIsPlaying } from './family/WhoIsPlaying';
 import { I18nProvider, useMessages } from './i18n/I18n';
-import { bestLocale } from './i18n/locales';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { moveSave, saves } from './lib/saves';
 import { parseGameId } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
 import { Home } from './routes/Home';
+import { Settings } from './routes/Settings';
 import { appText } from './routes/text';
 import { common } from './ui/text';
 
 /**
  * The app: "Hvem spiller?" first, then the home screen, or the game the location's hash names.
- * Only the games the player may play are offered or opened. The app speaks the language of the
- * one on the home screen, and the phone's before anyone is chosen.
+ * Only the games the player may play are offered or opened.
  */
 export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   return (
     <MotionConfig reducedMotion="user">
-      <FamilyProvider>
-        <Speaking>
+      <I18nProvider>
+        <FamilyProvider>
           <Shell games={games} />
-        </Speaking>
-      </FamilyProvider>
+        </FamilyProvider>
+      </I18nProvider>
     </MotionConfig>
-  );
-}
-
-function Speaking({ children }: { children: ReactNode }) {
-  const { current } = useFamily();
-  return (
-    <I18nProvider locale={current?.language ?? bestLocale(navigator.languages)}>
-      {children}
-    </I18nProvider>
   );
 }
 
@@ -53,7 +42,7 @@ interface Session {
 function Shell({ games }: { games: readonly GameInfo[] }) {
   const t = useMessages(appText);
   const { family, current, save, leave } = useFamily();
-  const [managing, setManaging] = useState(false);
+  const [inSettings, setInSettings] = useState(false);
   const [session, setSession] = useState<Session>();
   const [gameId, setGameId] = useState(() => parseGameId(window.location.hash));
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
@@ -82,14 +71,14 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   }, []);
 
   if (!current) return <WhoIsPlaying />;
-  if (managing) {
+  if (inSettings) {
     return (
-      <ManageFamily
+      <Settings
         family={family}
         current={current}
         onChange={save}
-        onDone={() => {
-          setManaging(false);
+        onBack={() => {
+          setInSettings(false);
         }}
       />
     );
@@ -102,11 +91,8 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       games={playable}
       player={current}
       onSwitch={leave}
-      onManageFamily={() => {
-        setManaging(true);
-      }}
-      onChangeLanguage={(language) => {
-        save(updateProfile(family, { ...current, language }));
+      onSettings={() => {
+        setInSettings(true);
       }}
       {...(updateWaiting
         ? {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { formatLanguages } from '../i18n/format';
-import { useLocale, useMessages } from '../i18n/I18n';
+import { useMessages } from '../i18n/I18n';
+import { GameHeader } from '../ui/GameHeader';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import {
@@ -8,12 +8,10 @@ import {
   newProfile,
   nextColor,
   removeProfile,
-  setPin,
   updateProfile,
   type Family,
   type Profile,
 } from './family';
-import { PinSetup } from './PinSetup';
 import { ProfileForm } from './ProfileForm';
 import { familyText } from './text';
 import './family.css';
@@ -23,20 +21,16 @@ interface Props {
   /** The grown-up looking after the family, who cannot take themselves out. */
   current: Profile;
   onChange: (family: Family) => void;
-  onDone: () => void;
+  /** Goes back to the settings. */
+  onBack: () => void;
 }
 
-type View =
-  | { name: 'list' }
-  | { name: 'add' }
-  | { name: 'edit'; profile: Profile }
-  | { name: 'pin'; profile: Profile };
+type View = { name: 'list' } | { name: 'add' } | { name: 'edit'; profile: Profile };
 
-/** Adding, changing and taking out the family's profiles, and their codes; for grown-ups. */
-export function ManageFamily({ family, current, onChange, onDone }: Props) {
+/** The family's profiles: each opens to change its name and colour, or to take it out. */
+export function ManageFamily({ family, current, onChange, onBack }: Props) {
   const t = useMessages(familyText);
   const { cancel } = useMessages(common);
-  const locale = useLocale();
   const [view, setView] = useState<View>({ name: 'list' });
   /** Whether the profile shown is about to be taken out, once confirmed. */
   const [leaving, setLeaving] = useState(false);
@@ -48,19 +42,13 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
   if (view.name === 'add') {
     return (
       <section className="family">
-        <h1>{t.newInFamily}</h1>
+        <GameHeader title={t.newInFamily} onBack={back} />
         <ProfileForm
-          start={{ name: '', role: 'barn', color: nextColor(family), language: locale }}
+          start={{ name: '', role: 'barn', color: nextColor(family) }}
           chooseRole
           onSave={(values) => {
-            const profile = newProfile(values);
-            const added = addProfile(family, profile);
-            if (profile.role === 'barn') {
-              onChange(added);
-              back();
-            } else {
-              setView({ name: 'pin', profile });
-            }
+            onChange(addProfile(family, newProfile(values)));
+            back();
           }}
           onCancel={back}
         />
@@ -73,7 +61,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
     const mayLeave = profile.id !== current.id && removeProfile(family, profile.id) !== family;
     return (
       <section className="family">
-        <h1>{t.editProfile(profile.name)}</h1>
+        <GameHeader title={t.editProfile(profile.name)} onBack={back} />
         <ProfileForm
           start={profile}
           chooseRole={false}
@@ -84,16 +72,6 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
           onCancel={back}
         />
         <div className="family-footer">
-          <button
-            type="button"
-            className="btn btn-ghost btn-block"
-            aria-label={t.pinFor(profile.name)}
-            onClick={() => {
-              setView({ name: 'pin', profile });
-            }}
-          >
-            {profile.pin ? t.changePin : t.pin}
-          </button>
           {leaving ? (
             <div className="family-confirm" role="alertdialog" aria-label={t.remove(profile.name)}>
               <p>{t.removeQuestion(profile.name)}</p>
@@ -136,25 +114,9 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
     );
   }
 
-  if (view.name === 'pin') {
-    return (
-      <PinSetup
-        name={view.profile.name}
-        onDone={(pin) => {
-          const withProfile = family.profiles.some((p) => p.id === view.profile.id)
-            ? family
-            : addProfile(family, view.profile);
-          onChange(setPin(withProfile, view.profile.id, pin));
-          back();
-        }}
-        onCancel={back}
-      />
-    );
-  }
-
   return (
     <section className="family">
-      <h1>{t.family}</h1>
+      <GameHeader title={t.family} onBack={onBack} />
       <ul className="family-list">
         {family.profiles.map((profile) => (
           <li key={profile.id}>
@@ -167,10 +129,7 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
             >
               <Avatar profile={profile} size="small" />
               <span className="family-row-name">
-                {profile.name}{' '}
-                <small>
-                  {t.roles[profile.role]} · {formatLanguages(locale, [profile.language])}
-                </small>
+                {profile.name} <small>{t.roles[profile.role]}</small>
               </span>
               <span className="family-row-open" aria-hidden="true">
                 ›
@@ -180,7 +139,6 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
         ))}
       </ul>
       <p className="family-note">{t.familyNote}</p>
-
       <div className="family-footer">
         <button
           type="button"
@@ -190,9 +148,6 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
           }}
         >
           {t.addToFamily}
-        </button>
-        <button type="button" className="btn btn-primary btn-block" onClick={onDone}>
-          {t.done}
         </button>
       </div>
     </section>

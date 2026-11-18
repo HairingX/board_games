@@ -4,28 +4,33 @@ import type { ProfileColor, Role } from './family';
 
 const da = {
   whoIsPlaying: 'Hvem spiller?',
-  hasPin: 'Kode',
-  enterPin: 'Skriv din kode.',
-  forgotPin: 'Glemt koden?',
   welcome: (app: string) => `Velkommen til ${app}`,
   firstIntro: 'Først et par ord om dig. Bagefter kan du tilføje resten af familien, også børnene.',
 
+  locked: 'Låst',
+  enterLock: 'Skriv voksenkoden.',
+  forgotPin: 'Glemt koden?',
   pinTyped: (typed: number, length: number) =>
     `${formatNumber('da', typed)} af ${formatNumber('da', length)} cifre`,
   wrongPin: 'Det var ikke den rigtige kode. Prøv igen.',
   deleteDigit: 'Slet',
 
-  pinFor: (name: string) => `Kode til ${name}`,
+  lock: 'Voksenlås',
+  lockOn: 'Til',
+  lockOff: 'Fra',
+  lockWhy: (screen: string) =>
+    `Med voksenlåsen skal en kode tastes, før en voksen vælges på »${screen}«. Så kan børnene ikke åbne voksenspil eller indstillingerne, men de skifter stadig frit mellem hinanden.`,
+  turnLockOn: 'Slå voksenlåsen til',
+  changeLock: 'Skift koden',
+  turnLockOff: 'Slå voksenlåsen fra',
+  chooseLock: 'Vælg en kode',
+  chooseLockWhy: 'Vælg fire cifre, som børnene ikke kender.',
   pinMismatch: 'Koderne var ikke ens. Vælg koden igen.',
-  pinWhy: (name: string, screen: string) =>
-    `Koden skal tastes, når ${name} vælges på »${screen}«. Vælg fire cifre, som børnene ikke kender.`,
-  noPin: 'Ingen kode',
   pinAgain: 'Skriv koden igen',
   pinTip:
     'Tip: Med »Guidet adgang« på iPhone eller »Fastgør app« på Android kan børnene heller ikke forlade appen.',
 
-  forgotWhy:
-    'Svar på regnestykket, så kan du komme ind og vælge en ny kode, næste gang et barn skal spille.',
+  forgotWhy: 'Svar på regnestykket, så kan du vælge en ny kode eller slå voksenlåsen fra.',
   forgotSum: (a: number, b: number) =>
     `Hvad er ${formatNumber('da', a)} × ${formatNumber('da', b)}?`,
   wrongAnswer: 'Det var ikke rigtigt. Prøv igen.',
@@ -46,13 +51,12 @@ const da = {
   save: 'Gem',
 
   family: 'Familien',
+  people: (count: number) =>
+    `${formatNumber('da', count)} ${plural('da', count, { one: 'person', other: 'personer' })}`,
   editProfile: (name: string) => `Ret ${name}`,
   newInFamily: 'Ny i familien',
-  pin: 'Kode',
-  changePin: 'Skift kode',
   remove: (name: string) => `Fjern ${name}`,
-  familyNote:
-    'En voksen med kode kan ikke vælges af børnene. Den sidste voksne bliver i familien, så længe der er børn.',
+  familyNote: 'Den sidste voksne bliver i familien, så længe der er børn.',
   removeQuestion: (name: string) => `Vil du fjerne ${name} fra familien?`,
   yesRemove: 'Ja, fjern',
   addToFamily: 'Tilføj en i familien',
@@ -71,29 +75,34 @@ export const familyText: Translations<typeof da> = {
   da,
   en: {
     whoIsPlaying: 'Who’s playing?',
-    hasPin: 'Code',
-    enterPin: 'Enter your code.',
-    forgotPin: 'Forgot the code?',
     welcome: (app) => `Welcome to ${app}`,
     firstIntro:
       'First, a little about you. Afterwards you can add the rest of the family, children too.',
 
+    locked: 'Locked',
+    enterLock: 'Enter the grown-ups’ code.',
+    forgotPin: 'Forgot the code?',
     pinTyped: (typed, length) =>
       `${formatNumber('en', typed)} of ${formatNumber('en', length)} digits`,
     wrongPin: 'That wasn’t the right code. Try again.',
     deleteDigit: 'Delete',
 
-    pinFor: (name) => `Code for ${name}`,
+    lock: 'Grown-up lock',
+    lockOn: 'On',
+    lockOff: 'Off',
+    lockWhy: (screen) =>
+      `With the grown-up lock, a code is needed before a grown-up is chosen on “${screen}”. Then the children can’t open grown-ups’ games or the settings, but they still switch freely between themselves.`,
+    turnLockOn: 'Turn the grown-up lock on',
+    changeLock: 'Change the code',
+    turnLockOff: 'Turn the grown-up lock off',
+    chooseLock: 'Choose a code',
+    chooseLockWhy: 'Choose four digits the children don’t know.',
     pinMismatch: 'The codes weren’t the same. Choose the code again.',
-    pinWhy: (name, screen) =>
-      `The code is needed when ${name} is chosen on “${screen}”. Choose four digits the children don’t know.`,
-    noPin: 'No code',
     pinAgain: 'Enter the code again',
     pinTip:
       'Tip: With Guided Access on iPhone or App pinning on Android, the children can’t leave the app either.',
 
-    forgotWhy:
-      'Answer the sum, and you can come in and choose a new code before a child plays next.',
+    forgotWhy: 'Answer the sum, and you can choose a new code or turn the grown-up lock off.',
     forgotSum: (a, b) => `What is ${formatNumber('en', a)} × ${formatNumber('en', b)}?`,
     wrongAnswer: 'That wasn’t right. Try again.',
     answer: 'Answer',
@@ -113,13 +122,12 @@ export const familyText: Translations<typeof da> = {
     save: 'Save',
 
     family: 'The family',
+    people: (count) =>
+      `${formatNumber('en', count)} ${plural('en', count, { one: 'person', other: 'people' })}`,
     editProfile: (name) => `Edit ${name}`,
     newInFamily: 'New in the family',
-    pin: 'Code',
-    changePin: 'Change code',
     remove: (name) => `Remove ${name}`,
-    familyNote:
-      'The children can’t choose a grown-up who has a code. The last grown-up stays in the family as long as there are children.',
+    familyNote: 'The last grown-up stays in the family as long as there are children.',
     removeQuestion: (name) => `Do you want to remove ${name} from the family?`,
     yesRemove: 'Yes, remove',
     addToFamily: 'Add someone to the family',

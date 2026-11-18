@@ -8,24 +8,18 @@ export const far: Profile = {
   name: 'Far',
   role: 'voksen',
   color: 'plum',
-  pin: null,
-  language: 'da',
 };
 export const mor: Profile = {
   id: 'mor',
   name: 'Mor',
   role: 'voksen',
   color: 'teal',
-  pin: null,
-  language: 'da',
 };
 export const mille: Profile = {
   id: 'mille',
   name: 'Mille',
   role: 'barn',
   color: 'ochre',
-  pin: null,
-  language: 'da',
 };
 
 /** Saves the family the app finds when it starts. */

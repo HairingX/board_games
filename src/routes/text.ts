@@ -1,13 +1,14 @@
-import { formatLongDate, formatNumber, plural } from '../i18n/format';
+import { formatLongDate } from '../i18n/format';
 import type { Translations } from '../i18n/locales';
 
-/** The app around the games: its home screen, how games are saved, and the language. */
+/** The app around the games: its home screen, its settings, and how games are saved. */
 const da = {
   loadFailed: 'Spillet kunne ikke hentes.',
   loading: 'Henter spillet…',
   noSuchGame: 'Det spil findes ikke.',
 
   switchPlayer: 'Skift spiller',
+  settings: 'Indstillinger',
   newVersion: (app: string) => `Der er en ny version af ${app}.`,
   update: 'Opdatér',
   offline: 'Virker uden internet',
@@ -16,23 +17,6 @@ const da = {
   soon: 'Kommer snart',
   /** On a game's tile when its content is written in other languages: "På dansk". */
   writtenIn: (languages: string) => `På ${languages}`,
-
-  readAloud: 'Oplæsning',
-  cannotSpeak: 'Denne browser kan ikke læse op.',
-  noVoicesYet: 'Telefonen har ikke vist nogen stemmer. Prøv at lukke appen og åbne den igen.',
-  noVoice: (language: string) =>
-    `Telefonen har ingen stemme på ${language}, så spillene kan ikke læse op endnu.`,
-  voices: (count: number, language: string, listen: string) =>
-    `Telefonen har ${formatNumber('da', count)} ${plural('da', count, { one: 'stemme', other: 'stemmer' })} på ${language}. Tryk »${listen}« for at høre, hvordan ${plural('da', count, { one: 'den', other: 'de' })} lyder.`,
-  listen: 'Lyt',
-  listenTo: (name: string) => `Lyt til ${name}`,
-  onPhone: 'På telefonen',
-  needsInternet: 'Kræver internet',
-  phoneDefault: 'telefonens valg',
-  sample: 'Hvad er syv gange otte? Er det fireoghalvtreds, seksoghalvtreds eller otteoghalvtreds?',
-  betterVoices:
-    'Bedre stemmer hentes på telefonen. På iPhone: Indstillinger → Tilgængelighed → Oplæst indhold → Stemmer, og vælg en med »Forbedret« eller »Premium«. På Android: Indstillinger → Tekst til tale.',
-  phoneLanguages: (languages: string) => `Telefonens sprog: ${languages}`,
 
   savedTitle: 'Jeres gemte spil',
   kept: '✓ Telefonen gemmer jeres spil sikkert, også når der bliver trangt om pladsen.',
@@ -61,6 +45,7 @@ export const appText: Translations<typeof da> = {
     noSuchGame: 'There is no such game.',
 
     switchPlayer: 'Switch player',
+    settings: 'Settings',
     newVersion: (app) => `There is a new version of ${app}.`,
     update: 'Update',
     offline: 'Works offline',
@@ -68,23 +53,6 @@ export const appText: Translations<typeof da> = {
     noGames: 'The games are on their way.',
     soon: 'Coming soon',
     writtenIn: (languages) => `In ${languages}`,
-
-    readAloud: 'Reading aloud',
-    cannotSpeak: 'This browser cannot read aloud.',
-    noVoicesYet: 'The phone has not shown any voices. Try closing the app and opening it again.',
-    noVoice: (language) =>
-      `The phone has no voice in ${language}, so the games cannot read aloud yet.`,
-    voices: (count, language, listen) =>
-      `The phone has ${formatNumber('en', count)} ${plural('en', count, { one: 'voice', other: 'voices' })} in ${language}. Tap “${listen}” to hear how ${plural('en', count, { one: 'it sounds', other: 'they sound' })}.`,
-    listen: 'Listen',
-    listenTo: (name) => `Listen to ${name}`,
-    onPhone: 'On the phone',
-    needsInternet: 'Needs the internet',
-    phoneDefault: 'the phone’s choice',
-    sample: 'What is seven times eight? Is it fifty-four, fifty-six or fifty-eight?',
-    betterVoices:
-      'Better voices are added on the phone. On iPhone: Settings → Accessibility → Spoken Content → Voices, and choose one marked Enhanced or Premium. On Android: Settings → Text-to-speech.',
-    phoneLanguages: (languages) => `The phone’s languages: ${languages}`,
 
     savedTitle: 'Your saved games',
     kept: '✓ The phone keeps your games safe, even when space runs low.',

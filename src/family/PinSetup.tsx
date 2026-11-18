@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMessages } from '../i18n/I18n';
 import type { PinHash } from './family';
 import { hashPin } from './pin';
@@ -6,15 +6,15 @@ import { PinPad } from './PinPad';
 import { familyText } from './text';
 
 interface Props {
-  /** Whose code it is, said in the explanation. */
-  name: string;
-  /** Called with the new code, or with null when the profile is to have none. */
-  onDone: (pin: PinHash | null) => void;
+  /** Called with the new code, kept only as a salted hash. */
+  onDone: (pin: PinHash) => void;
   onCancel: () => void;
+  /** Shown under the keys the first time, such as a way to turn the lock off. */
+  footer?: ReactNode;
 }
 
-/** Choosing a profile's code: typed twice, so a slip of the finger is caught; or none. */
-export function PinSetup({ name, onDone, onCancel }: Props) {
+/** Choosing the grown-ups' code: typed twice, so a slip of the finger is caught. */
+export function PinSetup({ onDone, onCancel, footer }: Props) {
   const t = useMessages(familyText);
   const [first, setFirst] = useState<string>();
   const [mismatch, setMismatch] = useState(false);
@@ -22,24 +22,14 @@ export function PinSetup({ name, onDone, onCancel }: Props) {
   return first === undefined ? (
     <PinPad
       key="first"
-      title={t.pinFor(name)}
-      text={mismatch ? t.pinMismatch : t.pinWhy(name, t.whoIsPlaying)}
+      title={t.chooseLock}
+      text={mismatch ? t.pinMismatch : t.chooseLockWhy}
       onEnter={(pin) => {
         setFirst(pin);
         return true;
       }}
       onCancel={onCancel}
-      footer={
-        <button
-          type="button"
-          className="btn btn-quiet btn-block"
-          onClick={() => {
-            onDone(null);
-          }}
-        >
-          {t.noPin}
-        </button>
-      }
+      footer={footer}
     />
   ) : (
     <PinPad
