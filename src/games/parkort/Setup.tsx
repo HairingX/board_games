@@ -2,7 +2,15 @@ import { useState } from 'react';
 import { timeAgo } from '../../lib/time';
 import { GameHeader } from '../../ui/GameHeader';
 import { cards, categories, type CategoryId } from './cards';
-import { progress, remaining, restart, type DeckState, type Mode } from './deck';
+import {
+  choose,
+  hasStarted,
+  progress,
+  remaining,
+  restart,
+  type DeckState,
+  type Mode,
+} from './deck';
 
 interface Props {
   deck: DeckState;
@@ -19,19 +27,20 @@ const modes: readonly { id: Mode; name: string }[] = [
 export function Setup({ deck, onChange, onStart }: Props) {
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [openedAt] = useState(Date.now);
-  const { seen, total } = progress(deck, cards);
-  const started = seen > 0 || deck.flipped !== null;
+  const { seen, later, total } = progress(deck, cards);
+  const started = hasStarted(deck);
   const left = remaining({ ...deck, categories: categories.map((c) => c.id) }, cards);
   const leftIn = (id: CategoryId) => left.filter((card) => card.category === id).length;
   const chosen = new Set(deck.categories);
 
   function toggle(id: CategoryId): void {
-    onChange({
-      ...deck,
-      categories: chosen.has(id)
-        ? deck.categories.filter((other) => other !== id)
-        : categories.map((c) => c.id).filter((other) => other === id || chosen.has(other)),
-    });
+    onChange(
+      choose(deck, {
+        categories: chosen.has(id)
+          ? deck.categories.filter((other) => other !== id)
+          : categories.map((c) => c.id).filter((other) => other === id || chosen.has(other)),
+      }),
+    );
   }
 
   return (
@@ -55,6 +64,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
           </strong>{' '}
           kort snakket om
         </div>
+        {later > 0 && <p className="pk-last">{later} kort venter til senere</p>}
         {deck.playedAt !== null && (
           <p className="pk-last">Sidst spillet {timeAgo(deck.playedAt, openedAt)}</p>
         )}
@@ -100,7 +110,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
               role="radio"
               aria-checked={deck.mode === mode.id}
               onClick={() => {
-                onChange({ ...deck, mode: mode.id });
+                onChange(choose(deck, { mode: mode.id }));
               }}
             >
               {mode.name}
@@ -120,7 +130,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
         </button>
         {deck.categories.length === 0 && <p className="pk-note">Vælg mindst én kategori.</p>}
 
-        {(deck.seen.length > 0 || deck.flipped !== null) &&
+        {started &&
           (confirmRestart ? (
             <div className="pk-confirm" role="alertdialog" aria-label="Start forfra">
               <p>Alle kort bliver blandet igen, og I starter fra første kort. Er I sikre?</p>

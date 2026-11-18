@@ -1,9 +1,18 @@
 import { AnimatePresence } from 'motion/react';
 import { useState } from 'react';
-import { FlipCard } from '../../ui/FlipCard';
+import { FlipCard, type CardMove } from '../../ui/FlipCard';
 import { GameHeader } from '../../ui/GameHeader';
-import { cards, categoryById, levelNames, type QuestionCard } from './cards';
-import { flip, markSeen, progress, remaining, restart, skip, type DeckState } from './deck';
+import { cards, categoryById, levelNames, levels, type QuestionCard } from './cards';
+import {
+  flip,
+  markSeen,
+  previous,
+  progress,
+  putOff,
+  remaining,
+  restart,
+  type DeckState,
+} from './deck';
 
 interface Props {
   deck: DeckState;
@@ -11,13 +20,25 @@ interface Props {
   onBack: () => void;
 }
 
-/** The deck: tap the top card to turn it, then go on to the next or skip it. */
+/**
+ * The deck: tap the top card to turn it, then go on to the next card, put it off till later,
+ * or go back to the card before. Thrown right it goes on; thrown left the card before comes back.
+ */
 export function Play({ deck, onChange, onBack }: Props) {
-  const [direction, setDirection] = useState<-1 | 1>(1);
+  const [move, setMove] = useState<CardMove>('next');
   const queue = remaining(deck, cards);
   const card = queue[0];
-  const flipped = card !== undefined && deck.flipped === card.id;
+  const canGoBack = deck.history.length > 0;
   const { seen, total } = progress(deck, cards);
+
+  function go(nextMove: CardMove, next: DeckState): void {
+    setMove(nextMove);
+    onChange(next);
+  }
+
+  const goBack = () => {
+    go('previous', previous(deck));
+  };
 
   if (!card) {
     return (
@@ -39,6 +60,11 @@ export function Play({ deck, onChange, onBack }: Props) {
             >
               Start forfra
             </button>
+            {canGoBack && (
+              <button type="button" className="btn btn-ghost btn-block" onClick={goBack}>
+                Forrige kort
+              </button>
+            )}
             <button type="button" className="btn btn-ghost btn-block" onClick={onBack}>
               Vælg andre kategorier
             </button>
@@ -48,18 +74,12 @@ export function Play({ deck, onChange, onBack }: Props) {
     );
   }
 
-  function leave(towards: -1 | 1, next: DeckState): void {
-    setDirection(towards);
-    onChange(next);
-  }
-
   const current = card;
-  const talkedAbout = (towards: -1 | 1) => {
-    leave(towards, markSeen(deck, current.id));
-  };
+  const flipped = deck.flipped === current.id;
+  const putOffJustNow = !flipped && deck.history.at(-1)?.action === 'later';
 
   return (
-    <>
+    <div className="pk-play">
       <GameHeader
         title="Parkort"
         onBack={onBack}
@@ -73,50 +93,59 @@ export function Play({ deck, onChange, onBack }: Props) {
       <div className="pk-table">
         {queue.length > 2 && <div className="pk-stack pk-stack-2" aria-hidden="true" />}
         {queue.length > 1 && <div className="pk-stack pk-stack-1" aria-hidden="true" />}
-        <AnimatePresence custom={direction} initial={false}>
+        <AnimatePresence custom={move} initial={false}>
           <FlipCard
-            key={card.id}
+            key={current.id}
+            move={move}
             flipped={flipped}
             onFlip={() => {
               onChange(flip(deck, current.id, Date.now()));
             }}
-            onSwipe={talkedAbout}
+            onSwipe={(direction) => {
+              if (direction === 1) go('next', markSeen(deck, current.id));
+              else if (canGoBack) goBack();
+            }}
             label="Vend kortet"
             back={<CardBack />}
-            front={<CardFront card={card} />}
+            front={<CardFront card={current} />}
           />
         </AnimatePresence>
       </div>
 
-      <p className="pk-hint">
+      <p className="pk-hint" aria-live="polite">
         {flipped
-          ? 'Læs højt, og svar begge to. Swipe kortet væk, når I er færdige.'
-          : 'Tryk på kortet for at vende det.'}
+          ? 'Læs kortet højt, og svar begge to.'
+          : putOffJustNow
+            ? 'Kortet ligger nu nederst i bunken.'
+            : 'Tryk på kortet for at vende det.'}
       </p>
 
       <div className="pk-actions">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          disabled={!flipped}
-          onClick={() => {
-            leave(-1, skip(deck, current.id));
-          }}
-        >
-          Spring over
+        <button type="button" className="btn btn-ghost" disabled={!canGoBack} onClick={goBack}>
+          Forrige
         </button>
         <button
           type="button"
           className="btn btn-primary"
           disabled={!flipped}
           onClick={() => {
-            talkedAbout(1);
+            go('next', markSeen(deck, current.id));
           }}
         >
           Næste kort
         </button>
       </div>
-    </>
+      <button
+        type="button"
+        className="btn btn-quiet btn-block"
+        disabled={!flipped}
+        onClick={() => {
+          go('later', putOff(deck, current.id));
+        }}
+      >
+        Tag den senere
+      </button>
+    </div>
   );
 }
 
@@ -139,8 +168,8 @@ function CardFront({ card }: { card: QuestionCard }) {
           <span aria-hidden="true">{category.icon}</span> {category.name}
         </span>
         <span className="pk-front-level" aria-label={`Niveau: ${levelNames[card.level]}`}>
-          {[1, 2, 3].map((dot) => (
-            <span key={dot} className={dot <= card.level ? 'on' : ''} />
+          {levels.map((level) => (
+            <span key={level} className={level <= card.level ? 'on' : ''} />
           ))}
         </span>
       </div>

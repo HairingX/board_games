@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { GameInfo } from '../lib/games';
+import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import './Home.css';
 
@@ -23,13 +23,7 @@ export function Home({ games }: { games: readonly GameInfo[] }) {
           {games.map((game, index) => (
             <li
               key={game.id}
-              style={
-                {
-                  '--from': game.colors[0],
-                  '--to': game.colors[1],
-                  '--delay': `${String(index * 60)}ms`,
-                } as CSSProperties
-              }
+              style={{ ...gameTheme(game), '--delay': `${String(index * 60)}ms` } as CSSProperties}
             >
               {game.Screen ? (
                 <a className="tile" href={gameHref(game.id)}>

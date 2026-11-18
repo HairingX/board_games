@@ -1,7 +1,7 @@
 .game-header {
   display: grid;
-  grid-template-columns: 44px 1fr auto;
-  gap: 12px;
+  grid-template-columns: var(--touch) 1fr auto;
+  gap: var(--space-3);
   align-items: center;
   min-height: 56px;
 }
@@ -9,8 +9,8 @@
 .game-header-back {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: var(--touch);
+  height: var(--touch);
   padding: 0;
   color: var(--text);
   background: var(--surface);
@@ -18,11 +18,11 @@
   border-radius: 50%;
   backdrop-filter: blur(12px);
   cursor: pointer;
-  transition: transform 200ms var(--ease-spring);
+  transition: transform var(--duration-press) var(--ease-spring);
 }
 
 .game-header-back:active {
-  transform: scale(0.9);
+  transform: scale(var(--press-scale));
 }
 
 .game-header-title {

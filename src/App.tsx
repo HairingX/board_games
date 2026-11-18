@@ -1,7 +1,7 @@
 import { MotionConfig } from 'motion/react';
 import { Suspense, useEffect, useState } from 'react';
 import { ErrorBoundary } from './ui/ErrorBoundary';
-import { games as allGames, type GameInfo } from './lib/games';
+import { games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { parseGameId } from './lib/router';
 import { Home } from './routes/Home';
 
@@ -29,7 +29,9 @@ export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
       ) : game?.Screen ? (
         <ErrorBoundary key={gameId} fallback={<Message text="Spillet kunne ikke hentes." />}>
           <Suspense fallback={<p className="status">Henter spillet…</p>}>
-            <game.Screen />
+            <div className="game" style={gameTheme(game)}>
+              <game.Screen />
+            </div>
           </Suspense>
         </ErrorBoundary>
       ) : (

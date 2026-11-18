@@ -26,6 +26,9 @@ export interface QuestionCard {
   text: string;
 }
 
+/** The levels, lightest first. */
+export const levels: readonly Level[] = [1, 2, 3];
+
 export const levelNames: Readonly<Record<Level, string>> = { 1: 'Let', 2: 'Mellem', 3: 'Dyb' };
 
 export const categories: readonly Category[] = [

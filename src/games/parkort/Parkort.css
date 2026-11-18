@@ -1,16 +1,21 @@
+.parkort {
+  --hero-icon: 64px;
+  --stack-step: 14px;
+}
+
 .pk-hero {
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: center;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .pk-hero-icon {
   display: grid;
   flex: none;
   place-items: center;
-  width: 64px;
-  height: 64px;
+  width: var(--hero-icon);
+  height: var(--hero-icon);
   font-size: 2rem;
   background: linear-gradient(135deg, var(--from), var(--to));
   border-radius: var(--radius-md);
@@ -23,8 +28,8 @@
 }
 
 .pk-panel {
-  margin-top: 20px;
-  padding: 18px;
+  margin-top: var(--space-5);
+  padding: var(--space-5);
   background: var(--surface);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
@@ -42,17 +47,17 @@
 }
 
 .pk-last {
-  margin: 10px 0 0;
+  margin: var(--space-3) 0 0;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
 
 .pk-progress {
   height: 8px;
-  margin-top: 12px;
+  margin-top: var(--space-3);
   overflow: hidden;
   background: var(--surface-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .pk-progress span {
@@ -64,77 +69,77 @@
 }
 
 .pk-section {
-  margin-top: 26px;
+  margin-top: var(--space-6);
 }
 
 .pk-section h2 {
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   font-size: 1.05rem;
 }
 
 .pk-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .pk-chip {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
   font-weight: 600;
   background: var(--surface);
   border: 1.5px solid var(--surface-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
-    transform 200ms var(--ease-spring),
+    transform var(--duration-press) var(--ease-spring),
     background 200ms ease,
     border-color 200ms ease;
 }
 
 .pk-chip:active {
-  transform: scale(0.94);
+  transform: scale(var(--press-scale));
 }
 
 .pk-chip[aria-pressed='true'] {
-  color: #fff;
+  color: var(--on-accent);
   background: linear-gradient(135deg, var(--from), var(--to));
   border-color: transparent;
 }
 
 .pk-chip-count {
   min-width: 26px;
-  padding: 2px 8px;
+  padding: 2px var(--space-2);
   font-size: 0.75rem;
   text-align: center;
-  background: rgb(0 0 0 / 8%);
-  border-radius: 999px;
+  background: var(--surface-border);
+  border-radius: var(--radius-pill);
 }
 
 .pk-chip[aria-pressed='true'] .pk-chip-count {
-  background: rgb(255 255 255 / 25%);
+  background: var(--glass);
 }
 
 .pk-segmented {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 4px;
+  gap: var(--space-1);
+  padding: var(--space-1);
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  border-radius: 16px;
+  border-radius: var(--radius-control);
 }
 
 .pk-segmented button {
-  min-height: 44px;
+  min-height: var(--touch);
   font-weight: 600;
   color: var(--text-muted);
   background: transparent;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 200ms ease;
 }
@@ -147,8 +152,8 @@
 
 .pk-footer {
   display: grid;
-  gap: 12px;
-  margin-top: 28px;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
 }
 
 .pk-note {
@@ -158,26 +163,35 @@
 }
 
 .pk-confirm {
-  padding: 18px;
+  padding: var(--space-5);
   background: var(--surface);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-md);
 }
 
 .pk-confirm p {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-4);
 }
 
 .pk-confirm-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: var(--space-3);
+}
+
+/* The play screen fills the screen between the body's padding; the table takes what is left. */
+.pk-play {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - var(--space-3) - var(--space-6));
 }
 
 .pk-table {
   position: relative;
-  height: min(62dvh, 520px);
-  margin: 20px 6px 0;
+  flex: 1;
+  min-height: 280px;
+  max-height: 560px;
+  margin: var(--space-5) var(--space-2) 0;
 }
 
 .pk-stack {
@@ -189,23 +203,23 @@
 }
 
 .pk-stack-1 {
-  transform: translateY(14px) scale(0.95);
+  transform: translateY(var(--stack-step)) scale(0.95);
   filter: brightness(0.94);
 }
 
 .pk-stack-2 {
-  transform: translateY(28px) scale(0.9);
+  transform: translateY(calc(2 * var(--stack-step))) scale(0.9);
   filter: brightness(0.86);
   opacity: 0.7;
 }
 
 .pk-back-icon {
   font-size: 4.5rem;
-  filter: drop-shadow(0 8px 16px rgb(0 0 0 / 20%));
+  filter: drop-shadow(0 8px 16px var(--glass-dark));
 }
 
 .pk-back-title {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   font-family: var(--font-display);
   font-size: 2.2rem;
   font-weight: 800;
@@ -213,12 +227,12 @@
 }
 
 .pk-back-hint {
-  margin-top: 8px;
-  padding: 6px 14px;
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-4);
   font-size: 0.85rem;
   font-weight: 600;
-  background: rgb(255 255 255 / 20%);
-  border-radius: 999px;
+  background: var(--glass);
+  border-radius: var(--radius-pill);
 }
 
 .pk-front-top {
@@ -228,17 +242,17 @@
 }
 
 .pk-front-category {
-  padding: 6px 12px;
+  padding: var(--space-2) var(--space-3);
   font-size: 0.85rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-accent);
   background: linear-gradient(135deg, var(--from), var(--to));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .pk-front-level {
   display: flex;
-  gap: 5px;
+  gap: var(--space-1);
 }
 
 .pk-front-level span {
@@ -270,7 +284,7 @@
 
 .pk-hint {
   min-height: 2.9em;
-  margin: 34px 8px 0;
+  margin: var(--space-7) var(--space-2) 0;
   text-align: center;
   color: var(--text-muted);
 }
@@ -278,8 +292,8 @@
 .pk-actions {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
-  gap: 12px;
-  margin-top: 8px;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .pk-done {
@@ -292,7 +306,7 @@
 }
 
 .pk-done h2 {
-  margin: 12px 0 4px;
+  margin: var(--space-3) 0 var(--space-1);
   font-size: 2rem;
 }
 

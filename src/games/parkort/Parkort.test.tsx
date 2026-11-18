@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { saves } from '../../lib/saves';
+import { drag } from '../../../tests/drag';
 import { cards } from './cards';
 import { newDeck, type DeckState } from './deck';
 import Parkort, { legacyKey, reviveDeck, saveKey } from './Parkort';
@@ -108,6 +109,14 @@ describe('Parkort setup', () => {
     });
   });
 
+  it('offers to start over once a card has only been put off, and counts it', async () => {
+    await save({ ...newDeck(cards), later: ['os-to-1', 'minder-3'] });
+    await open();
+    expect(screen.getByText('2 kort venter til senere')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fortsæt hvor I slap' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start forfra' })).toBeInTheDocument();
+  });
+
   it('continues where it was left, and starts over only once confirmed', async () => {
     await save({ ...newDeck(cards), seen: ['os-to-1', 'minder-2'], playedAt: Date.now() });
     await open();
@@ -165,18 +174,79 @@ describe('Parkort play', () => {
     expect(screen.getByText('Hvilken sang minder dig mest om os?')).toBeVisible();
   });
 
-  it('puts a skipped card at the bottom without counting it', async () => {
+  it('puts a card off till the bottom of the pile, and says so', async () => {
+    await save(deckStartingWith('os-to-1', 'os-to-2'));
+    await open();
+    click('Start');
+    expect(screen.getByRole('button', { name: 'Tag den senere' })).toBeDisabled();
+    click('Vend kortet');
+    click('Tag den senere');
+
+    await expectSaved((deck) => {
+      expect(deck.later).toEqual(['os-to-1']);
+      expect(deck.flipped).toBeNull();
+    });
+    expect((await saved()).seen).toEqual([]);
+    expect(screen.getByText('Kortet ligger nu nederst i bunken.')).toBeInTheDocument();
+  });
+
+  it('goes back to the card before, face up, whether talked about or put off', async () => {
+    await save(deckStartingWith('os-to-1', 'os-to-2', 'os-to-3'));
+    await open();
+    click('Start');
+    expect(screen.getByRole('button', { name: 'Forrige' })).toBeDisabled();
+
+    click('Vend kortet');
+    click('Næste kort');
+    click('Vend kortet');
+    click('Tag den senere');
+    click('Forrige');
+    await waitFor(() => {
+      expect(screen.getByText('Hvilken sang minder dig mest om os?')).toBeVisible();
+    });
+    expect(screen.getByRole('button', { name: 'Næste kort' })).toBeEnabled();
+    await expectSaved((deck) => {
+      expect(deck.later).toEqual([]);
+    });
+
+    click('Forrige');
+    await waitFor(() => {
+      expect(
+        screen.getByText('Hvad lagde du først mærke til ved mig, da vi mødtes?'),
+      ).toBeVisible();
+    });
+    await expectSaved((deck) => {
+      expect(deck.seen).toEqual([]);
+      expect(deck.flipped).toBe('os-to-1');
+    });
+    expect(screen.getByRole('button', { name: 'Forrige' })).toBeDisabled();
+  });
+
+  it('goes on when the card is thrown right, and back when thrown left', async () => {
     await save(deckStartingWith('os-to-1', 'os-to-2'));
     await open();
     click('Start');
     click('Vend kortet');
-    click('Spring over');
+    const card = () => {
+      const element = document.querySelector('.flip-card:last-of-type');
+      if (!element) throw new Error('No card');
+      return element;
+    };
 
-    await expectSaved((deck) => {
-      expect(deck.order.at(-1)).toBe('os-to-1');
-      expect(deck.flipped).toBeNull();
-    });
+    await drag(card(), -300);
     expect((await saved()).seen).toEqual([]);
+
+    await drag(card(), 300);
+    await expectSaved((deck) => {
+      expect(deck.seen).toEqual(['os-to-1']);
+    });
+
+    click('Vend kortet');
+    await drag(card(), -300);
+    await expectSaved((deck) => {
+      expect(deck.seen).toEqual([]);
+      expect(deck.flipped).toBe('os-to-1');
+    });
   });
 
   it('celebrates when every chosen card has been talked about, and can start over', async () => {
@@ -188,11 +258,22 @@ describe('Parkort play', () => {
     expect(
       screen.getByText('I har været alle 25 kort i de valgte kategorier igennem.'),
     ).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Forrige kort' })).not.toBeInTheDocument();
     click('Start forfra');
     await expectSaved((deck) => {
       expect(deck.seen).toEqual([]);
     });
     expect(screen.getByRole('button', { name: 'Vend kortet' })).toBeInTheDocument();
+  });
+
+  it('can go back to the last card from the end', async () => {
+    await save({ ...newDeck(cards), categories: ['minder'], seen: minder.slice(1) });
+    await open();
+    click('Fortsæt hvor I slap');
+    click('Vend kortet');
+    click('Næste kort');
+    click('Forrige kort');
+    expect(screen.getByRole('button', { name: 'Næste kort' })).toBeEnabled();
   });
 
   it('goes back to the setup from the deck and from the end', async () => {

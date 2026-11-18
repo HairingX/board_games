@@ -1,29 +1,80 @@
 @import '@fontsource-variable/plus-jakarta-sans';
 @import '@fontsource-variable/bricolage-grotesque';
 
+/*
+ * The design tokens: every colour, size, space and curve the app uses is named here once.
+ * Colours are given for the light and the dark theme together with light-dark(), which follows
+ * the phone's setting through color-scheme.
+ */
 :root {
+  color-scheme: light dark;
+
+  /* Type */
   --font-body: 'Plus Jakarta Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Bricolage Grotesque Variable', var(--font-body);
 
-  --bg: #f5f4f9;
-  --surface: rgb(255 255 255 / 72%);
-  --surface-border: rgb(20 18 40 / 8%);
-  --text: #15131f;
-  --text-muted: #6a6780;
-  --glow-1: rgb(99 102 241 / 22%);
-  --glow-2: rgb(236 72 153 / 16%);
-  --glow-3: rgb(34 197 94 / 14%);
-  --shadow: 0 1px 2px rgb(20 18 40 / 6%), 0 12px 32px -12px rgb(20 18 40 / 18%);
-  --shadow-card: 0 2px 4px rgb(20 18 40 / 6%), 0 24px 48px -16px rgb(20 18 40 / 28%);
-  --card-face: #ffffff;
+  /* Colours */
+  --bg: light-dark(#f5f4f9, #0b0a10);
+  --surface: light-dark(rgb(255 255 255 / 72%), rgb(255 255 255 / 6%));
+  --surface-border: light-dark(rgb(20 18 40 / 8%), rgb(255 255 255 / 9%));
+  --card-face: light-dark(#fff, #1c1a26);
+  --text: light-dark(#15131f, #f3f2f8);
+  --text-muted: light-dark(#6a6780, #9c99ae);
+  --on-accent: #fff;
+  --success: #22c55e;
+  --success-halo: rgb(34 197 94 / 20%);
+  --brand-1: #6366f1;
+  --brand-2: #d946ef;
+  --brand-3: #f97316;
+  --glow-1: light-dark(rgb(99 102 241 / 22%), rgb(99 102 241 / 28%));
+  --glow-2: light-dark(rgb(236 72 153 / 16%), rgb(236 72 153 / 18%));
+  --glow-3: light-dark(rgb(34 197 94 / 14%), rgb(34 197 94 / 12%));
 
-  --radius-lg: 28px;
+  /* Glass laid over a coloured gradient: a fill, its edge, a shine, and a dark tint. */
+  --glass: rgb(255 255 255 / 22%);
+  --glass-edge: rgb(255 255 255 / 30%);
+  --glass-shine: rgb(255 255 255 / 28%);
+  --glass-dark: rgb(0 0 0 / 22%);
+
+  /* Depth */
+  --shadow-near: light-dark(rgb(20 18 40 / 6%), rgb(0 0 0 / 40%));
+  --shadow-far: light-dark(rgb(20 18 40 / 18%), rgb(0 0 0 / 70%));
+  --shadow-card-far: light-dark(rgb(20 18 40 / 28%), rgb(0 0 0 / 80%));
+  --shadow: 0 1px 2px var(--shadow-near), 0 12px 32px -12px var(--shadow-far);
+  --shadow-card: 0 2px 4px var(--shadow-near), 0 24px 48px -16px var(--shadow-card-far);
+
+  /* Space, on a 4-pixel grid */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  /* Corners */
+  --radius-sm: 12px;
+  --radius-control: 16px;
   --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  /* Touch targets: the least a finger needs, and a main button. */
+  --touch: 44px;
+  --touch-lg: 54px;
+
+  /* Motion in CSS; motion driven from code is in src/ui/motion.ts. */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-press: 220ms;
+  --press-scale: 0.95;
+
+  /* The phone's notch and home indicator */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 
-  color-scheme: light dark;
+  --content-width: 600px;
+
   font-family: var(--font-body);
   font-optical-sizing: auto;
   line-height: 1.45;
@@ -32,22 +83,6 @@
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0b0a10;
-    --surface: rgb(255 255 255 / 6%);
-    --surface-border: rgb(255 255 255 / 9%);
-    --text: #f3f2f8;
-    --text-muted: #9c99ae;
-    --glow-1: rgb(99 102 241 / 28%);
-    --glow-2: rgb(236 72 153 / 18%);
-    --glow-3: rgb(34 197 94 / 12%);
-    --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 16px 40px -16px rgb(0 0 0 / 70%);
-    --shadow-card: 0 2px 6px rgb(0 0 0 / 40%), 0 28px 56px -18px rgb(0 0 0 / 80%);
-    --card-face: #1c1a26;
-  }
 }
 
 *,
@@ -66,7 +101,8 @@ body {
 
 body {
   min-height: 100dvh;
-  padding: calc(var(--safe-top) + 12px) 20px calc(var(--safe-bottom) + 24px);
+  padding: calc(var(--safe-top) + var(--space-3)) var(--space-5)
+    calc(var(--safe-bottom) + var(--space-6));
 }
 
 body::before {
@@ -102,8 +138,13 @@ a {
   color: inherit;
 }
 
+:focus-visible {
+  outline: 3px solid var(--brand-1);
+  outline-offset: 3px;
+}
+
 #app {
-  max-width: 600px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 
@@ -127,26 +168,27 @@ a {
   text-align: center;
 }
 
+/* Buttons. A game sets --from and --to to colour its primary buttons. */
 .btn {
   display: inline-flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: center;
-  min-height: 54px;
-  padding: 0 22px;
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-5);
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
   border: 0;
-  border-radius: 18px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   transition:
-    transform 220ms var(--ease-spring),
-    opacity 200ms ease;
+    transform var(--duration-press) var(--ease-spring),
+    opacity var(--duration-press) ease;
 }
 
 .btn:active:not(:disabled) {
-  transform: scale(0.95);
+  transform: scale(var(--press-scale));
 }
 
 .btn:disabled {
@@ -155,9 +197,9 @@ a {
 }
 
 .btn-primary {
-  color: #fff;
-  background: linear-gradient(135deg, var(--from, #6366f1), var(--to, #d946ef));
-  box-shadow: 0 10px 24px -10px var(--from, #6366f1);
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--from, var(--brand-1)), var(--to, var(--brand-2)));
+  box-shadow: 0 10px 24px -10px var(--from, var(--brand-1));
 }
 
 .btn-ghost {
@@ -165,6 +207,13 @@ a {
   background: var(--surface);
   border: 1px solid var(--surface-border);
   backdrop-filter: blur(12px);
+}
+
+.btn-quiet {
+  min-height: var(--touch);
+  font-weight: 600;
+  color: var(--text-muted);
+  background: transparent;
 }
 
 .btn-block {

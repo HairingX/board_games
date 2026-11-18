@@ -1,4 +1,4 @@
-import { lazy, type ComponentType } from 'react';
+import { lazy, type ComponentType, type CSSProperties } from 'react';
 
 /** A game the home screen offers. */
 export interface GameInfo {
@@ -15,6 +15,11 @@ export interface GameInfo {
    * opened. A game without one is shown as coming soon.
    */
   Screen?: ComponentType;
+}
+
+/** The game's colours as the CSS custom properties --from and --to, which its styles use. */
+export function gameTheme(game: GameInfo): CSSProperties {
+  return { '--from': game.colors[0], '--to': game.colors[1] } as CSSProperties;
 }
 
 /** Every game, in the order the home screen shows them. */

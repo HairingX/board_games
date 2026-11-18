@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import { takeLegacy } from '../../lib/storage';
 import { useSaved } from '../../lib/useSaved';
 import { cards } from './cards';
@@ -12,8 +12,6 @@ export const saveKey = 'parkort';
 
 /** Where the first version kept the deck, in localStorage. */
 export const legacyKey = 'parkort/v1';
-
-const theme = { '--from': '#f43f5e', '--to': '#f59e0b' } as CSSProperties;
 
 /** The deck from what was saved, with cards added or removed since; a new deck without one. */
 export function reviveDeck(saved: unknown): DeckState {
@@ -29,7 +27,7 @@ export default function Parkort() {
   if (!deck) return null;
 
   return (
-    <div className="parkort" style={theme}>
+    <div className="parkort">
       {playing ? (
         <Play
           deck={deck}

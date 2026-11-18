@@ -1,28 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import type { QuestionCard } from './cards';
 import {
+  choose,
   flip,
+  hasStarted,
   isDeckState,
   markSeen,
   newDeck,
+  previous,
   progress,
+  putOff,
   reconcile,
   remaining,
   restart,
-  skip,
   upgradeDeck,
   type DeckState,
 } from './deck';
 
 const keepOrder = () => 0.999;
-
-/** The deck as the first version saved it, without the face-up card and time. */
-function firstVersion(state: DeckState): Partial<DeckState> {
-  const copy: Partial<DeckState> = { ...state };
-  delete copy.flipped;
-  delete copy.playedAt;
-  return copy;
-}
 
 const testCards: QuestionCard[] = [
   { id: 'a', category: 'os-to', level: 3, text: 'A?' },
@@ -35,15 +30,29 @@ function deck(overrides: Partial<DeckState> = {}): DeckState {
   return { ...newDeck(testCards, keepOrder), ...overrides };
 }
 
+/** The deck as the first version saved it, without what later versions added. */
+function firstVersion(state: DeckState): Partial<DeckState> {
+  const copy: Partial<DeckState> = { ...state };
+  delete copy.flipped;
+  delete copy.playedAt;
+  delete copy.later;
+  delete copy.history;
+  return copy;
+}
+
 const ids = (cards: QuestionCard[]) => cards.map((card) => card.id);
+const next = (state: DeckState) => remaining(state, testCards)[0]?.id;
 
 describe('newDeck', () => {
   it('holds every card, every category, nothing seen, shuffled', () => {
     const state = newDeck(testCards, keepOrder);
     expect(state.order).toEqual(['a', 'b', 'c', 'd']);
     expect(state.seen).toEqual([]);
+    expect(state.later).toEqual([]);
+    expect(state.history).toEqual([]);
     expect(state.categories).toHaveLength(8);
     expect(state.mode).toBe('blandet');
+    expect(hasStarted(state)).toBe(false);
   });
 });
 
@@ -54,50 +63,116 @@ describe('remaining', () => {
   });
 
   it('puts lighter cards first from light to deep, keeping the order within a level', () => {
-    const state = deck({ mode: 'let-til-dyb' });
-    expect(ids(remaining(state, testCards))).toEqual(['b', 'd', 'c', 'a']);
+    expect(ids(remaining(deck({ mode: 'let-til-dyb' }), testCards))).toEqual(['b', 'd', 'c', 'a']);
   });
 
-  it('ignores ids in the order that have no card', () => {
-    const state = deck({ order: ['gone', 'a'] });
-    expect(ids(remaining(state, testCards))).toEqual(['a']);
+  it('puts the cards put off after every other card, even from light to deep', () => {
+    const state = deck({ mode: 'let-til-dyb', later: ['d', 'b'] });
+    expect(ids(remaining(state, testCards))).toEqual(['c', 'a', 'd', 'b']);
+  });
+
+  it('leaves out a card put off and then talked about', () => {
+    expect(ids(remaining(deck({ later: ['a'], seen: ['a'] }), testCards))).toEqual(['b', 'c', 'd']);
+  });
+
+  it('ignores ids that have no card', () => {
+    expect(ids(remaining(deck({ order: ['gone', 'a'], later: ['gone'] }), testCards))).toEqual([
+      'a',
+    ]);
   });
 });
 
 describe('progress', () => {
-  it('counts the seen cards of the chosen categories', () => {
-    const state = deck({ seen: ['a', 'c'], categories: ['os-to'] });
-    expect(progress(state, testCards)).toEqual({ seen: 1, total: 2 });
+  it('counts the cards talked about and put off in the chosen categories', () => {
+    const state = deck({ seen: ['a', 'c'], later: ['b', 'c', 'd'], categories: ['os-to'] });
+    expect(progress(state, testCards)).toEqual({ seen: 1, later: 1, total: 2 });
   });
 });
 
-describe('flip, markSeen and skip', () => {
-  it('remembers the card face up and when', () => {
-    expect(flip(deck(), 'a', 1234)).toMatchObject({ flipped: 'a', playedAt: 1234 });
+describe('a round of play', () => {
+  it('turns a card face up and remembers when', () => {
+    const state = flip(deck(), 'a', 1234);
+    expect(state).toMatchObject({ flipped: 'a', playedAt: 1234 });
+    expect(hasStarted(state)).toBe(true);
   });
 
-  it('marks a card seen once and puts it away', () => {
-    const once = markSeen(flip(deck(), 'a', 1), 'a');
-    expect(once.seen).toEqual(['a']);
-    expect(once.flipped).toBeNull();
-    expect(markSeen(once, 'a').seen).toEqual(['a']);
+  it('puts a card talked about away, and brings it back face up with previous', () => {
+    const before = flip(deck(), 'a', 1);
+    const after = markSeen(before, 'a');
+    expect(after.seen).toEqual(['a']);
+    expect(after.flipped).toBeNull();
+    expect(next(after)).toBe('b');
+
+    const back = previous(after);
+    expect(back.seen).toEqual([]);
+    expect(back.flipped).toBe('a');
+    expect(back.history).toEqual([]);
+    expect(next(back)).toBe('a');
   });
 
-  it('moves a skipped card to the bottom and puts it away', () => {
-    const state = skip(flip(deck(), 'a', 1), 'a');
-    expect(state.order).toEqual(['b', 'c', 'd', 'a']);
-    expect(state.flipped).toBeNull();
+  it('does not count a card twice', () => {
+    expect(markSeen(markSeen(deck(), 'a'), 'a').seen).toEqual(['a']);
+  });
+
+  it('puts a card off till the bottom, and brings it back on top with previous', () => {
+    const after = putOff(flip(deck(), 'a', 1), 'a');
+    expect(after.later).toEqual(['a']);
+    expect(after.flipped).toBeNull();
+    expect(hasStarted(after)).toBe(true);
+    expect(ids(remaining(after, testCards))).toEqual(['b', 'c', 'd', 'a']);
+
+    const back = previous(after);
+    expect(back.later).toEqual([]);
+    expect(back.flipped).toBe('a');
+    expect(next(back)).toBe('a');
+  });
+
+  it('puts a card off again behind the others, and back in its old place with previous', () => {
+    const after = putOff(deck({ seen: ['a', 'b'], later: ['c', 'd'] }), 'c');
+    expect(after.later).toEqual(['d', 'c']);
+    expect(previous(after).later).toEqual(['c', 'd']);
+  });
+
+  it('steps back through several cards, latest first', () => {
+    let state = deck();
+    state = markSeen(state, 'a');
+    state = putOff(state, 'b');
+    state = markSeen(state, 'c');
+    state = previous(state);
+    expect(state.flipped).toBe('c');
+    state = previous(state);
+    expect(state.flipped).toBe('b');
+    expect(state.later).toEqual([]);
+    state = previous(state);
+    expect(state.flipped).toBe('a');
+    expect(state.seen).toEqual([]);
+  });
+
+  it('stays as it is when there is nothing to go back to', () => {
+    const state = deck();
+    expect(previous(state)).toBe(state);
+  });
+});
+
+describe('choose', () => {
+  it('changes the categories or order and forgets the way back', () => {
+    const state = choose(markSeen(deck(), 'a'), { categories: ['minder'], mode: 'let-til-dyb' });
+    expect(state.categories).toEqual(['minder']);
+    expect(state.mode).toBe('let-til-dyb');
+    expect(state.history).toEqual([]);
+    expect(state.seen).toEqual(['a']);
   });
 });
 
 describe('restart', () => {
-  it('forgets what was seen and keeps the choices', () => {
+  it('forgets what was seen and put off, and keeps the choices', () => {
     const state = restart(
-      deck({ seen: ['a'], categories: ['minder'], mode: 'let-til-dyb' }),
+      deck({ seen: ['a'], later: ['b'], categories: ['minder'], mode: 'let-til-dyb' }),
       testCards,
       keepOrder,
     );
     expect(state.seen).toEqual([]);
+    expect(state.later).toEqual([]);
     expect(state.categories).toEqual(['minder']);
     expect(state.mode).toBe('let-til-dyb');
   });
@@ -108,19 +183,44 @@ describe('reconcile', () => {
     const saved = deck({
       order: ['c', 'gone', 'a'],
       seen: ['gone', 'a'],
+      later: ['gone', 'c'],
+      history: [
+        { id: 'gone', action: 'seen' },
+        { id: 'a', action: 'seen' },
+      ],
       categories: ['minder', 'old' as 'minder'],
     });
     const state = reconcile(saved, testCards, keepOrder);
     expect(state.order).toEqual(['c', 'a', 'b', 'd']);
     expect(state.seen).toEqual(['a']);
+    expect(state.later).toEqual(['c']);
+    expect(state.history).toEqual([{ id: 'a', action: 'seen' }]);
     expect(state.categories).toEqual(['minder']);
   });
 });
 
-describe('isDeckState', () => {
-  it('accepts a deck', () => {
-    expect(isDeckState(deck())).toBe(true);
-    expect(isDeckState(deck({ mode: 'let-til-dyb' }))).toBe(true);
+describe('upgradeDeck and isDeckState', () => {
+  it('keeps a current deck as it is', () => {
+    const current = deck({
+      flipped: 'a',
+      playedAt: 5,
+      later: ['b'],
+      history: [{ id: 'b', action: 'later', from: null }],
+    });
+    expect(upgradeDeck(current)).toBe(current);
+    expect(isDeckState(current)).toBe(true);
+  });
+
+  it('brings a deck from the first version up to date', () => {
+    const old = firstVersion(deck({ seen: ['a'] }));
+    expect(isDeckState(old)).toBe(false);
+    expect(upgradeDeck(old)).toEqual({
+      ...old,
+      flipped: null,
+      playedAt: null,
+      later: [],
+      history: [],
+    });
   });
 
   it.each([
@@ -133,23 +233,25 @@ describe('isDeckState', () => {
     { ...newDeck(testCards), mode: 'other' },
     { ...newDeck(testCards), flipped: 1 },
     { ...newDeck(testCards), playedAt: '2026' },
+    { ...newDeck(testCards), later: [2] },
+    { ...newDeck(testCards), history: 'a' },
+    { ...newDeck(testCards), history: [null] },
+    { ...newDeck(testCards), history: [{ id: 1, action: 'seen' }] },
+    { ...newDeck(testCards), history: [{ id: 'a', action: 'gone' }] },
+    { ...newDeck(testCards), history: [{ id: 'a', action: 'later', from: 'x' }] },
   ])('refuses %j', (value) => {
+    expect(upgradeDeck(value)).toBeUndefined();
     expect(isDeckState(value)).toBe(false);
   });
-});
 
-describe('upgradeDeck', () => {
-  it('keeps a current deck as it is', () => {
-    const current = deck({ flipped: 'a', playedAt: 5 });
-    expect(upgradeDeck(current)).toBe(current);
-  });
-
-  it('brings a deck from the first version up to date', () => {
-    const old = firstVersion(deck({ seen: ['a'] }));
-    expect(upgradeDeck(old)).toEqual({ ...old, flipped: null, playedAt: null });
-  });
-
-  it('gives nothing for something that is no deck', () => {
-    expect(upgradeDeck({ order: 'a' })).toBeUndefined();
+  it('accepts every kind of step', () => {
+    const state = deck({
+      history: [
+        { id: 'a', action: 'seen' },
+        { id: 'b', action: 'later', from: null },
+        { id: 'c', action: 'later', from: 0 },
+      ],
+    });
+    expect(isDeckState(state)).toBe(true);
   });
 });
