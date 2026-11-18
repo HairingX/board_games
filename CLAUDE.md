@@ -125,6 +125,15 @@ game builds on them, and everything must stay smooth on a phone.
 - The lock works inside the app only; the code screen tells the owner about the phone's own
   Guided Access (iPhone) and app pinning (Android), which keep children in the app.
 
+## Art, sound and music
+
+- Material from others is kept under `assets/<pack name>/`, each pack with its licence file and
+  a note of where it came from; only free material, such as CC0, is used, and its makers are
+  credited in the app.
+- The owner adds new material through `assets/inbox/` (uploaded on GitHub or with GitHub
+  Desktop); it is checked, unpacked into its own folder and the inbox emptied again.
+- Only what a game imports is published; the build leaves the rest out.
+
 ## Saving
 
 - Every game saves through `useSaved` (`src/lib/useSaved.ts`) into IndexedDB
