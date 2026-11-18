@@ -11,6 +11,33 @@ Progressive Web App, so every game works without a connection once it has been o
   with" lines or footers in pull requests, issues or comments, no assistant names in branch
   names, files, code, comments or documentation. Commits are authored as the owner.
 
+## Working with the owner
+
+- Talk with the owner in Danish. What is committed stays in English, as the conventions say.
+- This file is where anything every session must know is written down: a decision the owner
+  has made, a rule, or how something is set up outside the code. When the owner decides
+  something that lasts, add it here in the same change, so the next session starts from it.
+
+## How it is set up on GitHub
+
+- The repository is public, so GitHub Pages can publish it on a free account. Pages' source
+  is "GitHub Actions": the workflow builds and publishes, and built files are never committed.
+- The app is live at `https://hairingx.github.io/board_games/`.
+- Only `.github/rulesets/branch-names.json` is imported as a ruleset.
+
+## Plan
+
+1. The game engine every game shares: a setup screen built from each game's settings, presets
+   such as Arkade, Party and Rolig, a school grade that picks settings for the children,
+   players and their names, turns, points, time per answer, a winner screen, and a card that
+   flips when tapped.
+2. A math game: the operations, the range of the numbers and the grade chosen in setup, one to
+   three answers to choose from, points and time per answer.
+3. Question cards for couples, and trivia for the car, with the questions in data files.
+
+The framework is under review: Svelte 5, as now, or React with Motion for gesture-driven
+animation. Decide it with the owner before the game engine is built.
+
 ## How it is built
 
 - Svelte 5 and TypeScript, bundled by Vite into one single-page app. `vite-plugin-pwa` makes it
