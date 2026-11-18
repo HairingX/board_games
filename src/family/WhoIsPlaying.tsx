@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { appMeta } from '../appMeta';
-import { useMessages } from '../i18n/I18n';
+import { useLocale, useMessages } from '../i18n/I18n';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
-import { addProfile, nextColor, setPin, type Family, type PinHash, type Profile } from './family';
+import {
+  addProfile,
+  newProfile,
+  nextColor,
+  setPin,
+  type Family,
+  type PinHash,
+  type Profile,
+} from './family';
 import { useFamily } from './FamilyContext';
 import { ForgotPin } from './ForgotPin';
 import { pinMatches } from './pin';
@@ -38,7 +46,7 @@ export function WhoIsPlaying() {
   /** Saves the family with the profile's new code, or none, and goes in as the profile. */
   function enterWith(profile: Profile, from: Family, pin: PinHash | null): void {
     save(setPin(from, profile.id, pin));
-    choose({ ...profile, pin });
+    choose(profile);
   }
 
   switch (view.name) {
@@ -128,6 +136,7 @@ function FirstGrownUp({
   onDone: (profile: Profile, family: Family) => void;
 }) {
   const t = useMessages(familyText);
+  const language = useLocale();
   const [made, setMade] = useState<Profile>();
 
   return made ? (
@@ -145,7 +154,13 @@ function FirstGrownUp({
     <section className="family">
       <h1>{t.welcome(appMeta.name)}</h1>
       <p className="family-intro">{t.firstIntro}</p>
-      <ProfileForm color={nextColor(family)} role="voksen" onSave={setMade} />
+      <ProfileForm
+        start={{ name: '', role: 'voksen', color: nextColor(family), language }}
+        chooseRole={false}
+        onSave={(values) => {
+          setMade(newProfile(values));
+        }}
+      />
     </section>
   );
 }

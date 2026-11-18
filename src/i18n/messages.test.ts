@@ -71,6 +71,7 @@ describe('the messages that are made from values', () => {
     );
     expect(t.forgotSum(17, 23)).toBe('What is 17 × 23?');
     expect(t.remove('Mille')).toBe('Remove Mille');
+    expect(t.editProfile('Mille')).toBe('Edit Mille');
     expect(t.removeQuestion('Mille')).toBe('Do you want to remove Mille from the family?');
     expect(t.howMany(1, 1)).toBe('Choose 1 player.');
     expect(t.howMany(2, 2)).toBe('Choose 2 players.');

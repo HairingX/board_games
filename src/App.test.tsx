@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useRegisterSW } from 'virtual:pwa-register/react';
-import { far, mille, mor, playAs, seedFamily } from '../tests/family';
+import { far, mille, mor, playAs, savedFamily, seedFamily } from '../tests/family';
 import FakeGame from '../tests/fixtures/FakeGame';
 import { App } from './App';
 import { cards } from './games/parkort/cards';
@@ -73,6 +73,30 @@ describe('App', () => {
     goTo('#/');
     click('Skift spiller');
     expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
+  });
+
+  it('speaks the phone’s language until someone is chosen, then theirs', async () => {
+    Object.defineProperty(navigator, 'languages', { value: ['en-GB'], configurable: true });
+    await seedFamily({ profiles: [far, { ...mille, language: 'en' }] });
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Who’s playing?' })).toBeInTheDocument();
+    await playAs('Far');
+    expect(screen.getByText('Hej, Far')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('da');
+    click('Skift spiller');
+    await playAs('Mille');
+    expect(screen.getByText('Hi, Mille')).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe('en');
+    Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
+  });
+
+  it('lets a grown-up change their own language, and keeps it on their profile', async () => {
+    await startAs('Far');
+    fireEvent.click(screen.getByRole('radio', { name: 'English' }));
+    expect(await screen.findByText('Hi, Far')).toBeInTheDocument();
+    await waitFor(async () => {
+      expect((await savedFamily()).profiles.map((p) => p.language)).toEqual(['en', 'da', 'da']);
+    });
   });
 
   it('lets a grown-up look after the family from the home screen', async () => {

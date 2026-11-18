@@ -4,7 +4,7 @@ import { reviveFamily, type Family, type Profile } from './family';
 
 interface FamilyApi {
   family: Family;
-  /** Who is playing now; undefined while "Hvem spiller?" is shown. */
+  /** Who is playing now, as the family has them; undefined while "Hvem spiller?" is shown. */
   current: Profile | undefined;
   save: (family: Family) => void;
   /** Shows the home screen for the profile, once its code, if it has one, is given. */
@@ -24,18 +24,18 @@ export const familySaveKey = 'familie';
  */
 export function FamilyProvider({ children }: { children: ReactNode }) {
   const [family, save] = useSaved(familySaveKey, reviveFamily);
-  const [current, setCurrent] = useState<Profile>();
+  const [currentId, setCurrentId] = useState<string>();
   if (!family) return null;
 
   const api: FamilyApi = {
     family,
-    current,
+    current: family.profiles.find((profile) => profile.id === currentId),
     save,
     choose(profile) {
-      setCurrent(profile);
+      setCurrentId(profile.id);
     },
     leave() {
-      setCurrent(undefined);
+      setCurrentId(undefined);
     },
   };
   return <FamilyContext value={api}>{children}</FamilyContext>;

@@ -46,11 +46,11 @@ const da = {
   save: 'Gem',
 
   family: 'Familien',
+  editProfile: (name: string) => `Ret ${name}`,
   newInFamily: 'Ny i familien',
   pin: 'Kode',
   changePin: 'Skift kode',
   remove: (name: string) => `Fjern ${name}`,
-  removeShort: 'Fjern',
   familyNote:
     'En voksen med kode kan ikke vælges af børnene. Den sidste voksne bliver i familien, så længe der er børn.',
   removeQuestion: (name: string) => `Vil du fjerne ${name} fra familien?`,
@@ -113,11 +113,11 @@ export const familyText: Translations<typeof da> = {
     save: 'Save',
 
     family: 'The family',
+    editProfile: (name) => `Edit ${name}`,
     newInFamily: 'New in the family',
     pin: 'Code',
     changePin: 'Change code',
     remove: (name) => `Remove ${name}`,
-    removeShort: 'Remove',
     familyNote:
       'The children can’t choose a grown-up who has a code. The last grown-up stays in the family as long as there are children.',
     removeQuestion: (name) => `Do you want to remove ${name} from the family?`,

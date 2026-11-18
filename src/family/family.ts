@@ -1,3 +1,5 @@
+import { bestLocale, isLocale, type Locale } from '../i18n/locales';
+
 /** Whether a profile is a grown-up, who may see every game, or a child, who sees their own. */
 export type Role = 'voksen' | 'barn';
 
@@ -18,7 +20,12 @@ export interface Profile {
   color: ProfileColor;
   /** Asked for when the profile is chosen on "Hvem spiller?"; null for none. */
   pin: PinHash | null;
+  /** The language the app speaks while the profile is on the home screen. */
+  language: Locale;
 }
+
+/** What is chosen about a profile in its form. */
+export type ProfileValues = Pick<Profile, 'name' | 'role' | 'color' | 'language'>;
 
 /** The family on this phone, saved on it. Who is playing right now is not saved. */
 export interface Family {
@@ -37,9 +44,22 @@ export function mayPlay(role: Role, audience: Audience): boolean {
   return role === 'voksen' || audience !== 'voksne';
 }
 
+/** A new profile, without a code. */
+export function newProfile(values: ProfileValues): Profile {
+  return { id: crypto.randomUUID(), pin: null, ...values };
+}
+
 /** The family with the profile added at the end. */
 export function addProfile(family: Family, profile: Profile): Family {
   return { ...family, profiles: [...family.profiles, profile] };
+}
+
+/** The family with the profile of the same id changed to this one. */
+export function updateProfile(family: Family, changed: Profile): Family {
+  return {
+    ...family,
+    profiles: family.profiles.map((profile) => (profile.id === changed.id ? changed : profile)),
+  };
 }
 
 /** The family with the profile's code set, or taken away with null. */
@@ -71,6 +91,8 @@ export function nextColor(family: Family): ProfileColor {
 /**
  * The family from a saved value, or a new family when the value is no family. The first
  * version kept one code for the family, used by the grown-ups; it becomes each grown-up's own.
+ * A profile saved before profiles had a language, or with one the app no longer speaks, gets
+ * the phone's.
  */
 export function reviveFamily(value: unknown): Family {
   if (typeof value !== 'object' || value === null) return newFamily();
@@ -88,7 +110,7 @@ export function reviveFamily(value: unknown): Family {
 function reviveProfile(value: unknown, familyPin: PinHash | null): Profile | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
   const profile = value as Record<string, unknown>;
-  const { id, name, role, color } = profile;
+  const { id, name, role, color, language } = profile;
   const pin = 'pin' in profile ? profile.pin : role === 'voksen' ? familyPin : null;
   const valid =
     typeof id === 'string' &&
@@ -96,7 +118,15 @@ function reviveProfile(value: unknown, familyPin: PinHash | null): Profile | und
     (role === 'voksen' || role === 'barn') &&
     profileColors.includes(color as ProfileColor) &&
     (pin === null || isPinHash(pin));
-  return valid ? { id, name, role, color: color as ProfileColor, pin } : undefined;
+  if (!valid) return undefined;
+  return {
+    id,
+    name,
+    role,
+    color: color as ProfileColor,
+    pin,
+    language: isLocale(language) ? language : bestLocale(navigator.languages),
+  };
 }
 
 function isPinHash(value: unknown): value is PinHash {

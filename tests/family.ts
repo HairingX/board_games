@@ -3,14 +3,29 @@ import { newFamily, type Family, type Profile } from '../src/family/family';
 import { familySaveKey } from '../src/family/FamilyContext';
 import { saves } from '../src/lib/saves';
 
-export const far: Profile = { id: 'far', name: 'Far', role: 'voksen', color: 'plum', pin: null };
-export const mor: Profile = { id: 'mor', name: 'Mor', role: 'voksen', color: 'teal', pin: null };
+export const far: Profile = {
+  id: 'far',
+  name: 'Far',
+  role: 'voksen',
+  color: 'plum',
+  pin: null,
+  language: 'da',
+};
+export const mor: Profile = {
+  id: 'mor',
+  name: 'Mor',
+  role: 'voksen',
+  color: 'teal',
+  pin: null,
+  language: 'da',
+};
 export const mille: Profile = {
   id: 'mille',
   name: 'Mille',
   role: 'barn',
   color: 'ochre',
   pin: null,
+  language: 'da',
 };
 
 /** Saves the family the app finds when it starts. */

@@ -105,14 +105,20 @@ game builds on them, and everything must stay smooth on a phone.
 ## Languages
 
 - The app speaks Danish and English; more languages come later. `src/i18n/locales.ts` lists them.
-  It follows the phone's language until a grown-up chooses one on the home screen
-  (`src/routes/LanguageChoice.tsx`), saved on the phone under the key `sprog`; the page's `lang`
-  follows it. Children cannot change it.
+  Each profile has its own language (`language` on the profile), and the app speaks the language
+  of the one on the home screen; "Hvem spiller?" speaks the phone's. The page's `lang` follows.
+  A new profile starts in the language of the one adding it, and a profile saved before
+  profiles had a language gets the phone's.
+- Grown-ups change their own language on the home screen (`src/routes/LanguageChoice.tsx`), and
+  anyone's under "Familien", where each profile opens to change its name, colour and language,
+  its code, or to take it out. Children cannot change a language.
+- In a turn-based game each player's own language is meant to be spoken on their turn, such as
+  their tasks and what is read aloud to them; this is built with the turn engine.
 - Every text the app shows lives in a `text.ts` beside the screens that use it (`src/ui/text.ts`
   for words every screen uses, `src/family/`, `src/routes/`, and each game's own). The Danish
   messages set the shape, typed as `Translations<typeof da>`, so a message missing or with other
   arguments in another language fails the type check. Components read them with
-  `useMessages(...)`; outside the provider, as in most component tests, the app speaks Danish.
+  `useMessages(...)`; outside the `I18nProvider`, as in most component tests, it is Danish.
 - Messages built from values are functions. Numbers, plurals, dates, relative times and language
   names come from `src/i18n/format.ts`, which uses the browser's Intl; never `String(n)` in text.
 - A game's name and description are in `about` in `src/lib/games.tsx`, and `languages` says

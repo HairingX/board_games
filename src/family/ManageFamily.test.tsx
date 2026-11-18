@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille, mor, typePin } from '../../tests/family';
 import type { Family } from './family';
@@ -7,6 +7,11 @@ import { hashPin } from './pin';
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
+};
+
+/** Opens a profile from the family's list. */
+const open = (name: string) => {
+  click(new RegExp(`^${name} `));
 };
 
 function renderWith(family: Family) {
@@ -35,6 +40,32 @@ describe('ManageFamily', () => {
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
   });
 
+  it('changes a profile’s name, colour and language, keeping its role and code', () => {
+    const { changed } = renderWith({
+      profiles: [far, { ...mille, pin: { salt: 's', hash: 'h' } }],
+    });
+    expect(screen.getByText('Barn · dansk')).toBeInTheDocument();
+    open('Mille');
+    click('Annullér');
+    open('Mille');
+    expect(screen.getByRole('heading', { name: 'Ret Mille' })).toBeInTheDocument();
+    expect(screen.queryByRole('radiogroup', { name: 'Voksen eller barn' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Navn')).toHaveValue('Mille');
+    expect(screen.getByRole('radio', { name: 'Dansk' })).toBeChecked();
+    fireEvent.change(screen.getByLabelText('Navn'), { target: { value: 'Milla' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Petrol' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'English' }));
+    click('Gem');
+    expect(changed()?.profiles[1]).toEqual({
+      ...mille,
+      name: 'Milla',
+      color: 'teal',
+      language: 'en',
+      pin: { salt: 's', hash: 'h' },
+    });
+    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+  });
+
   it('asks for a code when a grown-up is added', async () => {
     const { changed } = renderWith({ profiles: [far] });
     click('Tilføj en i familien');
@@ -52,8 +83,10 @@ describe('ManageFamily', () => {
 
   it('gives a profile a code, changes it, or takes it away', async () => {
     const { changed, rerender, onChange, onDone } = renderWith({ profiles: [far, mille] });
+    open('Mille');
     click('Kode til Mille');
     click('Annullér');
+    open('Mille');
     click('Kode til Mille');
     typePin('3333');
     await screen.findByRole('heading', { name: 'Skriv koden igen' });
@@ -63,6 +96,7 @@ describe('ManageFamily', () => {
 
     const withPin: Family = { profiles: [far, { ...mille, pin: await hashPin('3333') }] };
     rerender(<ManageFamily family={withPin} current={far} onChange={onChange} onDone={onDone} />);
+    open('Mille');
     expect(screen.getByRole('button', { name: 'Kode til Mille' })).toHaveTextContent('Skift kode');
     click('Kode til Mille');
     click('Ingen kode');
@@ -71,19 +105,25 @@ describe('ManageFamily', () => {
 
   it('takes someone out once confirmed, but not oneself or the last grown-up', () => {
     const { changed, onDone } = renderWith({ profiles: [far, mor, mille] });
+    open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeDisabled();
-    click('Fjern Mor');
     click('Annullér');
+    open('Mor');
+    click('Fjern Mor');
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Annullér' }),
+    );
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     click('Fjern Mor');
     click('Ja, fjern');
     expect(changed()?.profiles.map((p) => p.id)).toEqual(['far', 'mille']);
+    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
     click('Færdig');
     expect(onDone).toHaveBeenCalledOnce();
   });
 
   it('keeps the last grown-up while there are children', () => {
-    render(
+    const { unmount } = render(
       <ManageFamily
         family={{ profiles: [far, mor, mille] }}
         current={mor}
@@ -91,7 +131,9 @@ describe('ManageFamily', () => {
         onDone={vi.fn()}
       />,
     );
+    open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeEnabled();
+    unmount();
     render(
       <ManageFamily
         family={{ profiles: [far, mille] }}
@@ -100,6 +142,7 @@ describe('ManageFamily', () => {
         onDone={vi.fn()}
       />,
     );
-    expect(screen.getAllByRole('button', { name: 'Fjern Far' })[1]).toBeDisabled();
+    open('Far');
+    expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeDisabled();
   });
 });

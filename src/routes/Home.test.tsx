@@ -1,11 +1,11 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille } from '../../tests/family';
 import FakeGame from '../../tests/fixtures/FakeGame';
 import { games, type GameInfo } from '../lib/games';
+import { I18nProvider } from '../i18n/I18n';
 import { Home } from './Home';
 import { about } from '../../tests/games';
-import { renderWithLanguage } from '../../tests/i18n';
 
 const playable: GameInfo = {
   id: 'regnespil',
@@ -29,20 +29,27 @@ const upcoming: GameInfo = {
 };
 
 describe('Home', () => {
-  it('says the games are coming when there are none', async () => {
-    await renderWithLanguage(
-      <Home games={[]} player={far} onSwitch={() => undefined} onManageFamily={() => undefined} />,
+  it('says the games are coming when there are none', () => {
+    render(
+      <Home
+        games={[]}
+        player={far}
+        onSwitch={() => undefined}
+        onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
+      />,
     );
     expect(screen.getByText('Spillene er på vej.')).toBeInTheDocument();
   });
 
-  it('links a playable game to its screen', async () => {
-    await renderWithLanguage(
+  it('links a playable game to its screen', () => {
+    render(
       <Home
         games={[playable]}
         player={far}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
       />,
     );
     const link = screen.getByRole('link', { name: /Regnespil/ });
@@ -51,13 +58,14 @@ describe('Home', () => {
     expect(screen.queryByText('Kommer snart')).not.toBeInTheDocument();
   });
 
-  it('shows a game without a screen as coming soon, without a link', async () => {
-    await renderWithLanguage(
+  it('shows a game without a screen as coming soon, without a link', () => {
+    render(
       <Home
         games={[upcoming]}
         player={far}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
       />,
     );
     expect(screen.getByText('Parkort')).toBeInTheDocument();
@@ -65,14 +73,15 @@ describe('Home', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('offers a waiting new version, and says nothing when there is none', async () => {
+  it('offers a waiting new version, and says nothing when there is none', () => {
     const onUpdate = vi.fn();
-    const { rerender } = await renderWithLanguage(
+    const { rerender } = render(
       <Home
         games={[]}
         player={far}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
         onUpdate={onUpdate}
       />,
     );
@@ -80,16 +89,28 @@ describe('Home', () => {
     screen.getByRole('button', { name: 'Opdatér' }).click();
     expect(onUpdate).toHaveBeenCalledOnce();
     rerender(
-      <Home games={[]} player={far} onSwitch={() => undefined} onManageFamily={() => undefined} />,
+      <Home
+        games={[]}
+        player={far}
+        onSwitch={() => undefined}
+        onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
+      />,
     );
     expect(screen.queryByText('Der er en ny version af Småspil.')).not.toBeInTheDocument();
   });
 
-  it('greets the player, lets them switch, and shows grown-ups their saved games only', async () => {
+  it('greets the player, lets them switch, and shows grown-ups their saved games only', () => {
     const onSwitch = vi.fn();
     const onManage = vi.fn();
-    const { rerender } = await renderWithLanguage(
-      <Home games={[]} player={far} onSwitch={onSwitch} onManageFamily={onManage} />,
+    const { rerender } = render(
+      <Home
+        games={[]}
+        player={far}
+        onSwitch={onSwitch}
+        onManageFamily={onManage}
+        onChangeLanguage={() => undefined}
+      />,
     );
     expect(screen.getByText('Hej, Far')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Jeres gemte spil' })).toBeInTheDocument();
@@ -97,18 +118,27 @@ describe('Home', () => {
     expect(onSwitch).toHaveBeenCalledOnce();
     screen.getByRole('button', { name: 'Familien' }).click();
     expect(onManage).toHaveBeenCalledOnce();
-    rerender(<Home games={[]} player={mille} onSwitch={onSwitch} onManageFamily={onManage} />);
+    rerender(
+      <Home
+        games={[]}
+        player={mille}
+        onSwitch={onSwitch}
+        onManageFamily={onManage}
+        onChangeLanguage={() => undefined}
+      />,
+    );
     expect(screen.queryByRole('heading', { name: 'Jeres gemte spil' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Familien' })).not.toBeInTheDocument();
   });
 
-  it('shows every registered game', async () => {
-    await renderWithLanguage(
+  it('shows every registered game', () => {
+    render(
       <Home
         games={games}
         player={far}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
       />,
     );
     for (const game of games) {
@@ -116,35 +146,52 @@ describe('Home', () => {
     }
   });
 
-  it('lets grown-ups choose the language, and says which games are written in another', async () => {
-    await renderWithLanguage(
+  it('lets grown-ups choose their language', () => {
+    const onChangeLanguage = vi.fn();
+    render(
       <Home
-        games={games}
+        games={[]}
         player={far}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={onChangeLanguage}
       />,
     );
     const language = screen.getByRole('radiogroup', { name: 'Sprog' });
     expect(within(language).getByRole('radio', { name: 'Dansk' })).toBeChecked();
-    expect(screen.queryByText('På dansk')).not.toBeInTheDocument();
-
-    fireEvent.click(within(language).getByRole('radio', { name: 'English' }));
-    expect(await screen.findByRole('radiogroup', { name: 'Language' })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'English' })).toBeChecked();
-    expect(screen.getByRole('radio', { name: 'English' })).toHaveAttribute('lang', 'en');
-    expect(screen.getByText('Hi, Far')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Parkort/ })).toHaveTextContent('In Danish');
-    expect(screen.getByText('Sum Quest')).toBeInTheDocument();
+    const english = within(language).getByRole('radio', { name: 'English' });
+    expect(english).toHaveAttribute('lang', 'en');
+    fireEvent.click(english);
+    expect(onChangeLanguage).toHaveBeenCalledWith('en');
   });
 
-  it('does not let children change the language', async () => {
-    await renderWithLanguage(
+  it('speaks English to an English player, and says which games are written in another', () => {
+    render(
+      <I18nProvider locale="en">
+        <Home
+          games={games}
+          player={{ ...far, language: 'en' }}
+          onSwitch={() => undefined}
+          onManageFamily={() => undefined}
+          onChangeLanguage={() => undefined}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.getByText('Hi, Far')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'English' })).toBeChecked();
+    expect(screen.getByRole('link', { name: /Parkort/ })).toHaveTextContent('In Danish');
+    expect(screen.getByText('Sum Quest')).toBeInTheDocument();
+    expect(screen.queryByText('På dansk')).not.toBeInTheDocument();
+  });
+
+  it('does not let children change the language', () => {
+    render(
       <Home
         games={[]}
         player={mille}
         onSwitch={() => undefined}
         onManageFamily={() => undefined}
+        onChangeLanguage={() => undefined}
       />,
     );
     expect(screen.queryByRole('radiogroup', { name: 'Sprog' })).not.toBeInTheDocument();

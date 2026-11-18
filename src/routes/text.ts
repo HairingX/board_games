@@ -17,8 +17,6 @@ const da = {
   /** On a game's tile when its content is written in other languages: "På dansk". */
   writtenIn: (languages: string) => `På ${languages}`,
 
-  language: 'Sprog',
-
   savedTitle: 'Jeres gemte spil',
   kept: '✓ Telefonen gemmer jeres spil sikkert, også når der bliver trangt om pladsen.',
   installed: 'Jeres spil gemmes på telefonen, hver gang I vender et kort.',
@@ -53,8 +51,6 @@ export const appText: Translations<typeof da> = {
     noGames: 'The games are on their way.',
     soon: 'Coming soon',
     writtenIn: (languages) => `In ${languages}`,
-
-    language: 'Language',
 
     savedTitle: 'Your saved games',
     kept: '✓ The phone keeps your games safe, even when space runs low.',

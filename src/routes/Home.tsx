@@ -4,6 +4,7 @@ import { Avatar } from '../family/Avatar';
 import { familyText } from '../family/text';
 import { formatLanguages } from '../i18n/format';
 import { useLocale, useMessages } from '../i18n/I18n';
+import type { Locale } from '../i18n/locales';
 import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
@@ -21,6 +22,8 @@ interface Props {
   onSwitch: () => void;
   /** Opens the family's profiles; offered to grown-ups only. */
   onManageFamily: () => void;
+  /** Changes the player's language; offered to grown-ups, whose children's is set for them. */
+  onChangeLanguage: (locale: Locale) => void;
   /** Loads the new version that is waiting; given only while one is. */
   onUpdate?: () => void;
 }
@@ -29,7 +32,14 @@ interface Props {
  * The games the player may play, who is playing, and a note when a new version of the app is
  * ready. Children do not see how the games are saved and backed up.
  */
-export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Props) {
+export function Home({
+  games,
+  player,
+  onSwitch,
+  onManageFamily,
+  onChangeLanguage,
+  onUpdate,
+}: Props) {
   const t = useMessages(appText);
   const { hello } = useMessages(common);
   const { family } = useMessages(familyText);
@@ -90,7 +100,7 @@ export function Home({ games, player, onSwitch, onManageFamily, onUpdate }: Prop
 
       {player.role === 'voksen' && (
         <>
-          <LanguageChoice />
+          <LanguageChoice onChange={onChangeLanguage} />
           <SavedGames />
         </>
       )}

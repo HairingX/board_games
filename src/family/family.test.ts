@@ -4,10 +4,12 @@ import {
   addProfile,
   mayPlay,
   newFamily,
+  newProfile,
   nextColor,
   removeProfile,
   reviveFamily,
   setPin,
+  updateProfile,
   type Profile,
 } from './family';
 
@@ -40,6 +42,18 @@ describe('family', () => {
     expect(removeProfile(family, 'far')).toBe(family);
     family = removeProfile(family, 'mille');
     expect(removeProfile(family, 'far').profiles).toEqual([]);
+  });
+
+  it('makes a new profile without a code, with an id of its own', () => {
+    const values = { name: 'Oscar', role: 'barn', color: 'slate', language: 'en' } as const;
+    const oscar = newProfile(values);
+    expect(oscar).toMatchObject({ ...values, pin: null });
+    expect(newProfile(values).id).not.toBe(oscar.id);
+  });
+
+  it('changes one profile', () => {
+    const family = updateProfile({ profiles: [far, mor] }, { ...mor, language: 'en' });
+    expect(family.profiles.map((p) => p.language)).toEqual(['da', 'en']);
   });
 
   it('sets and takes away one profile’s code', () => {
@@ -75,6 +89,16 @@ describe('reviveFamily', () => {
     expect(reviveFamily({ profiles: [oldFar], locked: false, pin: null })).toEqual({
       profiles: [far],
     });
+  });
+
+  it('gives the phone’s language to a profile saved without one or with one it does not speak', () => {
+    Object.defineProperty(navigator, 'languages', { value: ['en-US'], configurable: true });
+    const withoutLanguage: Partial<Profile> = { ...mille };
+    delete withoutLanguage.language;
+    expect(reviveFamily({ profiles: [withoutLanguage, { ...far, language: 'tlh' }, mor] })).toEqual(
+      { profiles: [{ ...mille, language: 'en' }, { ...far, language: 'en' }, mor] },
+    );
+    Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
   });
 
   it.each([

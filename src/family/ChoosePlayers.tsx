@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useMessages } from '../i18n/I18n';
+import { useLocale, useMessages } from '../i18n/I18n';
 import type { GameInfo } from '../lib/games';
 import { GameHeader } from '../ui/GameHeader';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
-import { addProfile, mayPlay, nextColor, type Family, type Profile } from './family';
+import { addProfile, mayPlay, newProfile, nextColor, type Family, type Profile } from './family';
 import { ProfileForm } from './ProfileForm';
 import { familyText } from './text';
 import './family.css';
@@ -25,6 +25,7 @@ interface Props {
  */
 export function ChoosePlayers({ game, family, current, onChange, onStart }: Props) {
   const t = useMessages(familyText);
+  const language = useLocale();
   const { start } = useMessages(common);
   const { title } = useMessages(game.about);
   const [chosen, setChosen] = useState<string[]>([current.id]);
@@ -47,9 +48,10 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
         <>
           <h2 className="players-title">{t.newPlayer}</h2>
           <ProfileForm
-            color={nextColor(family)}
-            {...(newRole ? { role: newRole } : {})}
-            onSave={(profile) => {
+            start={{ name: '', role: newRole ?? 'barn', color: nextColor(family), language }}
+            chooseRole={newRole === undefined}
+            onSave={(values) => {
+              const profile = newProfile(values);
               onChange(addProfile(family, profile));
               if (!full) setChosen([...chosen, profile.id]);
               setAdding(false);

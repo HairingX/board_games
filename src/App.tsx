@@ -1,12 +1,13 @@
 import { MotionConfig } from 'motion/react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ChoosePlayers } from './family/ChoosePlayers';
-import { mayPlay, type Profile } from './family/family';
+import { mayPlay, updateProfile, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { ManageFamily } from './family/ManageFamily';
 import { WhoIsPlaying } from './family/WhoIsPlaying';
 import { I18nProvider, useMessages } from './i18n/I18n';
+import { bestLocale } from './i18n/locales';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { moveSave, saves } from './lib/saves';
@@ -18,17 +19,27 @@ import { common } from './ui/text';
 
 /**
  * The app: "Hvem spiller?" first, then the home screen, or the game the location's hash names.
- * Only the games the player may play are offered or opened.
+ * Only the games the player may play are offered or opened. The app speaks the language of the
+ * one on the home screen, and the phone's before anyone is chosen.
  */
 export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   return (
     <MotionConfig reducedMotion="user">
-      <I18nProvider>
-        <FamilyProvider>
+      <FamilyProvider>
+        <Speaking>
           <Shell games={games} />
-        </FamilyProvider>
-      </I18nProvider>
+        </Speaking>
+      </FamilyProvider>
     </MotionConfig>
+  );
+}
+
+function Speaking({ children }: { children: ReactNode }) {
+  const { current } = useFamily();
+  return (
+    <I18nProvider locale={current?.language ?? bestLocale(navigator.languages)}>
+      {children}
+    </I18nProvider>
   );
 }
 
@@ -93,6 +104,9 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       onSwitch={leave}
       onManageFamily={() => {
         setManaging(true);
+      }}
+      onChangeLanguage={(language) => {
+        save(updateProfile(family, { ...current, language }));
       }}
       {...(updateWaiting
         ? {

@@ -4,7 +4,6 @@ import { cleanup } from '@testing-library/react';
 import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
 import { familySaveKey } from '../src/family/FamilyContext';
-import { localeSaveKey } from '../src/i18n/I18n';
 import { saves } from '../src/lib/saves';
 
 MotionGlobalConfig.skipAnimations = true;
@@ -25,7 +24,6 @@ afterEach(async () => {
   localStorage.clear();
   window.location.hash = '';
   await saves.remove(familySaveKey);
-  await saves.remove(localeSaveKey);
 });
 
 // The service worker is registered only in a built app; in tests no update is ever waiting.

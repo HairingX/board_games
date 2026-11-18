@@ -1,8 +1,18 @@
 import { useState } from 'react';
-import { useMessages } from '../i18n/I18n';
+import { formatLanguages } from '../i18n/format';
+import { useLocale, useMessages } from '../i18n/I18n';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
-import { addProfile, nextColor, removeProfile, setPin, type Family, type Profile } from './family';
+import {
+  addProfile,
+  newProfile,
+  nextColor,
+  removeProfile,
+  setPin,
+  updateProfile,
+  type Family,
+  type Profile,
+} from './family';
 import { PinSetup } from './PinSetup';
 import { ProfileForm } from './ProfileForm';
 import { familyText } from './text';
@@ -16,15 +26,22 @@ interface Props {
   onDone: () => void;
 }
 
-type View = { name: 'list' } | { name: 'add' } | { name: 'pin'; profile: Profile };
+type View =
+  | { name: 'list' }
+  | { name: 'add' }
+  | { name: 'edit'; profile: Profile }
+  | { name: 'pin'; profile: Profile };
 
-/** Adding and taking out the family's profiles, and their codes; for grown-ups. */
+/** Adding, changing and taking out the family's profiles, and their codes; for grown-ups. */
 export function ManageFamily({ family, current, onChange, onDone }: Props) {
   const t = useMessages(familyText);
   const { cancel } = useMessages(common);
+  const locale = useLocale();
   const [view, setView] = useState<View>({ name: 'list' });
-  const [leaving, setLeaving] = useState<Profile>();
+  /** Whether the profile shown is about to be taken out, once confirmed. */
+  const [leaving, setLeaving] = useState(false);
   const back = () => {
+    setLeaving(false);
     setView({ name: 'list' });
   };
 
@@ -33,8 +50,10 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
       <section className="family">
         <h1>{t.newInFamily}</h1>
         <ProfileForm
-          color={nextColor(family)}
-          onSave={(profile) => {
+          start={{ name: '', role: 'barn', color: nextColor(family), language: locale }}
+          chooseRole
+          onSave={(values) => {
+            const profile = newProfile(values);
             const added = addProfile(family, profile);
             if (profile.role === 'barn') {
               onChange(added);
@@ -45,6 +64,74 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
           }}
           onCancel={back}
         />
+      </section>
+    );
+  }
+
+  if (view.name === 'edit') {
+    const { profile } = view;
+    const mayLeave = profile.id !== current.id && removeProfile(family, profile.id) !== family;
+    return (
+      <section className="family">
+        <h1>{t.editProfile(profile.name)}</h1>
+        <ProfileForm
+          start={profile}
+          chooseRole={false}
+          onSave={(values) => {
+            onChange(updateProfile(family, { ...profile, ...values }));
+            back();
+          }}
+          onCancel={back}
+        />
+        <div className="family-footer">
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            aria-label={t.pinFor(profile.name)}
+            onClick={() => {
+              setView({ name: 'pin', profile });
+            }}
+          >
+            {profile.pin ? t.changePin : t.pin}
+          </button>
+          {leaving ? (
+            <div className="family-confirm" role="alertdialog" aria-label={t.remove(profile.name)}>
+              <p>{t.removeQuestion(profile.name)}</p>
+              <div className="family-actions">
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setLeaving(false);
+                  }}
+                >
+                  {cancel}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    onChange(removeProfile(family, profile.id));
+                    back();
+                  }}
+                >
+                  {t.yesRemove}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-quiet btn-block"
+              disabled={!mayLeave}
+              onClick={() => {
+                setLeaving(true);
+              }}
+            >
+              {t.remove(profile.name)}
+            </button>
+          )}
+        </div>
       </section>
     );
   }
@@ -69,69 +156,30 @@ export function ManageFamily({ family, current, onChange, onDone }: Props) {
     <section className="family">
       <h1>{t.family}</h1>
       <ul className="family-list">
-        {family.profiles.map((profile) => {
-          const mayLeave =
-            profile.id !== current.id && removeProfile(family, profile.id) !== family;
-          return (
-            <li key={profile.id} className="family-row">
+        {family.profiles.map((profile) => (
+          <li key={profile.id}>
+            <button
+              type="button"
+              className="family-row"
+              onClick={() => {
+                setView({ name: 'edit', profile });
+              }}
+            >
               <Avatar profile={profile} size="small" />
               <span className="family-row-name">
-                {profile.name}
-                <small>{t.roles[profile.role]}</small>
+                {profile.name}{' '}
+                <small>
+                  {t.roles[profile.role]} · {formatLanguages(locale, [profile.language])}
+                </small>
               </span>
-              <button
-                type="button"
-                className="btn btn-quiet"
-                aria-label={t.pinFor(profile.name)}
-                onClick={() => {
-                  setView({ name: 'pin', profile });
-                }}
-              >
-                {profile.pin ? t.changePin : t.pin}
-              </button>
-              <button
-                type="button"
-                className="btn btn-quiet"
-                disabled={!mayLeave}
-                aria-label={t.remove(profile.name)}
-                onClick={() => {
-                  setLeaving(profile);
-                }}
-              >
-                {t.removeShort}
-              </button>
-            </li>
-          );
-        })}
+              <span className="family-row-open" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          </li>
+        ))}
       </ul>
       <p className="family-note">{t.familyNote}</p>
-
-      {leaving && (
-        <div className="family-confirm" role="alertdialog" aria-label={t.remove(leaving.name)}>
-          <p>{t.removeQuestion(leaving.name)}</p>
-          <div className="family-actions">
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => {
-                setLeaving(undefined);
-              }}
-            >
-              {cancel}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                onChange(removeProfile(family, leaving.id));
-                setLeaving(undefined);
-              }}
-            >
-              {t.yesRemove}
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="family-footer">
         <button
