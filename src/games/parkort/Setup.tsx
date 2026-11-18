@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { timeAgo } from '../../lib/time';
 import { GameHeader } from '../../ui/GameHeader';
+import { Emblem } from './Emblem';
 import { cards, categories, type CategoryId } from './cards';
 import {
   choose,
@@ -48,8 +49,8 @@ export function Setup({ deck, onChange, onStart }: Props) {
       <GameHeader title="Parkort" />
 
       <section className="pk-hero">
-        <span className="pk-hero-icon" aria-hidden="true">
-          💞
+        <span className="pk-hero-icon">
+          <Emblem size={36} />
         </span>
         <p>
           Vend et kort, læs spørgsmålet højt, og svar begge to. Der er ingen rigtige svar – kun gode
@@ -92,7 +93,6 @@ export function Setup({ deck, onChange, onStart }: Props) {
                 toggle(category.id);
               }}
             >
-              <span aria-hidden="true">{category.icon}</span>
               {category.name}
               <span className="pk-chip-count">{leftIn(category.id)}</span>
             </button>

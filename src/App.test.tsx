@@ -11,7 +11,7 @@ const fakeGame: GameInfo = {
   title: 'Testspil',
   description: 'Bruges kun i tests',
   icon: '🎲',
-  colors: ['#000', '#fff'],
+  colors: { card: '#000', accent: '#fff' },
   Screen: FakeGame,
 };
 

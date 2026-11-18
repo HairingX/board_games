@@ -9,7 +9,7 @@ const playable: GameInfo = {
   title: 'Regnespil',
   description: 'Plus, minus og gange',
   icon: '🧮',
-  colors: ['#22c55e', '#0ea5e9'],
+  colors: { card: '#1f4e5a', accent: '#e9c46a' },
   Screen: FakeGame,
 };
 
@@ -18,7 +18,7 @@ const upcoming: GameInfo = {
   title: 'Parkort',
   description: 'Spørgsmål til to',
   icon: '💞',
-  colors: ['#f43f5e', '#f59e0b'],
+  colors: { card: '#3b2638', accent: '#c8a96b' },
 };
 
 describe('Home', () => {

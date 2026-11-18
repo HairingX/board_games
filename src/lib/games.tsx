@@ -1,4 +1,5 @@
-import { lazy, type ComponentType, type CSSProperties } from 'react';
+import { lazy, type ComponentType, type CSSProperties, type ReactNode } from 'react';
+import { Emblem } from '../games/parkort/Emblem';
 
 /** A game the home screen offers. */
 export interface GameInfo {
@@ -6,10 +7,10 @@ export interface GameInfo {
   id: string;
   title: string;
   description: string;
-  /** An emoji shown on the game's tile. */
-  icon: string;
-  /** The two colours of the game's gradient, as CSS colours. */
-  colors: readonly [string, string];
+  /** What its tile shows beside the title. */
+  icon: ReactNode;
+  /** The colour of its cards, and the colour of the fine lines on them. */
+  colors: { card: string; accent: string };
   /**
    * The game's screen, made with React's lazy so each game is fetched only when it is first
    * opened. A game without one is shown as coming soon.
@@ -17,9 +18,13 @@ export interface GameInfo {
   Screen?: ComponentType;
 }
 
-/** The game's colours as the CSS custom properties --from and --to, which its styles use. */
+/** The game's colours as the CSS custom properties its styles and the buttons use. */
 export function gameTheme(game: GameInfo): CSSProperties {
-  return { '--from': game.colors[0], '--to': game.colors[1] } as CSSProperties;
+  return {
+    '--game': game.colors.card,
+    '--game-accent': game.colors.accent,
+    '--on-game': 'var(--paper)',
+  } as CSSProperties;
 }
 
 /** Every game, in the order the home screen shows them. */
@@ -28,8 +33,8 @@ export const games: readonly GameInfo[] = [
     id: 'parkort',
     title: 'Parkort',
     description: 'Spørgsmål der får jer til at snakke om det, der fylder.',
-    icon: '💞',
-    colors: ['#f43f5e', '#f59e0b'],
+    icon: <Emblem size={40} />,
+    colors: { card: '#3b2638', accent: '#c8a96b' },
     Screen: lazy(() => import('../games/parkort/Parkort')),
   },
   {
@@ -37,13 +42,13 @@ export const games: readonly GameInfo[] = [
     title: 'Regnespil',
     description: 'Plus, minus og gange på tid. Hvem er hurtigst?',
     icon: '🧮',
-    colors: ['#22c55e', '#0ea5e9'],
+    colors: { card: '#1f4e5a', accent: '#e9c46a' },
   },
   {
     id: 'koretur',
     title: 'Quiz på køreturen',
     description: 'Paratviden for hele bilen.',
     icon: '🚗',
-    colors: ['#6366f1', '#d946ef'],
+    colors: { card: '#9e4a30', accent: '#eed9b7' },
   },
 ];

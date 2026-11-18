@@ -7,5 +7,5 @@ export const appMeta = {
   name: 'Småspil',
   description: 'Små spil til hele familien, der virker uden internet.',
   lang: 'da',
-  background: { light: '#f5f4f9', dark: '#0b0a10' },
+  background: { light: '#f4efe6', dark: '#16121a' },
 } as const;

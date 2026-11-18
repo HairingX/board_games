@@ -2,7 +2,6 @@
 export interface Category {
   id: CategoryId;
   name: string;
-  icon: string;
 }
 
 export type CategoryId =
@@ -32,14 +31,14 @@ export const levels: readonly Level[] = [1, 2, 3];
 export const levelNames: Readonly<Record<Level, string>> = { 1: 'Let', 2: 'Mellem', 3: 'Dyb' };
 
 export const categories: readonly Category[] = [
-  { id: 'os-to', name: 'Os to', icon: '💑' },
-  { id: 'taknemmelighed', name: 'Taknemmelighed', icon: '🙏' },
-  { id: 'hverdagen', name: 'Hverdagen', icon: '☕' },
-  { id: 'minder', name: 'Minder', icon: '📸' },
-  { id: 'droemme', name: 'Drømme', icon: '✨' },
-  { id: 'vaerdier', name: 'Værdier', icon: '🧭' },
-  { id: 'naerhed', name: 'Nærhed', icon: '🤍' },
-  { id: 'for-sjov', name: 'For sjov', icon: '🎈' },
+  { id: 'os-to', name: 'Os to' },
+  { id: 'taknemmelighed', name: 'Taknemmelighed' },
+  { id: 'hverdagen', name: 'Hverdagen' },
+  { id: 'minder', name: 'Minder' },
+  { id: 'droemme', name: 'Drømme' },
+  { id: 'vaerdier', name: 'Værdier' },
+  { id: 'naerhed', name: 'Nærhed' },
+  { id: 'for-sjov', name: 'For sjov' },
 ];
 
 /** Each category by its id. */

@@ -101,17 +101,27 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## Design
 
-The owner wants it to look and feel modern, like a polished app rather than a web page.
+The owner wants it to look and feel modern, exclusive and cosy, like printed cards on a table
+rather than a web page. It follows research on premium conversation decks and 2025–26 design:
+paper and ink, one colour per game, a fine frame, a classic serif, a faint grain, and no
+gradients, glow or glass.
 
 - Light and dark themes follow the phone's setting. Every colour, space, corner, touch size and
   CSS duration is a token in `src/app.css`; colours give both themes at once with
-  `light-dark()`. Styles use the tokens, not literal values.
-- Type: Bricolage Grotesque for headings, Plus Jakarta Sans for text, both bundled with
-  Fontsource so they work offline.
-- A soft, light background with faint colour glows; each game has its own two-colour gradient
-  (`colors` in `src/lib/games.ts`) on large, rounded tiles with frosted-glass details.
-- Motion is springy and quick: elements rise in, and anything tapped gives way under the
-  finger. Motion's settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
+  `light-dark()`. Styles use the tokens, not literal values. Printed cards stay paper in both.
+- Type: EB Garamond for headings and card text, Cormorant SC for small-caps labels, Plus
+  Jakarta Sans for the app's own text, all bundled with Fontsource so they work offline.
+- Each game has a card colour and an accent for its fine lines (`colors` in
+  `src/lib/games.tsx`), set as `--game`, `--game-accent` and `--on-game`; buttons and tiles use
+  them. The home screen's tiles look like the backs of the game's cards.
+- Cards are real card proportions and drawn as SVG in the card's own box, with sizes in `cqw`
+  so they scale as one. Parkort's cards (`src/games/parkort/CardFaces.tsx`) are 7:12, like
+  tarot cards: an aubergine back with a brass double frame, rays and a medallion with the
+  emblem of two linked rings, the same either way up; a paper face with a double frame, the
+  category in small caps, the question in EB Garamond, and the card's number and level.
+- The grain is one small tiling image (`src/assets/grain.png`) laid over with soft light.
+- Motion is springy and quick, and anything tapped gives way under the finger. Motion's
+  settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
 
 ## Conventions

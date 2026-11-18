@@ -1,6 +1,12 @@
+/*
+ * The card fills the box it is placed in; the game sizes that box to the card's proportion.
+ * The card is a size container, so a game's card faces can size their type and lines in cqw,
+ * a hundredth of the card's width, and scale with the card.
+ */
 .flip-card {
   position: absolute;
   inset: 0;
+  container-type: size;
   perspective: 1400px;
   touch-action: pan-y;
   cursor: grab;
@@ -13,28 +19,27 @@
   transform-style: preserve-3d;
 }
 
+/* A printed card's corners are about 4.8% of its width. */
 .flip-card-face {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-6);
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  color: inherit;
+  text-align: inherit;
+  background: none;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: 4.8cqw;
   box-shadow: var(--shadow-card);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
 .flip-card-back {
-  align-items: center;
-  justify-content: center;
-  color: var(--on-accent);
-  text-align: center;
-  background:
-    radial-gradient(120% 70% at 100% 0%, var(--glass-edge), transparent 55%),
-    linear-gradient(145deg, var(--from), var(--to));
   cursor: pointer;
 }
 
@@ -43,7 +48,5 @@
 }
 
 .flip-card-front {
-  color: var(--text);
-  background: var(--card-face);
   transform: rotateY(180deg);
 }

@@ -150,7 +150,7 @@ describe('Parkort play', () => {
 
     expect(screen.getByText('Hvad lagde du først mærke til ved mig, da vi mødtes?')).toBeVisible();
     expect(screen.getByText('Os to')).toBeInTheDocument();
-    expect(screen.getByLabelText('Niveau: Let')).toBeInTheDocument();
+    expect(screen.getByText('Nº 1 · Let')).toBeInTheDocument();
     await expectSaved((deck) => {
       expect(deck.flipped).toBe('os-to-1');
       expect(deck.playedAt).not.toBeNull();

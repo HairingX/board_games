@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { useWakeLock } from '../../lib/wakeLock';
 import { FlipCard, type CardMove } from '../../ui/FlipCard';
 import { GameHeader } from '../../ui/GameHeader';
-import { cards, categoryById, levelNames, levels, type QuestionCard } from './cards';
+import { CardBack, CardFront } from './CardFaces';
+import { cards } from './cards';
 import {
   flip,
   markSeen,
@@ -100,25 +101,27 @@ export function Play({ deck, onChange, onBack }: Props) {
       />
 
       <div className="pk-table">
-        {queue.length > 2 && <div className="pk-stack pk-stack-2" aria-hidden="true" />}
-        {queue.length > 1 && <div className="pk-stack pk-stack-1" aria-hidden="true" />}
-        <AnimatePresence custom={move} initial={false}>
-          <FlipCard
-            key={`${shown.id}@${String(back)}`}
-            move={move}
-            flipped={flipped}
-            onFlip={() => {
-              onChange(flip(deck, shown.id, Date.now()));
-            }}
-            onSwipe={(direction) => {
-              if (direction === 1) goOn();
-              else if (canGoBack) goBack();
-            }}
-            label="Vend kortet"
-            back={<CardBack />}
-            front={<CardFront card={shown} />}
-          />
-        </AnimatePresence>
+        <div className="pk-slot">
+          {queue.length > 2 && <div className="pk-stack pk-stack-2" aria-hidden="true" />}
+          {queue.length > 1 && <div className="pk-stack pk-stack-1" aria-hidden="true" />}
+          <AnimatePresence custom={move} initial={false}>
+            <FlipCard
+              key={`${shown.id}@${String(back)}`}
+              move={move}
+              flipped={flipped}
+              onFlip={() => {
+                onChange(flip(deck, shown.id, Date.now()));
+              }}
+              onSwipe={(direction) => {
+                if (direction === 1) goOn();
+                else if (canGoBack) goBack();
+              }}
+              label="Vend kortet"
+              back={<CardBack />}
+              front={<CardFront card={shown} />}
+            />
+          </AnimatePresence>
+        </div>
       </div>
 
       <p className="pk-hint" aria-live="polite">
@@ -151,37 +154,5 @@ export function Play({ deck, onChange, onBack }: Props) {
         Tag den senere
       </button>
     </div>
-  );
-}
-
-function CardBack() {
-  return (
-    <>
-      <span className="pk-back-icon">💞</span>
-      <span className="pk-back-title">Parkort</span>
-      <span className="pk-back-hint">Tryk for at vende</span>
-    </>
-  );
-}
-
-function CardFront({ card }: { card: QuestionCard }) {
-  const category = categoryById[card.category];
-  return (
-    <>
-      <div className="pk-front-top">
-        <span className="pk-front-category">
-          <span aria-hidden="true">{category.icon}</span> {category.name}
-        </span>
-        <span className="pk-front-level" aria-label={`Niveau: ${levelNames[card.level]}`}>
-          {levels.map((level) => (
-            <span key={level} className={level <= card.level ? 'on' : ''} />
-          ))}
-        </span>
-      </div>
-      <p className="pk-front-text">{card.text}</p>
-      <span className="pk-front-mark" aria-hidden="true">
-        💞
-      </span>
-    </>
   );
 }

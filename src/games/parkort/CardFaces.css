@@ -1,0 +1,140 @@
+/* Sizes are in cqw, a hundredth of the card's width, so the card scales as one. */
+.pk-card-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pk-back {
+  position: absolute;
+  inset: 0;
+}
+
+/* The grain of the card, over the colour. */
+.pk-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--grain);
+  opacity: var(--grain-strength);
+  mix-blend-mode: soft-light;
+}
+
+.pk-back-fill {
+  fill: var(--game);
+}
+
+.pk-back-rays line {
+  stroke: var(--game-accent);
+  stroke-opacity: 0.18;
+  stroke-width: 0.7;
+}
+
+.pk-back-lines,
+.pk-back-mark {
+  fill: none;
+  stroke: var(--game-accent);
+}
+
+.pk-back-lines .pk-back-fill {
+  fill: var(--game);
+}
+
+.pk-back-mark {
+  stroke-width: 3;
+}
+
+.pk-back-ornaments {
+  fill: var(--game-accent);
+}
+
+.pk-back-name {
+  fill: var(--game-accent);
+  font-family: var(--font-small-caps);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 4px;
+  text-anchor: middle;
+}
+
+.pk-front {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15cqw 11cqw 11cqw;
+  text-align: center;
+  color: var(--paper-ink);
+  background: var(--paper);
+}
+
+/* The grain of the paper. */
+.pk-front::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--grain);
+  opacity: var(--grain-strength);
+  mix-blend-mode: soft-light;
+}
+
+.pk-front-lines {
+  fill: none;
+  stroke: var(--game-accent-ink);
+}
+
+.pk-front-category {
+  margin: 0;
+  font-family: var(--font-small-caps);
+  font-weight: 600;
+  font-size: 5cqw;
+  letter-spacing: 0.2em;
+  color: var(--game-accent-ink);
+}
+
+.pk-front-star {
+  margin-top: 2cqw;
+  font-size: 3.4cqw;
+  color: var(--game-accent-ink);
+}
+
+.pk-front-text {
+  margin: auto 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 8.6cqw;
+  line-height: 1.22;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.pk-front-foot {
+  display: flex;
+  gap: 3cqw;
+  align-items: center;
+  color: var(--game-accent-ink);
+}
+
+.pk-front-foot .emblem {
+  width: 9cqw;
+  height: auto;
+}
+
+.pk-front-rule {
+  width: 11cqw;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.pk-front-number {
+  margin: 2.4cqw 0 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 4.6cqw;
+  color: var(--game-accent-ink);
+}

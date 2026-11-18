@@ -31,7 +31,6 @@
   background: var(--surface);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-pill);
-  backdrop-filter: blur(12px);
 }
 
 .badge-dot {
@@ -43,14 +42,11 @@
 }
 
 .home-title {
-  margin: var(--space-4) 0 0;
-  font-size: clamp(3rem, 14vw, 4.5rem);
-  font-weight: 800;
+  margin: var(--space-3) 0 0;
+  font-size: clamp(3.2rem, 15vw, 4.6rem);
+  font-weight: 600;
   line-height: 0.95;
-  background: linear-gradient(100deg, var(--brand-1), var(--brand-2) 55%, var(--brand-3));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  letter-spacing: -0.02em;
 }
 
 .home-header p {
@@ -84,31 +80,42 @@
 
 .tile {
   --icon-size: 64px;
+  --frame-inset: var(--space-2);
 
   position: relative;
   display: flex;
   gap: var(--space-4);
   align-items: center;
-  min-height: 104px;
-  padding: 18px;
+  min-height: 112px;
+  padding: var(--space-5);
   overflow: hidden;
-  color: var(--on-accent);
+  color: var(--on-game);
   text-decoration: none;
-  background: linear-gradient(135deg, var(--from), var(--to));
+  background: var(--game);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   transition: transform var(--duration-press) var(--ease-spring);
 }
 
-.tile::after {
+/* A fine frame in the game's accent, as on the back of its cards, over a faint grain. */
+.tile::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(120% 80% at 100% 0%, var(--glass-shine), transparent 55%),
-    linear-gradient(to bottom, var(--glass), transparent 40%);
-  opacity: 0.6;
+  background: var(--grain);
+  opacity: var(--grain-strength);
+  mix-blend-mode: soft-light;
+}
+
+.tile::after {
+  content: '';
+  position: absolute;
+  inset: var(--frame-inset);
+  pointer-events: none;
+  border: 1px solid var(--game-accent);
+  border-radius: calc(var(--radius-lg) - var(--frame-inset));
+  opacity: 0.7;
 }
 
 a.tile:active {
@@ -116,7 +123,7 @@ a.tile:active {
 }
 
 .tile-soon {
-  filter: saturate(0.75);
+  filter: saturate(0.8);
 }
 
 .tile-icon {
@@ -125,11 +132,10 @@ a.tile:active {
   place-items: center;
   width: var(--icon-size);
   height: var(--icon-size);
-  font-size: 2.1rem;
-  background: var(--glass);
-  border: 1px solid var(--glass-edge);
-  border-radius: var(--radius-md);
-  backdrop-filter: blur(8px);
+  font-size: 2rem;
+  color: var(--game-accent);
+  border: 1px solid var(--game-accent);
+  border-radius: 50%;
 }
 
 .tile-text {
@@ -140,9 +146,9 @@ a.tile:active {
 
 .tile-text strong {
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 1.55rem;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 .tile-text span {
@@ -152,21 +158,21 @@ a.tile:active {
 
 .tile-pill {
   position: absolute;
-  top: var(--space-3);
-  right: var(--space-3);
+  top: calc(var(--frame-inset) + var(--space-3));
+  right: calc(var(--frame-inset) + var(--space-3));
   z-index: 1;
   padding: var(--space-1) 10px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: var(--glass-dark);
+  letter-spacing: 0.08em;
+  color: var(--game-accent);
+  border: 1px solid var(--game-accent);
   border-radius: var(--radius-pill);
-  backdrop-filter: blur(6px);
 }
 
 .tile-soon .tile-text {
-  padding-top: 18px;
+  padding-top: var(--space-6);
 }
 
 @keyframes rise {
