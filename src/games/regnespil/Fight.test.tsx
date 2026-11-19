@@ -9,6 +9,8 @@ import { voices } from '../../lib/sound/voices';
 import { motionTokens } from '../../ui/motion';
 import { faces } from './art';
 import { Fight } from './Fight';
+import { monsterName } from './names';
+import { text } from './text';
 import type { SavedFight } from './fightSave';
 import type { PlayerSettings } from './players';
 import { hits, sounds, victoryLength } from './sounds';
@@ -68,6 +70,8 @@ async function pause(seconds: number): Promise<void> {
   });
 }
 
+/** The victory, over the slime the tests' fights make, from the seed 0. */
+const won = `${monsterName(text.da.names.slime, 0)} er besejret!`;
 const hearts = (left: string) => screen.getByRole('img', { name: `Heltens hjerter: ${left} af 5` });
 const lives = (count: number) => screen.getByRole('img', { name: `Slimets liv: ${String(count)}` });
 const { right, wrong } = motionTokens.fightPause;
@@ -155,9 +159,9 @@ describe('Fight', () => {
     await choose('2');
     await pause(right);
     click('2');
-    expect(screen.queryByText('Slimet er besejret!')).not.toBeInTheDocument();
+    expect(screen.queryByText(won)).not.toBeInTheDocument();
     await pause(reveal);
-    expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
+    expect(screen.getByRole('status')).toHaveTextContent(won);
     expect(played()).toContainEqual([sounds.victory.url, sounds.victory.gain, reveal]);
     expect(context.all(FakeOscillator).length).toBeGreaterThan(0);
     runLater();
@@ -220,7 +224,7 @@ describe('Fight', () => {
       await choose('2');
       await pause(right);
     }
-    expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
+    expect(screen.getByRole('status')).toHaveTextContent(won);
   });
 
   it('saves the fight at once after every answer, with the next turn and its sum', async () => {
@@ -262,8 +266,10 @@ describe('Fight', () => {
       activeId: 'mille',
       task,
       recent: [],
+      seed: 3,
     });
     expect(hearts('1,5')).toBeInTheDocument();
+    expect(screen.getByText(monsterName(text.da.names.slime, 3))).toBeInTheDocument();
     expect(lives(1)).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '3 plus 4' })).toBeInTheDocument();
     expect(container.querySelector('.rs-foe-face')).toHaveAttribute('src', faces.slimeRage);
@@ -305,7 +311,7 @@ describe('Fight', () => {
     await pause(reveal);
     expect(damage()).toHaveTextContent('−2');
     expect(stage()).toHaveAttribute('data-shake', 'true');
-    expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
+    expect(screen.getByRole('status')).toHaveTextContent(won);
     expect(played().filter(([url]) => hits.some((hit) => hit.url === url))).toHaveLength(4);
   });
 

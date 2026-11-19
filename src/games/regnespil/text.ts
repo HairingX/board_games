@@ -86,7 +86,25 @@ const da = {
   lives: (count: number) => `Slimets liv: ${formatNumber('da', count)}`,
   combo: (count: number, of: number) =>
     `Rigtige i træk: ${formatNumber('da', count)} af ${formatNumber('da', of)}`,
-  won: 'Slimet er besejret!',
+  won: (name: string) => `${name} er besejret!`,
+  /** The two pools each kind of monster's names are made from (`names.ts`). */
+  names: {
+    slime: {
+      describe: [
+        'Slimede',
+        'Sure',
+        'Søvnige',
+        'Boblende',
+        'Klæbrige',
+        'Glatte',
+        'Gumlende',
+        'Pjuskede',
+        'Brummende',
+        'Grinende',
+      ],
+      name: ['Bob', 'Svend', 'Sylvester', 'Bertil', 'Gustav', 'Klatten', 'Pip', 'Gerda', 'Kurt'],
+    },
+  },
   lost: 'Helten er træt og hviler sig.',
   again: 'Ny kamp',
   tryAgain: 'Prøv igen',
@@ -172,7 +190,24 @@ export const text: Translations<typeof da> = {
     lives: (count) => `The slime’s lives: ${formatNumber('en', count)}`,
     combo: (count, of) =>
       `Right in a row: ${formatNumber('en', count)} of ${formatNumber('en', of)}`,
-    won: 'The slime is beaten!',
+    won: (name) => `${name} is beaten!`,
+    names: {
+      slime: {
+        describe: [
+          'Slimy',
+          'Sulky',
+          'Sleepy',
+          'Bubbly',
+          'Sticky',
+          'Grumpy',
+          'Wobbly',
+          'Squishy',
+          'Giggly',
+          'Bouncy',
+        ],
+        name: ['Bob', 'Sid', 'Sam', 'Bert', 'Gus', 'Wendy', 'Gloria', 'Billy', 'Molly', 'Pip'],
+      },
+    },
     lost: 'The hero is tired and rests.',
     again: 'New fight',
     tryAgain: 'Try again',

@@ -17,7 +17,12 @@ export interface SavedFight {
   task: Task;
   /** The sums shown lately, the latest last, so the next is none of them. */
   recent: readonly string[];
+  /** What the monster was made from, such as its name, so it is the same when reopened. */
+  seed: number;
 }
+
+/** The largest seed: any whole number that fits in 32 bits. */
+export const seeds = 2 ** 32;
 
 /** Where the fight of these players is saved: the same whatever order they were chosen in. */
 export function fightSaveKey(saveKey: string, players: readonly Profile[]): string {
@@ -52,11 +57,12 @@ const isCount = (value: unknown, most: number): value is number =>
  * The fight as saved, or null when none is, or what is saved is not a fight this game knows. A
  * fight saved before turns to defend came is upgraded: its turns counted from none, and no
  * blow announced; one saved before monsters grew enraged is not yet enraged, and grows so at
- * half its lives; one saved before combos has none.
+ * half its lives; one saved before combos has none; one saved before monsters had seeds gets
+ * the first.
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
-  const { fight, lives, activeId, task, recent } = saved;
+  const { fight, lives, activeId, task, recent, seed } = saved;
   const known =
     isCount(lives, Number.MAX_SAFE_INTEGER) &&
     lives > 0 &&
@@ -78,13 +84,16 @@ export function reviveFight(saved: unknown): SavedFight | null {
     typeof task.near === 'number' &&
     (typeof task.answer === 'number' || isRecord(task.answer)) &&
     Array.isArray(recent) &&
-    recent.every((key) => typeof key === 'string');
+    recent.every((key) => typeof key === 'string') &&
+    (seed === undefined || isCount(seed, seeds - 1));
   if (!known) return null;
-  const kept = saved as unknown as Omit<SavedFight, 'fight'> & {
+  const kept = saved as unknown as Omit<SavedFight, 'fight' | 'seed'> & {
     fight: Omit<Fight, Added> & Partial<Pick<Fight, Added>>;
+    seed?: number;
   };
   return {
     ...kept,
+    seed: kept.seed ?? 0,
     fight: {
       ...kept.fight,
       round: kept.fight.round ?? 0,

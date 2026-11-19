@@ -36,7 +36,8 @@ import {
   type Staging,
 } from './clearing';
 import type { PlayerSettings } from './players';
-import type { SavedFight } from './fightSave';
+import { seeds, type SavedFight } from './fightSave';
+import { monsterName } from './names';
 import { approachSeconds, withTime } from './pace';
 import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
@@ -299,6 +300,7 @@ export function Fight({
       activeId: first.id,
       task: makeTask(own(0).level, random, recent),
       recent,
+      seed: Math.floor(random() * seeds),
     };
   };
   /** The fight as it stands and goes on, as saved. */
@@ -512,8 +514,8 @@ export function Fight({
     const following = nextTurn(active, players.length);
     const recent = shownWith(save.recent, task);
     keep({
+      ...save,
       fight: next,
-      lives,
       activeId: (players[following] as Profile).id,
       task: makeTask(own(following).level, random, recent),
       recent,
@@ -576,6 +578,8 @@ export function Fight({
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
   const { charge } = motionTokens.act;
 
+  /** The monster's name, made from the fight's seed. */
+  const name = monsterName(t.names.slime, save.seed);
   const party: Party = {
     front: own(active).hero,
     bench: players.flatMap((one, index) =>
@@ -690,7 +694,7 @@ export function Fight({
         </button>
         <p className="rs-foe">
           <img src={shown.enraged ? faces.slimeRage : faces.slime} alt="" className="rs-foe-face" />
-          <span className="rs-foe-name">{t.slime}</span>
+          <span className="rs-foe-name">{name}</span>
         </p>
         {aside}
       </header>
@@ -752,7 +756,7 @@ export function Fight({
           </>
         ) : (
           <div className="fight-over">
-            <p role="status">{shown.outcome === 'won' ? t.won : t.lost}</p>
+            <p role="status">{shown.outcome === 'won' ? t.won(name) : t.lost}</p>
             <button type="button" className="rs-button" onClick={restart}>
               {shown.outcome === 'won' ? t.again : t.tryAgain}
             </button>

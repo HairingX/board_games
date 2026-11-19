@@ -202,7 +202,9 @@ game builds on them, and everything must stay smooth on a phone.
   quirks from pools, each saying what it needs, so a slime never spits lava and a wolf never
   flies (a biome may add tags); a difficulty budget by the monster's place in the run; rules
   every generated monster must pass; silly, kind names from two pools per language; one seed
-  per run; story bosses made by hand.
+  per run; story bosses made by hand. Built so far: the names (`names.ts`, the pools in
+  `text.ts`, mostly alliterating, "Boblende Bob"), made in each language from a seed saved with
+  the fight (`seeded` in `src/lib/random.ts`), so a reopened fight meets the same monster.
 - The story is not decided: `docs/regnespil-story.md` is a researched proposal (building on
   H.C. Andersen's _Fyrtøjet_, public domain) for the owner to decide on. Only public-domain
   tales may give plot, names or characters; modern franchises only lessons in how to tell.
