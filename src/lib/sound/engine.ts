@@ -1,5 +1,6 @@
 import type { Random } from '../random';
 import { babble, shift, type Voice } from './babble';
+import type { Chime } from './chimes';
 
 /** Whether music and sound effects play; voices count as effects. */
 export interface SoundSettings {
@@ -18,6 +19,15 @@ const syllableVolume = 0.25;
 
 /** How long a syllable takes to swell and to fade, in seconds, so it never clicks. */
 const syllableEdge = 0.012;
+
+/** How long a chime's note takes to swell, in seconds; then it dies away, as a bell does. */
+const strike = 0.005;
+
+/** How far, in semitones, a chime may sound higher or lower, so it never grows tiresome. */
+const chimeSpread = 0.3;
+
+/** The level a dying note fades to; a fade can never reach nothing itself. */
+const silence = 0.0001;
 
 /** What the engine needs from the browser; the tests give their own. */
 export interface SoundBrowser {
@@ -120,14 +130,42 @@ export class SoundEngine {
     glide(effects.gain, Number(settings.effects), context.currentTime, switchFade);
   }
 
-  /** Plays a short sound once. */
-  async effect(url: string): Promise<void> {
+  /** Plays a short sound once, at its full volume or softer, from 0 to 1. */
+  async effect(url: string, volume = 1): Promise<void> {
     const { context, effects } = this.unlock();
     if (!this.settings.effects) return;
     const source = context.createBufferSource();
     source.buffer = await this.load(url);
-    source.connect(effects);
+    const level = context.createGain();
+    level.gain.value = volume;
+    source.connect(level);
+    level.connect(effects);
     source.start();
+  }
+
+  /**
+   * Plays a chime, made of tones in the phone, so it needs nothing fetched; each time a shade
+   * higher or lower, so it never grows tiresome.
+   */
+  chime(chime: Chime, random: Random = Math.random): void {
+    const { context, effects } = this.unlock();
+    if (!this.settings.effects) return;
+    const start = context.currentTime + syllableEdge;
+    const shade = (random() * 2 - 1) * chimeSpread;
+    for (const note of chime.notes) {
+      const at = start + note.at;
+      const envelope = context.createGain();
+      envelope.gain.setValueAtTime(0, at);
+      envelope.gain.linearRampToValueAtTime(chime.volume, at + strike);
+      envelope.gain.exponentialRampToValueAtTime(silence, at + note.length);
+      envelope.connect(effects);
+      const tone = context.createOscillator();
+      tone.type = chime.wave;
+      tone.frequency.value = shift(chime.pitch, note.step + shade);
+      tone.connect(envelope);
+      tone.start(at);
+      tone.stop(at + note.length);
+    }
   }
 
   /**

@@ -9,6 +9,7 @@ import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.
 import magic from '../../../assets/ninja-adventure/Audio/Sounds/Magic & Skill/Magic1.m4a';
 import sword from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
 import { useMessages } from '../../i18n/I18n';
+import { chimes } from '../../lib/sound/chimes';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { reviveSoundSettings, soundSaveKey } from '../../lib/sound/settings';
 import { voices } from '../../lib/sound/voices';
@@ -105,6 +106,23 @@ export function SoundLab({
             onClick={() => void sound.effect(sounds[name])}
           >
             {t.sounds[name]}
+          </button>
+        ))}
+      </div>
+
+      <h2>{t.answers}</h2>
+      <p className="family-intro">{t.answersNote}</p>
+      <div className="lab-buttons">
+        {(Object.keys(chimes) as (keyof typeof chimes)[]).map((verdict) => (
+          <button
+            key={verdict}
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => {
+              sound.chime(chimes[verdict]);
+            }}
+          >
+            {t.chimes[verdict]}
           </button>
         ))}
       </div>

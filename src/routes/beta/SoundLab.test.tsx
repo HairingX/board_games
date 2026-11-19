@@ -53,6 +53,16 @@ describe('SoundLab', () => {
     });
   });
 
+  it('plays the answers’ chimes: bright for right and close, soft for far off', async () => {
+    const { context } = await open();
+    for (const name of ['Rigtigt', 'Tæt på', 'Langt fra']) click(name);
+    expect(context.all(FakeOscillator).map((tone) => tone.type)).toEqual([
+      ...['triangle', 'triangle', 'triangle'],
+      ...['triangle', 'triangle'],
+      ...['sine', 'sine'],
+    ]);
+  });
+
   it('lets each character babble in a tone of its own', async () => {
     const { context } = await open();
     for (const name of ['Helten', 'Trolden', 'Feen']) click(name);

@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeSoundBrowser, FakeOscillator } from '../../../tests/audio';
+import { chimes } from '../../lib/sound/chimes';
 import { sound, SoundEngine } from '../../lib/sound/engine';
 import { motionTokens } from '../../ui/motion';
 import { BattleLab } from './BattleLab';
@@ -33,8 +34,10 @@ function open() {
       load={() => new Promise(() => undefined)}
     />,
   );
+  const chime = vi.spyOn(sound, 'chime');
   const played = () => effect.mock.calls.map(([url]) => url);
-  return { ...fake, onBack, played };
+  const chimed = () => chime.mock.calls.map(([made]) => made);
+  return { ...fake, onBack, played, chimed, effect };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -53,7 +56,7 @@ describe('BattleLab', () => {
   });
 
   it('strikes the slime on a right answer, and asks the next sum after a pause', async () => {
-    const { played, onBack } = open();
+    const { played, chimed, effect, onBack } = open();
     expect(screen.getByRole('img', { name: 'Heltens hjerter: 3' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Slimets liv: 3' })).toBeInTheDocument();
     click('2');
@@ -65,17 +68,20 @@ describe('BattleLab', () => {
       expect.stringContaining('Slash') as string,
       expect.stringContaining('Hit1') as string,
     ]);
+    expect(chimed()).toEqual([chimes.right]);
+    expect(effect.mock.calls.map(([, volume]) => volume)).toEqual([0.6, 0.6]);
     click('Tilbage');
     expect(onBack).toHaveBeenCalledOnce();
   });
 
   it('parries a close answer, taking nothing from either', async () => {
-    const { played } = open();
+    const { played, chimed } = open();
     click('1');
     expect(screen.getByRole('img', { name: 'Heltens hjerter: 3' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Slimets liv: 3' })).toBeInTheDocument();
     await pause(wrong);
     expect(played()).toEqual([expect.stringContaining('Impact') as string]);
+    expect(chimed()).toEqual([chimes.close]);
     expect(screen.getByRole('button', { name: '1' })).toBeEnabled();
   });
 
@@ -93,7 +99,7 @@ describe('BattleLab', () => {
   });
 
   it('loses a heart on an answer far off, and rests once none are left', async () => {
-    const { played } = open();
+    const { played, chimed } = open();
     fireEvent.click(screen.getByRole('radio', { name: '7' }));
     expect(screen.getByRole('img', { name: '12 gange 2' })).toHaveTextContent('12 · 2 = ?');
     for (let bump = 0; bump < 3; bump++) {
@@ -102,7 +108,8 @@ describe('BattleLab', () => {
     }
     expect(screen.getByRole('img', { name: 'Heltens hjerter: 0' })).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
-    expect(played()).toContainEqual(expect.stringContaining('Jump'));
+    expect(played()).toContainEqual(expect.stringContaining('Bounce2'));
+    expect(chimed()).toContainEqual(chimes.far);
     click('Prøv igen');
     expect(screen.getByRole('img', { name: 'Heltens hjerter: 3' })).toBeInTheDocument();
   });
@@ -112,6 +119,7 @@ describe('BattleLab', () => {
     const prepare = vi.spyOn(sound, 'prepareEffects').mockResolvedValue(undefined);
     const effect = vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
     vi.spyOn(sound, 'babble').mockReturnValue(undefined);
+    vi.spyOn(sound, 'chime').mockReturnValue(undefined);
     const { container } = render(<BattleLab onBack={() => undefined} />);
     expect(screen.getByRole('img', { name: /lysning/ })).toBeInTheDocument();
     const choice = container.querySelector('.task-choice');

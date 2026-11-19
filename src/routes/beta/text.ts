@@ -9,6 +9,10 @@ const da = {
   music: 'Musik',
   stopMusic: 'Stop musikken',
   effects: 'Lydeffekter',
+  answers: 'Svarlyde',
+  answersNote:
+    'Hvordan et svar gik, sagt med toner: op og lander for rigtigt, op uden at lande for tæt på, og blødt ned for langt fra.',
+  chimes: { right: 'Rigtigt', close: 'Tæt på', far: 'Langt fra' },
   voices: 'Stemmer uden ord',
   voicesNote: 'Figurerne pludrer i stedet for at tale, hver i sin egen tone.',
   tracks: { adventure: 'Eventyret begynder', forest: 'Den mørke skov', tension: 'Spænding' },
@@ -48,6 +52,10 @@ export const labText: Translations<typeof da> = {
     music: 'Music',
     stopMusic: 'Stop the music',
     effects: 'Sound effects',
+    answers: 'Answer sounds',
+    answersNote:
+      'How an answer went, told in tones: up and landing for right, up without landing for close, and softly down for far off.',
+    chimes: { right: 'Right', close: 'Close', far: 'Far off' },
     voices: 'Voices without words',
     voicesNote: 'The characters babble instead of speaking, each in a tone of its own.',
     tracks: { adventure: 'The adventure begins', forest: 'The dark forest', tension: 'Tension' },

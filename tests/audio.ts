@@ -13,6 +13,10 @@ export class FakeParam {
     this.calls.push(['ramp', value, at]);
     return this;
   }
+  exponentialRampToValueAtTime(value: number, at: number): this {
+    this.calls.push(['fade', value, at]);
+    return this;
+  }
   cancelScheduledValues(at: number): this {
     this.calls.push(['cancel', at]);
     return this;

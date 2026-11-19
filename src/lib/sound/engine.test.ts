@@ -9,6 +9,7 @@ import {
   fakeSoundBrowser,
 } from '../../../tests/audio';
 import type { Voice } from './babble';
+import { chimes, type Chime } from './chimes';
 import { musicFade, sound, SoundEngine } from './engine';
 
 function engine() {
@@ -64,7 +65,46 @@ describe('SoundEngine', () => {
     expect(sources).toHaveLength(2);
     expect(sources[0]?.buffer).toEqual({ length: '/coin.m4a'.length });
     expect(sources[0]?.starts).toEqual([0]);
-    expect(sources[0]?.outputs).toEqual([sound.unlock().effects]);
+    const level = sources[0]?.outputs[0] as FakeGain;
+    expect(level.gain.value).toBe(1);
+    expect(level.outputs).toEqual([sound.unlock().effects]);
+  });
+
+  it('plays an effect softer when asked', async () => {
+    const { sound, context } = engine();
+    await sound.effect('/clang.m4a', 0.4);
+    const level = context.all(FakeBufferSource)[0]?.outputs[0] as FakeGain;
+    expect(level.gain.value).toBe(0.4);
+  });
+
+  it('plays a chime: each note struck and dying away, at its pitch, a shade higher or lower', () => {
+    const { sound, context } = engine();
+    const chime: Chime = {
+      wave: 'triangle',
+      pitch: 400,
+      volume: 0.5,
+      notes: [
+        { at: 0, length: 0.1, step: 0 },
+        { at: 0.1, length: 0.3, step: 12 },
+      ],
+    };
+    sound.chime(chime, () => 0.5);
+    const tones = context.all(FakeOscillator);
+    expect(tones.map((tone) => tone.type)).toEqual(['triangle', 'triangle']);
+    expect(tones.map((tone) => tone.frequency.value)).toEqual([400, 800]);
+    expect(tones[1]?.starts[0]).toBeCloseTo(10.112);
+    expect(tones[1]?.stops[0]).toBeCloseTo(10.412);
+    const envelope = tones[0]?.outputs[0] as FakeGain;
+    expect(envelope.gain.calls.map(([kind, value]) => [kind, value])).toEqual([
+      ['set', 0],
+      ['ramp', 0.5],
+      ['fade', 0.0001],
+    ]);
+    expect(envelope.outputs).toEqual([sound.unlock().effects]);
+    sound.chime(chime, () => 1);
+    expect(context.all(FakeOscillator)[2]?.frequency.value).toBeCloseTo(400 * 2 ** (0.3 / 12));
+    sound.chime(chime);
+    expect(context.all(FakeOscillator)).toHaveLength(6);
   });
 
   it('fetches a file again next time when it failed', async () => {
@@ -80,6 +120,7 @@ describe('SoundEngine', () => {
     sound.setSettings({ music: true, effects: false });
     await sound.effect('/coin.m4a');
     sound.babble(tone, 3);
+    sound.chime(chimes.right);
     expect(fetch).not.toHaveBeenCalled();
     expect(context.all(FakeBufferSource)).toEqual([]);
     expect(context.all(FakeOscillator)).toEqual([]);

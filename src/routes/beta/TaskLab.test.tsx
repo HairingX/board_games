@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { fakeSoundBrowser, FakeBufferSource } from '../../../tests/audio';
+import { fakeSoundBrowser, FakeOscillator } from '../../../tests/audio';
 import { SoundEngine } from '../../lib/sound/engine';
 import { TaskLab } from './TaskLab';
 
@@ -19,7 +19,7 @@ function open(random: () => number) {
 const sum = () => screen.getByRole('img').getAttribute('aria-label');
 
 describe('TaskLab', () => {
-  it('asks a sum at level 1, and says the right answer is right, with a sound', async () => {
+  it('asks a sum at level 1, and says the right answer is right, with its chime', () => {
     const { context, onBack } = open(() => 0);
     expect(screen.getByRole('radio', { name: '1' })).toBeChecked();
     expect(screen.getByText('Niveau 1 · ca. 0.–1. klasse')).toBeInTheDocument();
@@ -29,15 +29,15 @@ describe('TaskLab', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Rigtigt!');
     expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-state', 'right');
     expect(screen.getByText('1 af 1 rigtige')).toBeInTheDocument();
-    await act(() => Promise.resolve());
-    expect(context.all(FakeBufferSource)).toHaveLength(1);
+    expect(context.all(FakeOscillator)).toHaveLength(3);
     click('Tilbage');
     expect(onBack).toHaveBeenCalledOnce();
   });
 
   it('shows a near answer as close and a far one as far, with the right answer', () => {
-    open(() => 0);
+    const { context } = open(() => 0);
     click('1');
+    expect(context.all(FakeOscillator).map((tone) => tone.type)).toEqual(['triangle', 'triangle']);
     expect(screen.getByRole('status')).toHaveTextContent('Tæt på. Det rigtige svar er 2.');
     expect(screen.getByRole('button', { name: '1' })).toHaveAttribute('data-state', 'close');
     expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-state', 'right');
@@ -52,6 +52,12 @@ describe('TaskLab', () => {
     click('12');
     expect(screen.getByRole('status')).toHaveTextContent('Det rigtige svar er 24.');
     expect(screen.getByRole('button', { name: '12' })).toHaveAttribute('data-state', 'far');
+    expect(
+      context
+        .all(FakeOscillator)
+        .slice(2)
+        .map((tone) => tone.type),
+    ).toEqual(['sine', 'sine']);
   });
 
   it('asks the order of operations at level 8', () => {

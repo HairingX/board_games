@@ -241,6 +241,11 @@ game builds on them, and everything must stay smooth on a phone.
   (`src/lib/sound/babble.ts`, voices in `voices.ts`) are syllables at a character's pitch and
   pace, made from tones in the phone: the owner heard both and chose tones over the pack's
   recorded voice clips. Sound starts only from a tap.
+  An answer is told by a chime of tones (`src/lib/sound/chimes.ts`), the same on every page and
+  a shade higher or lower each time: up and landing for right, up without landing for close,
+  and soft and low, falling a little, for far off, never a buzzer; right the loudest. The
+  owner left the choice to an analysis of the pack's sounds, whose fight sounds told what
+  happened but not how it went. A fight's own sounds play softer beneath the chime.
   Whether music and effects play is saved on the phone under `lyd`. An iPhone's silent switch
   silences it all. Music is not yet in the offline cache.
 

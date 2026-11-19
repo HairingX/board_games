@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import win from '../../../assets/ninja-adventure/Audio/Jingles/Success1.m4a';
 import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.m4a';
 import clang from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact.m4a';
-import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Jump.m4a';
+import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Bounce2.m4a';
 import slashSound from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
 import heart from '../../../assets/ninja-adventure/Ui/Receptacle/Heart.png';
 import { answerFight, firstFight, startFight, type Fight } from '../../games/regnespil/battle';
@@ -13,6 +13,7 @@ import { judge, makeTask, type Task } from '../../games/regnespil/tasks';
 import type { Value } from '../../games/regnespil/values';
 import { useMessages } from '../../i18n/I18n';
 import type { Random } from '../../lib/random';
+import { chimes } from '../../lib/sound/chimes';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
 import { GameHeader } from '../../ui/GameHeader';
@@ -21,6 +22,13 @@ import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { clearing, clearingSheets, puff, sweep, type Staging } from './clearing';
 import { labText } from './text';
 import './beta.css';
+
+/**
+ * How loud the fight's sounds play. They tell what happens, softer under the answer's chime,
+ * which tells how it went; the clang, loud in itself, softest. The bump is a low thud that
+ * falls, as a rising "boing" sounded like good news.
+ */
+const fightVolume = { stroke: 0.6, clang: 0.35, bump: 0.6 } as const;
 
 interface Props {
   onBack: () => void;
@@ -112,21 +120,23 @@ export function BattleLab({
   }, [chosen, fight, level, random]);
 
   function answer(choice: Value): void {
-    const next = answerFight(fight, judge(choice, task.answer, task.near));
+    const verdict = judge(choice, task.answer, task.near);
+    const next = answerFight(fight, verdict);
     setChosen(choice);
     setFight(next);
     setStaging(stage(next, now()));
+    sound.chime(chimes[verdict]);
     if (next.last === 'struck') {
-      void sound.effect(slashSound);
-      void sound.effect(hit);
+      void sound.effect(slashSound, fightVolume.stroke);
+      void sound.effect(hit, fightVolume.stroke);
       if (next.outcome === 'won') {
         void sound.effect(win);
         sound.babble(voices.hero, 5);
       }
     } else if (next.last === 'parried') {
-      void sound.effect(clang);
+      void sound.effect(clang, fightVolume.clang);
     } else {
-      void sound.effect(bump);
+      void sound.effect(bump, fightVolume.bump);
     }
   }
 

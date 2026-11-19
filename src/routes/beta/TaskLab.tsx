@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
-import coin from '../../../assets/ninja-adventure/Audio/Sounds/Bonus/Coin.m4a';
+import { useState } from 'react';
 import { LevelPicker } from '../../games/regnespil/LevelPicker';
 import { type Level } from '../../games/regnespil/levels';
 import { TaskAnswers } from '../../games/regnespil/TaskAnswers';
-import { makeTask, type Task } from '../../games/regnespil/tasks';
+import { judge, makeTask, type Task } from '../../games/regnespil/tasks';
 import { text } from '../../games/regnespil/text';
-import { same, type Value } from '../../games/regnespil/values';
+import type { Value } from '../../games/regnespil/values';
 import { useMessages } from '../../i18n/I18n';
 import type { Random } from '../../lib/random';
+import { chimes } from '../../lib/sound/chimes';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { GameHeader } from '../../ui/GameHeader';
 import { labText } from './text';
@@ -26,10 +26,6 @@ interface Props {
 export function TaskLab({ onBack, random = Math.random, sound = defaultSound }: Props) {
   const lab = useMessages(labText);
 
-  // The sounds are made ready when the page opens, so the first one plays at once.
-  useEffect(() => {
-    void sound.prepareEffects([coin]);
-  }, [sound]);
   const t = useMessages(text);
   const [level, setLevel] = useState<Level>(1);
   const [task, setTask] = useState<Task>(() => makeTask(1, random));
@@ -54,9 +50,9 @@ export function TaskLab({ onBack, random = Math.random, sound = defaultSound }: 
         chosen={chosen}
         onChoose={(choice) => {
           setChosen(choice);
-          const right = same(choice, task.answer);
-          setTally({ right: tally.right + Number(right), total: tally.total + 1 });
-          if (right) void sound.effect(coin);
+          const verdict = judge(choice, task.answer, task.near);
+          setTally({ right: tally.right + Number(verdict === 'right'), total: tally.total + 1 });
+          sound.chime(chimes[verdict]);
         }}
       />
       {chosen !== undefined && (
