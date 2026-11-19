@@ -45,6 +45,8 @@ export interface Act {
   reach?: number;
   /** How long an approach takes, in seconds. */
   lasts?: number;
+  /** Where a figure stepping into place comes from, in pixels from its place. */
+  from?: { x: number; y: number };
 }
 
 /** A figure, drawn from a sprite sheet of 16-pixel frames, a column for each way it faces. */
@@ -152,6 +154,12 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
   if (kind === 'return') {
     const left = Math.max(0, 1 - into / act.return.seconds);
     x += toward * Math.round((current?.reach ?? 0) * left);
+    walking(left > 0);
+  }
+  if (kind === 'step') {
+    const left = Math.max(0, 1 - into / act.step.seconds);
+    x += Math.round((current?.from?.x ?? 0) * left);
+    y += Math.round((current?.from?.y ?? 0) * left);
     walking(left > 0);
   }
   if (kind === 'approach') {

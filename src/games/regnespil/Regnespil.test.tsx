@@ -54,8 +54,18 @@ describe('Regnespil', () => {
     fireEvent.click(milles.getByRole('radio', { name: /Mellem/ }));
     expect(milles.getByRole('group', { name: 'Milles niveau' })).toHaveTextContent('Niveau 2');
     fireEvent.click(milles.getByRole('button', { name: 'Lettere' }));
+    fireEvent.click(milles.getByRole('radio', { name: 'Guldridder' }));
+    expect(
+      within(milles.getByRole('radiogroup', { name: 'Milles helt' })).getByRole('radio', {
+        name: 'Guldridder',
+      }),
+    ).toBeChecked();
     await waitFor(async () => {
-      expect(await saves.read('regnespil/mille')).toEqual({ level: 1, sword: 'jern' });
+      expect(await saves.read('regnespil/mille')).toEqual({
+        level: 1,
+        sword: 'jern',
+        hero: 'KnightGold',
+      });
     });
   });
 
@@ -125,7 +135,7 @@ describe('Regnespil', () => {
     render(
       <Regnespil players={[far, mille]} saveKey="regnespil" place={[fightPlace]} go={vi.fn()} />,
     );
-    expect(await screen.findByRole('img', { name: /Slimets liv: [34]/ })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Slimets liv: 6' })).toBeInTheDocument();
   });
 
   it('fights in the clearing, and goes back to the setup', async () => {

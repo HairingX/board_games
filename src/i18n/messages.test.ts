@@ -87,6 +87,7 @@ describe('the messages that are made from values', () => {
     expect(r.hearts(4.5, 5)).toBe('The hero’s hearts: 4.5 of 5');
     expect(r.lives(1)).toBe('The slime’s lives: 1');
     expect(r.combo(2, 3)).toBe('Right in a row: 2 of 3');
+    expect(r.heroOf('Jonas')).toBe('Jonas’s hero');
     expect(r.stakeWrong(1)).toBe('Wrong: 1 heart less');
     expect(regnespilText.da.stakeWrong(0.5)).toBe('Forkert: 0,5 hjerte mindre');
     expect(common.en.turn('Jonas')).toBe('It’s Jonas’s turn');

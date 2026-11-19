@@ -29,10 +29,11 @@ afterEach(() => {
 
 /** A fight with the sums made the same every time: at level 1 "1 + 1", at level 7 "12 · 2". */
 function open(
-  settings: readonly PlayerSettings[] = [{ level: 1, sword: 'jern' }],
+  chosen: readonly Omit<PlayerSettings, 'hero'>[] = [{ level: 1, sword: 'jern' }],
   players: readonly Profile[] = [mille],
   saved: SavedFight | null = null,
 ) {
+  const settings = chosen.map((one): PlayerSettings => ({ ...one, hero: 'Knight' }));
   const fake = fakeSoundBrowser();
   const onBack = vi.fn();
   const onSave = vi.fn<(fight: SavedFight) => void>();
@@ -192,7 +193,7 @@ describe('Fight', () => {
       ],
       [far, mille],
     );
-    expect(lives(3)).toBeInTheDocument();
+    expect(lives(5)).toBeInTheDocument();
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '12 gange 2' })).toBeInTheDocument();
     await choose('12');
@@ -206,6 +207,22 @@ describe('Fight', () => {
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
   });
 
+  it('wins together, the monster as tough as both swords', async () => {
+    open(
+      [
+        { level: 1, sword: 'træ' },
+        { level: 1, sword: 'træ' },
+      ],
+      [mille, far],
+    );
+    expect(lives(4)).toBeInTheDocument();
+    for (let turn = 0; turn < 4; turn++) {
+      await choose('2');
+      await pause(right);
+    }
+    expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
+  });
+
   it('saves the fight at once after every answer, with the next turn and its sum', async () => {
     const { onSave } = open(
       [
@@ -216,7 +233,7 @@ describe('Fight', () => {
     );
     click('12');
     const after = onSave.mock.lastCall?.[0];
-    expect(after?.fight).toMatchObject({ health: 8, lives: 3, last: 'bumped' });
+    expect(after?.fight).toMatchObject({ health: 8, lives: 5, last: 'bumped' });
     expect(after?.activeId).toBe('mille');
     expect(after?.task.sum).toEqual([1, '+', 1]);
     expect(after?.recent).toEqual(['[12,"×",2]']);
@@ -379,7 +396,7 @@ describe('Fight', () => {
     const { container } = render(
       <Fight
         players={[mille]}
-        settings={[{ level: 1, sword: 'træ' }]}
+        settings={[{ level: 1, sword: 'træ', hero: 'Samurai' }]}
         saved={null}
         onSave={() => undefined}
         onBack={() => undefined}

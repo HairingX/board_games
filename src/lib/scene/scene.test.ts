@@ -134,6 +134,14 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('steps into place from where it was', () => {
+    const stepping = { acts: [{ kind: 'step', at, from: { x: -20, y: 10 } }] } as const;
+    expect(one(stepping, at + eps)).toMatchObject({ x: 0, y: 30 });
+    expect(one(stepping, at + act.step.seconds / 2)).toMatchObject({ x: 10, y: 25 });
+    expect(one(stepping, at + act.step.seconds + eps)).toMatchObject({ x: 20, cut: { y: 0 } });
+    expect(one({ acts: [{ kind: 'step', at }] }, at + eps)?.x).toBe(20);
+  });
+
   it('approaches slowly over its own time, and waits there', () => {
     const near = { acts: [{ kind: 'approach', at, reach: 40, lasts: 20 }] } as const;
     expect(one(near, at + 10)?.x).toBe(40);

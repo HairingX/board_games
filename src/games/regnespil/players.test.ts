@@ -1,16 +1,26 @@
 import { describe, expect, it } from 'vitest';
 import { far, mille } from '../../../tests/family';
+import { heroes, suggestHero } from './heroes';
 import { reviveSettings, suggest } from './players';
 
 const today = new Date(2026, 10, 19);
 
 describe('suggest', () => {
   it('starts a grown-up at level 13 with the flame sword', () => {
-    expect(suggest(far, today)).toEqual({ level: 13, sword: 'flamme' });
+    expect(suggest(far, today)).toMatchObject({ level: 13, sword: 'flamme' });
   });
 
   it('starts a child without a birthday at level 1 with the wooden sword', () => {
-    expect(suggest(mille, today)).toEqual({ level: 1, sword: 'træ' });
+    expect(suggest(mille, today)).toMatchObject({ level: 1, sword: 'træ' });
+  });
+
+  it('suggests the hero the profile’s face is, or one by the player', () => {
+    const knight = { ...mille, picture: { kind: 'face', face: 'KnightGold' } } as const;
+    expect(suggest(knight, today).hero).toBe('KnightGold');
+    const cat = { ...mille, picture: { kind: 'face', face: 'Cat' } } as const;
+    expect(suggest(cat, today).hero).toBe(suggestHero(mille));
+    expect(heroes).toContain(suggestHero(mille));
+    expect(suggestHero(far)).not.toBe(suggestHero(mille));
   });
 
   it.each([
@@ -21,19 +31,31 @@ describe('suggest', () => {
     ['2013-04-23', 11, 'jern'],
     ['2010-01-01', 13, 'jern'],
   ] as const)('starts a child born %s at level %i with the %s sword', (born, level, sword) => {
-    expect(suggest({ ...mille, born }, today)).toEqual({ level, sword });
+    expect(suggest({ ...mille, born }, today)).toMatchObject({ level, sword });
   });
 });
 
 describe('reviveSettings', () => {
-  it('keeps a level and a sword the game has', () => {
-    expect(reviveSettings({ level: 7, sword: 'jern' })).toEqual({ level: 7, sword: 'jern' });
+  it('keeps a level, a sword and a hero the game has', () => {
+    const saved = { level: 7, sword: 'jern', hero: 'Samurai' };
+    expect(reviveSettings(saved, mille)).toEqual(saved);
+  });
+
+  it('gives settings saved before heroes the hero the profile suggests', () => {
+    expect(reviveSettings({ level: 7, sword: 'jern' }, mille)).toEqual({
+      level: 7,
+      sword: 'jern',
+      hero: suggestHero(mille),
+    });
+    expect(reviveSettings({ level: 7, sword: 'jern', hero: 'Boy' }, mille)?.hero).toBe(
+      suggestHero(mille),
+    );
   });
 
   it.each([undefined, null, 'x', { level: 16, sword: 'jern' }, { level: 3, sword: 'guld' }])(
     'leaves out %j',
     (saved) => {
-      expect(reviveSettings(saved)).toBeUndefined();
+      expect(reviveSettings(saved, mille)).toBeUndefined();
     },
   );
 });

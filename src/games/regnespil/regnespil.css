@@ -105,6 +105,51 @@
   content: '✓';
 }
 
+/* The heroes in a row to scroll sideways, each a portrait twice its own size. */
+.hero-picker {
+  display: flex;
+  gap: var(--space-2);
+  padding-block: var(--space-1);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--space-2);
+}
+
+.hero-picker button {
+  position: relative;
+  flex: none;
+  padding: var(--space-1);
+  line-height: 0;
+  background: var(--bg);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform var(--duration-press) var(--ease-spring);
+}
+
+.hero-picker button:active {
+  transform: scale(var(--press-scale));
+}
+
+.hero-picker button[aria-checked='true'] {
+  border-color: var(--game-chosen);
+}
+
+.hero-picker button[aria-checked='true']::after {
+  position: absolute;
+  top: 0;
+  right: var(--space-1);
+  line-height: 1.4;
+  color: var(--game-chosen);
+  content: '✓';
+}
+
+.hero-face {
+  zoom: 2;
+  image-rendering: pixelated;
+}
+
 /* Pixel art at a whole-number scale, three times its own size. */
 .sword-picture {
   zoom: 3;
@@ -443,15 +488,14 @@
   }
 }
 
-/* Whose turn it is: a plate with the player's picture over their hero's head. */
+/* Whose turn it is: the player's name, small, over their hero's head. */
 .rs-nameplate {
   position: absolute;
-  display: flex;
-  gap: var(--space-1);
-  align-items: center;
   margin: 0;
-  padding: 2px var(--space-3) 2px 2px;
+  padding: 0 var(--space-2);
+  font-size: 0.8rem;
   font-weight: 700;
+  line-height: 1.5;
   white-space: nowrap;
   background: var(--pixel-ink);
   border: 2px solid var(--game-accent);

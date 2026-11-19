@@ -158,30 +158,29 @@ game builds on them, and everything must stay smooth on a phone.
   strikes back (`strikeBackEvery`), a rhythm a child can learn: it shows "!" and growls the turn
   before, the tab turns blue, "Forsvar" with the pack's shield, and a right answer dodges the
   blow, the hero jumping clear in a flash of the pack's blue shield, while any other lets it
-  land, costing what far off does. The slime takes 2, 3 or 4
-  strokes, by the hardest sword at the table. Halfway, down to half its lives (`rageAt`), the
+  land, costing what far off does. The slime takes the strokes of every player's sword added
+  together (2, 3 or 4 each). Halfway, down to half its lives (`rageAt`), the
   monster grows enraged, as the owner asked for a change midway: a cross face (the pack's
   `Slime3`, in the scene and the portrait), an angry sign and a roar, and it strikes back at
   once and then every other turn. No death: out of hearts, the hero rests and
-  tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as a name
-  plate with the player's picture over the hero, said in full to screen readers ("Nu er det
-  Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
+  tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as their
+  name, small, over their hero, said in full to screen readers ("Nu er det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
   has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins
-  springing out in arcs and lying a while (`coinsLie`), and the hero cheering with a heart
-  over his head, and then happy music. A fight is saved after every answer
+  springing out in arcs and lying a while (`coinsLie`), and the heroes cheering, a heart over
+  the head of the one who struck, and then happy music. A fight is saved after every answer
   (`fightSave.ts`, one save per group of players, whatever order they were chosen in): the
   hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
   or crashed app goes on where it was, with the same sum, not a new one to try instead.
-- Agreed next, after the sounds: the party. Each player chooses a hero, suggested from the
-  face on their profile, among figures the story will not use (not `Boy`, `Princess`,
+- The party, as agreed: each player chooses a hero on the setup (`HeroPicker.tsx`), kept with
+  their level and sword and suggested the first time from the face on their profile, or else
+  by their id (`heroes.ts`), among figures the story will not use (not `Boy`, `Princess`,
   `Cavegirl`, `Villager3`, `EggBoy`, `EggGirl`, `Woman`, `Child`, `Hunter`, `MaskRacoon`,
   `Master`, `OldMan3`, `OldWoman`, `NinjaMageOrange` or `NinjaMageBlack`, all named in
-  `docs/regnespil-story.md`). The heroes stand together on a full-width, taller stage; whose
-  turn it is shows in the scene, the hero stepping forward with the player's name small over
-  their head, and the hearts are part of the scene, not lines of text around it. The team
-  shares its hearts, each player's sword still deciding what their own mistakes cost, and a
-  monster has the lives of every player's sword added together, so each gets about as many
-  strokes however many play.
+  `docs/regnespil-story.md`). The heroes stand together in the scene: whose turn it is in
+  front, facing the monster, the others waiting behind (`benchAt`), and as the turn passes they
+  change places, stepping. The team shares its hearts, each player's sword still deciding what
+  their own mistakes cost, and a monster has the lives of every player's sword added together
+  (`monsterLives`), so each gets about as many strokes however many play.
 - A livelier fight, as agreed: the lives a stroke took float up over the monster ("−1"), the
   scene shakes a little when a hero is hurt or a power stroke lands, and right answers in a
   row light the player's weapon on a plate in the scene's corner (`powerAfter`, three): the
@@ -215,8 +214,8 @@ game builds on them, and everything must stay smooth on a phone.
   information needed while playing goes there, as the owner said, so a child never has to
   look up; no place's name either. The stage takes the whole width, smaller only on a low
   phone, so the answers never fall below the screen; the hearts, the monster's life under it
-  (in pieces that shake and break off as it is struck) and, with more than one player, a name
-  plate with the player's picture over the active hero lie in the scene. Below, the battle
+  (in pieces that shake and break off as it is struck) and, with more than one player, the
+  name of the player whose turn it is over their hero lie in the scene. Below, the battle
   panel to the bottom of the screen: a tab saying what the player does ("Angreb", with their
   own weapon), the stakes as pictures (✓ the weapon hitting the monster, ✗ the hearts it
   costs), the sum in the middle, and the answers low, where the thumbs are, as the pack's

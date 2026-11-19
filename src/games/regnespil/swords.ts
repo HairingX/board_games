@@ -29,7 +29,10 @@ export function isSword(value: unknown): value is Sword {
   return swords.includes(value as Sword);
 }
 
-/** How many strokes a monster takes when these players fight it together: the hardest sword's. */
+/**
+ * How many strokes a monster takes when these players fight it together: every player's sword's
+ * added together, so each gets about as many strokes however many play, as the owner decided.
+ */
 export function monsterLives(chosen: readonly Sword[]): number {
-  return Math.max(...chosen.map((sword) => swordRules[sword].lives));
+  return chosen.reduce((sum, sword) => sum + swordRules[sword].lives, 0);
 }

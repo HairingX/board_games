@@ -1,6 +1,5 @@
 import { useEffect, useEffectEvent, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Profile } from '../../family/family';
-import { Avatar } from '../../family/Avatar';
 import { formatNumber } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
 import { common } from '../../ui/text';
@@ -22,6 +21,7 @@ import {
 } from './battle';
 import { faces, hud, swordPictures, topFrames } from './art';
 import {
+  benchAt,
   clearing,
   clearingSheets,
   coinDrop,
@@ -32,6 +32,7 @@ import {
   slimeAt,
   smash,
   sweep,
+  type Party,
   type Staging,
 } from './clearing';
 import type { PlayerSettings } from './players';
@@ -105,6 +106,23 @@ function walkFor(
     : undefined;
 }
 
+/**
+ * The heroes changing places as the turn passes: the one whose turn it is now steps forward
+ * from their place behind, and the one whose turn it was steps back into theirs.
+ */
+function changePlaces(ids: readonly string[], was: string, now: string, at: number): Staging {
+  const behind = (front: string) => ids.filter((id) => id !== front);
+  const places = benchAt(ids.length - 1);
+  const from = places[behind(was).indexOf(now)] as { x: number; y: number };
+  const to = places[behind(now).indexOf(was)] as { x: number; y: number };
+  return {
+    hero: { acts: [{ kind: 'step', at, from: { x: from.x - heroAt.x, y: from.y - heroAt.y } }] },
+    bench: {
+      [was]: { acts: [{ kind: 'step', at, from: { x: heroAt.x - to.x, y: heroAt.y - to.y } }] },
+    },
+  };
+}
+
 /** The slime's walk as an act. */
 const approachOf = (walk: Walk) =>
   ({ kind: 'approach', at: walk.at, reach: reach.slime, lasts: walk.lasts }) as const;
@@ -162,9 +180,16 @@ function shownWith(recent: readonly string[], task: Task): readonly string[] {
  * what shows over their heads, and the effects. Attacking, the hero runs at the slime, and as
  * they reach it the answer shows: a stroke, a parry, or the slime bouncing them over.
  * Defending, the slime runs at the hero, and as it reaches them the hero jumps clear or is
- * knocked over. A slime that had `walked` toward the hero hurries home first.
+ * knocked over. A slime that had `walked` toward the hero hurries home first. At a victory
+ * the heroes waiting behind, by these ids, cheer too.
  */
-function stage(fight: FightState, before: FightState, at: number, walked = 0): Staging {
+function stage(
+  fight: FightState,
+  before: FightState,
+  at: number,
+  walked: number,
+  others: readonly string[],
+): Staging {
   const { attack, knocked } = motionTokens.act;
   const hurry = walked > 0 ? [{ kind: 'return', at, reach: walked } as const] : [];
   const shown = at + reveal;
@@ -211,12 +236,11 @@ function stage(fight: FightState, before: FightState, at: number, walked = 0): S
     };
   }
   if (fight.outcome === 'won') {
+    const cheers = victory.cheers.map((cheer) => ({ kind: 'cheer', at: shown + cheer }) as const);
     return {
+      bench: Object.fromEntries(others.map((id) => [id, { acts: cheers }])),
       hero: {
-        acts: [
-          ...strike,
-          ...victory.cheers.map((cheer) => ({ kind: 'cheer', at: shown + cheer }) as const),
-        ],
+        acts: [...strike, ...cheers],
         sign: { sheet: 'heart', at: shown + victory.cheers[0] },
       },
       slime: { acts: [...hurry, { kind: 'vanish', at: shown + victory.vanish }] },
@@ -381,10 +405,19 @@ export function Fight({
         setChosen(undefined);
         setRevealed(false);
         setWalk(walkFor(paces, save, now()));
-        // The monster announces its blow: a sign over its head and a growl.
+        const at = now();
+        const ids = players.map((one) => one.id);
+        // The heroes change places, and the monster announces its blow: a sign over its head
+        // and a growl.
+        const places =
+          save.activeId === view.activeId
+            ? {}
+            : changePlaces(ids, view.activeId, save.activeId, at);
         if (save.fight.threat) {
-          setStaging({ slime: { sign: { sheet: 'alert', at: now() } } });
+          setStaging({ ...places, slime: { sign: { sheet: 'alert', at } } });
           sound.babble(voices.slime, 2);
+        } else if (save.activeId !== view.activeId) {
+          setStaging(places);
         }
       },
       (isStroke(fight.last) || fight.last === 'dodged' ? right : wrong) * 1000,
@@ -392,7 +425,7 @@ export function Fight({
     return () => {
       clearTimeout(timer);
     };
-  }, [chosen, revealed, fight, save, now, sound, paces]);
+  }, [chosen, revealed, fight, save, now, sound, paces, players, view.activeId]);
 
   // The slime walks up to the hero while the sum is thought over; once there, it roars and
   // steps back, or, with a sword whose monsters strike in time, strikes.
@@ -488,7 +521,8 @@ export function Fight({
     const at = now();
     // The slime, if it was on its way, hurries home as the hero runs at it.
     const walked = walkedAt(walk, at);
-    setStaging(stage(next, fight, at, walked));
+    const others = players.filter((one) => one.id !== view.activeId).map((one) => one.id);
+    setStaging(stage(next, fight, at, walked, others));
     if (walk) {
       setPaces({ ...paces, [view.activeId]: withTime(paces[view.activeId], at - walk.asked) });
     }
@@ -542,6 +576,12 @@ export function Fight({
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
   const { charge } = motionTokens.act;
 
+  const party: Party = {
+    front: own(active).hero,
+    bench: players.flatMap((one, index) =>
+      index === active ? [] : [{ id: one.id, hero: own(index).hero }],
+    ),
+  };
   const scene = clearing(
     walk
       ? {
@@ -549,6 +589,7 @@ export function Fight({
           slime: { ...staging.slime, acts: [...(staging.slime?.acts ?? []), approachOf(walk)] },
         }
       : staging,
+    party,
     shown.enraged,
   );
 
@@ -634,7 +675,6 @@ export function Fight({
           role="status"
           style={{ left: px(heroAt.x + 8), top: px(heroAt.y - 1) }}
         >
-          <Avatar profile={player} size="tiny" />
           <span aria-hidden="true">{player.name}</span>
           <span className="visually-hidden">{c.turn(player.name)}</span>
         </p>

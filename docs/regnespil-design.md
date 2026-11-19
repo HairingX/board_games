@@ -260,7 +260,7 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
   panel below, the answers low for the thumbs. On a low phone the scene gets smaller.
 - **Idea (owner).** On the road between fights, the top bar can show how far the heroes have
   come and how much is left of the stretch, for the satisfaction of progress.
-- **Decided (owner).** The party: each player chooses a hero among figures the story will not
+- **Decided (owner), built.** The party: each player chooses a hero among figures the story will not
   use; the heroes stand together; the team shares its hearts.
 - **Decided and built.** A livelier fight: a "−1" over the monster, a slight shake when a hero
   is hit, a power stroke at three right in a row, which only an answer far off breaks.

@@ -13,6 +13,7 @@ import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetB
 import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.png';
 import type { Act, Effect, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
+import { heroSheets, type Hero } from './heroes';
 
 /**
  * The pictures of a fight in the clearing: the forest's, the slime's, calm and enraged (the
@@ -20,6 +21,7 @@ import { forest, forestSheets } from './forest';
  */
 export const clearingSheets = {
   ...forestSheets,
+  ...heroSheets,
   slime,
   slimeRage,
   angry,
@@ -37,9 +39,32 @@ export const clearingSheets = {
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
 
-/** Where the hero and the slime stand, facing each other, in the forest's clearing. */
+/**
+ * Where the hero whose turn it is and the slime stand, facing each other, in the forest's
+ * clearing.
+ */
 export const heroAt = { x: 44, y: 76 };
 export const slimeAt = { x: 100, y: 76 };
+
+/**
+ * Where the other heroes wait behind the one whose turn it is, one, two or three of them, in
+ * the order of the players.
+ */
+export function benchAt(count: number): readonly { x: number; y: number }[] {
+  const behind = heroAt.x - 24;
+  if (count === 1) return [{ x: behind, y: heroAt.y - 6 }];
+  if (count === 2) {
+    return [
+      { x: behind + 2, y: heroAt.y - 16 },
+      { x: behind - 2, y: heroAt.y + 12 },
+    ];
+  }
+  return [
+    { x: behind + 4, y: heroAt.y - 22 },
+    { x: behind - 10, y: heroAt.y - 4 },
+    { x: behind + 4, y: heroAt.y + 16 },
+  ];
+}
 
 /**
  * How far each runs to reach the other, in pixels: the slime to just in front of the hero,
@@ -107,20 +132,47 @@ export const coinDrop = (at: number, aside: number): Effect => ({
   arc: { dx: aside, height: 18 },
 });
 
-/** What happens on the stage now: each one's act and sign, and effects. */
+/** What one figure does: its acts, and a sign over its head. */
+export interface Doing {
+  acts?: readonly Act[];
+  sign?: { sheet: Sign; at: number };
+}
+
+/**
+ * What happens on the stage now: the hero whose turn it is, the slime, the other heroes by
+ * their player's id, and effects.
+ */
 export interface Staging {
-  hero?: { acts?: readonly Act[]; sign?: { sheet: Sign; at: number } };
-  slime?: { acts?: readonly Act[]; sign?: { sheet: Sign; at: number } };
+  hero?: Doing;
+  slime?: Doing;
+  bench?: Readonly<Record<string, Doing>>;
   effects?: readonly Effect[];
 }
 
-/** The clearing with the hero and a slime facing each other, as staged; the slime enraged. */
-export function clearing(staging: Staging, enraged = false): Scene {
+/** The heroes in the fight: whose turn it is in front, and the others, by their player's id. */
+export interface Party {
+  front: Hero;
+  bench: readonly { id: string; hero: Hero }[];
+}
+
+/**
+ * The clearing with the heroes and a slime facing each other, as staged: the hero whose turn
+ * it is in front, the others behind; the slime enraged or not.
+ */
+export function clearing(staging: Staging, party: Party, enraged = false): Scene {
   const slimeSheet = enraged ? 'slimeRage' : 'slime';
+  const places = benchAt(party.bench.length);
   return {
     ...forest,
     figures: [
-      { sheet: 'hero', ...heroAt, facing: 'right', doing: 'standing', ...staging.hero },
+      ...party.bench.map((one, index) => ({
+        sheet: one.hero,
+        ...(places[index] as { x: number; y: number }),
+        facing: 'right' as const,
+        doing: 'standing' as const,
+        ...staging.bench?.[one.id],
+      })),
+      { sheet: party.front, ...heroAt, facing: 'right', doing: 'standing', ...staging.hero },
       { sheet: slimeSheet, ...slimeAt, facing: 'left', doing: 'bouncing', ...staging.slime },
     ],
     effects: staging.effects ?? [],

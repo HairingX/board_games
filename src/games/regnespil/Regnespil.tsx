@@ -27,7 +27,9 @@ export const listeningPlace = 'lyde';
 export default function Regnespil({ players, saveKey, place, go }: GameProps) {
   const [settings, change] = useSavedEach(
     players.map((player) => playerSaveKey(saveKey, player)),
-    (saved, index) => reviveSettings(saved) ?? suggest(players[index] as Profile, new Date()),
+    (saved, index) =>
+      reviveSettings(saved, players[index] as Profile) ??
+      suggest(players[index] as Profile, new Date()),
   );
   const [levels, setLevels] = useSaved(soundSaveKey, reviveSoundSettings);
   const [savedFight, saveFight] = useSaved(fightSaveKey(saveKey, players), reviveFight);

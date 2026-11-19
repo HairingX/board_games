@@ -1,5 +1,6 @@
 import { formatNumber, genitive, plural } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
+import type { Hero } from './heroes';
 import type { Sword } from './swords';
 import type { Operator } from './tasks';
 
@@ -48,6 +49,25 @@ const da = {
   swordOf: (name: string) => `${genitive('da', name)} sværd`,
   /** The swords by how hard a fight they make. */
   swords: { træ: 'Let', jern: 'Mellem', flamme: 'Svær' } satisfies Record<Sword, string>,
+  heroOf: (name: string) => `${genitive('da', name)} helt`,
+  heroes: {
+    Knight: 'Ridder',
+    KnightGold: 'Guldridder',
+    Samurai: 'Samurai',
+    NinjaBlue2: 'Blå ninja',
+    NinjaRed: 'Rød ninja',
+    NinjaGreen: 'Grøn ninja',
+    NinjaYellow: 'Gul ninja',
+    NinjaEskimo: 'Sneninja',
+    SorcererOrange: 'Troldmand',
+    Spirit: 'Ånd',
+    Cavegirl2: 'Hulepige',
+    Eskimo: 'Polarfarer',
+    LionBoy: 'Løvedreng',
+    MaskFrog: 'Frømaske',
+    Monkey: 'Abe',
+    Villager4: 'Landsbybarn',
+  } satisfies Record<Hero, string>,
   setupTitle: 'Klar til eventyret',
   setupIntro:
     'Hver spiller har sit eget niveau til regnestykkerne og sit eget sværd til kampen: jo sværere sværd, jo stærkere monstre.',
@@ -116,6 +136,25 @@ export const text: Translations<typeof da> = {
     levelOf: (name) => `${genitive('en', name)} level`,
     swordOf: (name) => `${genitive('en', name)} sword`,
     swords: { træ: 'Easy', jern: 'Medium', flamme: 'Hard' },
+    heroOf: (name) => `${genitive('en', name)} hero`,
+    heroes: {
+      Knight: 'Knight',
+      KnightGold: 'Gold knight',
+      Samurai: 'Samurai',
+      NinjaBlue2: 'Blue ninja',
+      NinjaRed: 'Red ninja',
+      NinjaGreen: 'Green ninja',
+      NinjaYellow: 'Yellow ninja',
+      NinjaEskimo: 'Snow ninja',
+      SorcererOrange: 'Sorcerer',
+      Spirit: 'Spirit',
+      Cavegirl2: 'Cave girl',
+      Eskimo: 'Polar traveller',
+      LionBoy: 'Lion boy',
+      MaskFrog: 'Frog mask',
+      Monkey: 'Monkey',
+      Villager4: 'Village child',
+    },
     setupTitle: 'Ready for the adventure',
     setupIntro:
       'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',

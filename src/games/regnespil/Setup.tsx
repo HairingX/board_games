@@ -3,6 +3,7 @@ import { Avatar } from '../../family/Avatar';
 import type { Profile } from '../../family/family';
 import { useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { HeroPicker } from './HeroPicker';
 import { LevelStepper } from './LevelStepper';
 import type { PlayerSettings } from './players';
 import { SwordPicker } from './SwordPicker';
@@ -52,6 +53,13 @@ export function Setup({ players, settings, onChange, onStart, onListen, aside }:
                 sword={own.sword}
                 onChange={(sword) => {
                   onChange(index, { ...own, sword });
+                }}
+              />
+              <HeroPicker
+                name={player.name}
+                hero={own.hero}
+                onChange={(hero) => {
+                  onChange(index, { ...own, hero });
                 }}
               />
             </li>

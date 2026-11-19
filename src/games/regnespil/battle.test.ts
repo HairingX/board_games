@@ -17,20 +17,20 @@ const after = (fight: Fight, verdicts: readonly Verdict[], sword = 'jern' as con
   verdicts.reduce((now, verdict) => answerFight(now, verdict, sword), fight);
 
 describe('a fight', () => {
-  it('starts with five hearts, and the monster as tough as the hardest sword', () => {
+  it('starts with five hearts, and the monster as tough as every sword together', () => {
     expect(startFight(monsterLives(['træ', 'jern']))).toEqual({
       health: fullHealth,
-      lives: 3,
+      lives: 5,
       outcome: 'fighting',
       last: undefined,
       round: 0,
       threat: false,
-      rageAt: 1,
+      rageAt: 2,
       enraged: false,
       combo: 0,
     });
     expect(monsterLives(['træ'])).toBe(2);
-    expect(monsterLives(['flamme', 'træ'])).toBe(4);
+    expect(monsterLives(['flamme', 'træ'])).toBe(6);
   });
 
   it('strikes the monster on a right answer, and is won when it has no lives left', () => {

@@ -61,6 +61,8 @@ export const motionTokens = {
      * monster comes at the hero while a sum is thought over; this long if the act says not.
      */
     approach: { seconds: 15 },
+    /** Stepping into place from where the act says it was, as a hero whose turn it is now. */
+    step: { seconds: 0.4 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },
