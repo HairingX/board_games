@@ -110,9 +110,13 @@ export function gameHref(id: string): string {
   return routeHref({ name: 'game', id, players: null, place: [] });
 }
 
-/** Goes to the screen, as a new step the back gesture can undo. */
-export function navigate(route: Destination): void {
-  window.location.hash = routeHref(route);
+/**
+ * Goes to the screen, as a new step the back gesture can undo; or in place of the screen shown,
+ * for a screen that only passes on, which going back must not land on again.
+ */
+export function navigate(route: Destination, { replace = false } = {}): void {
+  if (replace) window.location.replace(routeHref(route));
+  else window.location.hash = routeHref(route);
 }
 
 /** The screen the location's hash names, kept up to date; each new screen starts at the top. */

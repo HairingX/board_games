@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import { useMessages } from '../i18n/I18n';
-import { useGameIcon } from './GameIcon';
+import { Avatar } from '../family/Avatar';
+import { formatList } from '../i18n/format';
+import { useLocale, useMessages } from '../i18n/I18n';
+import { useGameFrame } from './GameFrame';
 import { common } from './text';
 import './GameHeader.css';
 
@@ -14,11 +16,13 @@ interface Props {
 
 /**
  * The bar at the top of a screen. On a game's screens it shows the game's icon beside the title,
- * so it is always clear which game is open, even when the phone is picked up again later.
+ * and the players' pictures, small and overlapping, so it is always clear which game is open
+ * and whose it is, even when the phone is picked up again later.
  */
 export function GameHeader({ title, onBack, aside }: Props) {
   const t = useMessages(common);
-  const icon = useGameIcon();
+  const locale = useLocale();
+  const frame = useGameFrame();
   return (
     <header className="game-header">
       {onBack ? (
@@ -31,12 +35,28 @@ export function GameHeader({ title, onBack, aside }: Props) {
         </a>
       )}
       <h1 className="game-header-title">
-        {icon !== null && (
+        {frame && (
           <span className="game-header-icon" aria-hidden="true">
-            {icon}
+            {frame.icon}
           </span>
         )}
         {title}
+        {frame && frame.players.length > 0 && (
+          <span
+            className="game-header-players"
+            role="img"
+            aria-label={t.players(
+              formatList(
+                locale,
+                frame.players.map((player) => player.name),
+              ),
+            )}
+          >
+            {frame.players.map((player) => (
+              <Avatar key={player.id} profile={player} size="tiny" />
+            ))}
+          </span>
+        )}
       </h1>
       <span className="game-header-aside">{aside}</span>
     </header>

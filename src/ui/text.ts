@@ -9,6 +9,7 @@ const da = {
   cancel: 'Annullér',
   start: 'Start',
   language: 'Sprog',
+  players: (names: string) => `Spillere: ${names}`,
   /** Said of a score or progress: "3 af 10". */
   countOf: (count: number, total: number) =>
     `${formatNumber('da', count)} af ${formatNumber('da', total)}`,
@@ -23,6 +24,7 @@ export const common: Translations<typeof da> = {
     cancel: 'Cancel',
     start: 'Start',
     language: 'Language',
+    players: (names) => `Players: ${names}`,
     countOf: (count, total) => `${formatNumber('en', count)} of ${formatNumber('en', total)}`,
   },
 };

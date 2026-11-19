@@ -4,7 +4,6 @@ import { useLocale, useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
 import { common } from '../../ui/text';
 import { about } from './about';
-import { Emblem } from './Emblem';
 import { cards, categories, type CategoryId } from './cards';
 import {
   choose,
@@ -53,12 +52,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
     <>
       <GameHeader title={title} />
 
-      <section className="pk-hero">
-        <span className="pk-hero-icon">
-          <Emblem size={36} />
-        </span>
-        <p>{t.intro}</p>
-      </section>
+      <p className="pk-intro">{t.intro}</p>
 
       <section className="pk-panel" aria-label={t.progress}>
         <div className="pk-progress-text">

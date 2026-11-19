@@ -42,12 +42,12 @@ export function SoundLab({
     if (settings) sound.setSettings(settings);
   }, [settings, sound]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    void sound.prepareMusic(Object.values(tracks));
+    return () => {
       sound.stopMusic();
-    },
-    [sound],
-  );
+    };
+  }, [sound]);
 
   if (!settings) return null;
 

@@ -118,6 +118,7 @@ export function fakeSoundBrowser() {
   const fetch = vi.fn((url: string) =>
     Promise.resolve({
       arrayBuffer: () => Promise.resolve(new ArrayBuffer(url.length)),
+      blob: () => Promise.resolve(new Blob([url])),
     } as Response),
   );
   const browser: SoundBrowser = {
@@ -133,6 +134,7 @@ export function fakeSoundBrowser() {
       return audio as unknown as HTMLAudioElement;
     },
     fetch,
+    objectUrl: (file) => `blob:${String(file.size)}`,
     later: (run) => {
       waiting.push(run);
     },

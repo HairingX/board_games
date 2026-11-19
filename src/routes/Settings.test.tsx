@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { far, mille } from '../../tests/family';
 import type { Family } from '../family/family';
 import { I18nProvider } from '../i18n/I18n';
+import type { OfflineStatus } from '../lib/offline';
 import type { SettingsPage } from '../lib/router';
 import { Settings } from './Settings';
 
@@ -12,17 +13,22 @@ const click = (name: string | RegExp) => {
 };
 
 /** The settings where the app puts them, each page as the address would name it. */
-function InApp(props: { family: Family; onChange: (family: Family) => void; onBack: () => void }) {
+function InApp(props: {
+  family: Family;
+  onChange: (family: Family) => void;
+  onBack: () => void;
+  offline: OfflineStatus;
+}) {
   const [page, setPage] = useState<SettingsPage>({ name: 'main' });
   return <Settings {...props} current={far} page={page} go={setPage} />;
 }
 
-async function open(family: Family) {
+async function open(family: Family, offline: OfflineStatus = 'ready') {
   const onChange = vi.fn<(family: Family) => void>();
   const onBack = vi.fn();
   render(
     <I18nProvider>
-      <InApp family={family} onChange={onChange} onBack={onBack} />
+      <InApp family={family} onChange={onChange} onBack={onBack} offline={offline} />
     </I18nProvider>,
   );
   await screen.findByRole('heading', { name: 'Indstillinger' });
@@ -71,5 +77,14 @@ describe('Settings', () => {
     expect(screen.getByRole('switch', { name: /^Beta/ })).toBeChecked();
     fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
     expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
+  });
+
+  it.each<[OfflineStatus, string]>([
+    ['ready', '✓ Alle spil er hentet og virker uden internet.'],
+    ['fetching', 'Henter spillene, så de virker uden internet …'],
+    ['unknown', 'Småspil virker uden internet, når appen har været åbnet én gang.'],
+  ])('says whether every game works offline when %s', async (offline, text) => {
+    await open({ profiles: [far], lock: null }, offline);
+    expect(screen.getByText(text)).toBeInTheDocument();
   });
 });

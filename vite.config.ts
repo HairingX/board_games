@@ -89,7 +89,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2}'],
+        // Everything the games use is fetched when the app is first opened, music and sounds
+        // too, so every game works without the internet; updates fetch only what changed.
+        globPatterns: ['**/*.{js,css,html,svg,png,json,woff2,m4a}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // Fonts for alphabets the games do not use, and images only used when installing.
         globIgnores: [
           '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2',

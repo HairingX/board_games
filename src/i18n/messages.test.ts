@@ -76,8 +76,11 @@ describe('the messages that are made from values', () => {
 
     expect(t.newVersion('Småspil')).toBe('There is a new version of Småspil.');
     expect(t.switchFrom('Mille')).toBe('Mille, switch player');
+    expect(t.players('Mille and Oscar')).toBe('Players: Mille and Oscar');
     expect(t.about('Småspil')).toBe('About Småspil');
-    expect(t.offlineNote('Småspil')).toBe('Småspil works offline once the app has been opened.');
+    expect(t.offline.unknown('Småspil')).toBe(
+      'Småspil works offline once the app has been opened.',
+    );
     expect(t.face(3)).toBe('Face 3');
     expect(t.writtenIn('Danish')).toBe('In Danish');
     expect(t.inBrowser('Småspil')).toMatch(/^Your games are saved in the browser. Add Småspil/);

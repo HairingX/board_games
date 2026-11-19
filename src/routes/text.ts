@@ -18,7 +18,11 @@ const da = {
   newVersion: (app: string) => `Der er en ny version af ${app}.`,
   update: 'Opdatér',
   about: (app: string) => `Om ${app}`,
-  offlineNote: (app: string) => `${app} virker uden internet, når appen har været åbnet én gang.`,
+  offline: {
+    ready: '✓ Alle spil er hentet og virker uden internet.',
+    fetching: 'Henter spillene, så de virker uden internet …',
+    unknown: (app: string) => `${app} virker uden internet, når appen har været åbnet én gang.`,
+  },
   credits:
     'Tegninger, musik og lyde fra Ninja Adventure af Pixel-boy og AAA, frigivet til alle (CC0).',
   tagline: 'Små spil til sofaen, middagsbordet og køreturen.',
@@ -64,7 +68,11 @@ export const appText: Translations<typeof da> = {
     newVersion: (app) => `There is a new version of ${app}.`,
     update: 'Update',
     about: (app) => `About ${app}`,
-    offlineNote: (app) => `${app} works offline once the app has been opened.`,
+    offline: {
+      ready: '✓ Every game is fetched and works offline.',
+      fetching: 'Fetching the games, so they work offline …',
+      unknown: (app) => `${app} works offline once the app has been opened.`,
+    },
     credits:
       'Drawings, music and sounds from Ninja Adventure by Pixel-boy and AAA, given to everyone (CC0).',
     tagline: 'Small games for the sofa, the dinner table and the car.',

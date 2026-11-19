@@ -7,7 +7,7 @@ export function Avatar({
   size = 'large',
 }: {
   profile: Profile;
-  size?: 'large' | 'small';
+  size?: 'large' | 'small' | 'tiny';
 }) {
   const { picture } = profile;
   const src = picture?.kind === 'face' ? faces.get(picture.face) : picture?.src;

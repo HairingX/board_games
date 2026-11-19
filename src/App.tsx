@@ -6,8 +6,9 @@ import { mayPlay, type Family, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
-import { GameIconProvider } from './ui/GameIcon';
+import { GameFrameProvider } from './ui/GameFrame';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
+import { useOfflineStatus } from './lib/offline';
 import { moveSave, saves } from './lib/saves';
 import { navigate, useRoute } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
@@ -51,6 +52,27 @@ function playersFor(
   return fits ? known : undefined;
 }
 
+/**
+ * The players of a game when there is no choice to make: the game takes a set number, and
+ * exactly that many in the family may play it, as two grown-ups and Parkort.
+ */
+function onlyGroup(game: GameInfo, family: Family): Profile[] | undefined {
+  const { min, max } = game.players;
+  const able = family.profiles.filter((profile) => mayPlay(profile.role, game.audience));
+  return min === max && able.length === min ? able : undefined;
+}
+
+/** Starts the game with its only possible players at once, in place of asking who joins. */
+function StartAlone({ onStart }: { onStart: () => void }) {
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    onStart();
+  }, [onStart]);
+  return null;
+}
+
 function Shell({ games }: { games: readonly GameInfo[] }) {
   const t = useMessages(appText);
   const { family, current, save, leave, place, notePlace } = useFamily();
@@ -67,6 +89,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     },
   });
   useUpdateChecks(registration);
+  const offline = useOfflineStatus(registration);
 
   /** Where the player was last noted, read when the player changes. */
   const lastPlace = useRef(place);
@@ -136,6 +159,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
             navigate({ name: 'settings', page });
           }}
           onBack={home}
+          offline={offline}
         />
       ) : (
         <Message text={t.noSuchPage} />
@@ -144,12 +168,38 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       const game = playable.find((candidate) => candidate.id === route.id);
       if (!game?.Screen) return <Message text={t.noSuchGame} />;
       const players = playersFor(game, route.players, family);
+      /** Starts the game with these players, once a save from before they were chosen is theirs. */
+      const start = (chosen: readonly Profile[], replace = false) => {
+        const moved = game.formerSaveKey
+          ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
+          : Promise.resolve();
+        void moved
+          .catch(() => undefined)
+          .then(() => {
+            navigate(
+              {
+                name: 'game',
+                id: game.id,
+                players: chosen.map((player) => player.id),
+                place: [],
+              },
+              { replace },
+            );
+          });
+      };
+      const only = players ? undefined : onlyGroup(game, family);
       return (
         <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
           <Suspense fallback={<p className="status">{t.loading}</p>}>
-            <GameIconProvider icon={game.icon}>
+            <GameFrameProvider icon={game.icon} players={players ?? []}>
               <div className="game" style={gameTheme(game)}>
-                {players ? (
+                {only ? (
+                  <StartAlone
+                    onStart={() => {
+                      start(only, true);
+                    }}
+                  />
+                ) : players ? (
                   <game.Screen
                     players={players}
                     saveKey={gameSaveKey(game, players)}
@@ -165,24 +215,12 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
                     current={current}
                     onChange={save}
                     onStart={(chosen) => {
-                      const moved = game.formerSaveKey
-                        ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
-                        : Promise.resolve();
-                      void moved
-                        .catch(() => undefined)
-                        .then(() => {
-                          navigate({
-                            name: 'game',
-                            id: game.id,
-                            players: chosen.map((player) => player.id),
-                            place: [],
-                          });
-                        });
+                      start(chosen);
                     }}
                   />
                 )}
               </div>
-            </GameIconProvider>
+            </GameFrameProvider>
           </Suspense>
         </ErrorBoundary>
       );

@@ -21,12 +21,21 @@ async function open() {
 
 describe('SoundLab', () => {
   it('plays the music, fading from piece to piece, and stops it', async () => {
-    const { audios, runLater, onBack } = await open();
+    const { audios, runLater, onBack, fetch } = await open();
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(3);
+    });
+    await act(() => Promise.resolve());
     click('Eventyret begynder');
     click('Den mørke skov');
     expect(audios.map((audio) => audio.src)).toEqual([
+      expect.stringMatching(/^blob:/) as string,
+      expect.stringMatching(/^blob:/) as string,
+    ]);
+    expect(fetch.mock.calls.map(([url]) => url)).toEqual([
       expect.stringContaining('Adventure') as string,
       expect.stringContaining('Forest') as string,
+      expect.stringContaining('Tension') as string,
     ]);
     click('Spænding');
     click('Stop musikken');

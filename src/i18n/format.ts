@@ -63,6 +63,13 @@ export function timeAgo(locale: Locale, then: number, now: number): string {
     : justNow[locale];
 }
 
+const andLists = cached((locale) => new Intl.ListFormat(locale, { type: 'conjunction' }));
+
+/** Names as the language lists them together: "Patrick og Ina", "Patrick, Ina and Mille". */
+export function formatList(locale: Locale, items: readonly string[]): string {
+  return andLists(locale).format(items);
+}
+
 const languageNames = cached(
   (locale) => new Intl.DisplayNames(locale, { type: 'language', fallback: 'none' }),
 );

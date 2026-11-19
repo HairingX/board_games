@@ -133,6 +133,12 @@
   font-size: 1.9rem;
 }
 
+.avatar-tiny {
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+}
+
 .avatar-small {
   width: var(--touch);
   height: var(--touch);

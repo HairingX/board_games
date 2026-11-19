@@ -118,6 +118,27 @@ describe('SoundEngine', () => {
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
   });
 
+  it('plays music read into memory beforehand, reading each piece once', async () => {
+    const { sound, audios, fetch } = engine();
+    const first = sound.prepareMusic(['/forest.m4a']);
+    await sound.prepareMusic(['/forest.m4a']);
+    await first;
+    await sound.prepareMusic(['/forest.m4a']);
+    expect(fetch).toHaveBeenCalledOnce();
+    sound.music('/forest.m4a');
+    expect(audios[0]?.src).toBe(`blob:${String('/forest.m4a'.length)}`);
+  });
+
+  it('plays music not read into memory from its address, and tries reading it again', async () => {
+    const { sound, audios, fetch } = engine();
+    fetch.mockRejectedValueOnce(new Error('offline'));
+    await sound.prepareMusic(['/forest.m4a']);
+    sound.music('/forest.m4a');
+    expect(audios[0]?.src).toBe('/forest.m4a');
+    await sound.prepareMusic(['/forest.m4a']);
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it('babbles: a tone through a vowel for each syllable, swelling and fading', () => {
     const { sound, context } = engine();
     sound.babble(tone, 2, () => 0.5);
@@ -154,14 +175,23 @@ describe('SoundEngine', () => {
     );
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => Promise.resolve({ arrayBuffer: () => Promise.resolve(new ArrayBuffer(3)) })),
+      vi.fn(() =>
+        Promise.resolve({
+          arrayBuffer: () => Promise.resolve(new ArrayBuffer(3)),
+          blob: () => Promise.resolve(new Blob(['x'])),
+        }),
+      ),
     );
     const play = vi
       .spyOn(HTMLMediaElement.prototype, 'play')
       .mockRejectedValue(new Error('not allowed'));
     const pause = vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue();
+    const createObjectURL = vi.fn(() => 'blob:forest');
+    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL });
     const sound = new SoundEngine();
 
+    await sound.prepareMusic(['/forest.m4a']);
+    expect(createObjectURL).toHaveBeenCalledOnce();
     await sound.effect('/coin.m4a');
     expect(fetch).toHaveBeenCalledWith('/coin.m4a');
     sound.music('/forest.m4a');

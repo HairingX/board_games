@@ -1,32 +1,12 @@
 .parkort {
-  --hero-icon: 64px;
   --card-ratio: calc(7 / 12);
   --stack-step: 2.4cqw;
 }
 
 /* Setup */
 
-.pk-hero {
-  display: flex;
-  gap: var(--space-4);
-  align-items: center;
-  margin-top: var(--space-3);
-}
-
-.pk-hero-icon {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--hero-icon);
-  height: var(--hero-icon);
-  color: var(--game-accent);
-  background: var(--game);
-  border-radius: 50%;
-  box-shadow: var(--shadow);
-}
-
-.pk-hero p {
-  margin: 0;
+.pk-intro {
+  margin: var(--space-3) 0 0;
   color: var(--text-muted);
 }
 

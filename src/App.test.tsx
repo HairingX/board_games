@@ -155,25 +155,23 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
   });
 
-  it('gives a couple the Parkort deck that was played before players were chosen', async () => {
+  it('starts Parkort at once for the only two grown-ups, with the deck played before', async () => {
     await saves.write('parkort', { ...newDeck(cards), seen: ['os-to-1'] });
     await startAs('Far');
     goTo('#/spil/parkort');
-    click(/^Mor/);
-    click('Start');
     expect(await screen.findByText(`1 af ${String(cards.length)}`)).toBeInTheDocument();
     expect(await saves.read('parkort')).toBeUndefined();
     expect(await saves.read('parkort/far+mor')).toMatchObject({ seen: ['os-to-1'] });
+    expect(window.location.hash).toBe('#/spil/parkort/far+mor');
+    expect(screen.getByRole('img', { name: 'Spillere: Far og Mor' })).toBeInTheDocument();
     await saves.remove('parkort/far+mor');
   });
 
   it('starts the game even when the old save cannot be moved', async () => {
     const read = vi.spyOn(saves, 'read');
     await startAs('Far');
-    goTo('#/spil/parkort');
     read.mockRejectedValueOnce(new Error('broken'));
-    click(/^Mor/);
-    click('Start');
+    goTo('#/spil/parkort');
     expect(await screen.findByText(`0 af ${String(cards.length)}`)).toBeInTheDocument();
     read.mockRestore();
   });
@@ -201,7 +199,10 @@ describe('App', () => {
     const update = vi.fn(() => Promise.resolve());
     vi.mocked(useRegisterSW).mockImplementationOnce((options) => {
       setTimeout(() => {
-        options?.onRegisteredSW?.('sw.js', { update } as unknown as ServiceWorkerRegistration);
+        options?.onRegisteredSW?.(
+          'sw.js',
+          Object.assign(new EventTarget(), { update }) as unknown as ServiceWorkerRegistration,
+        );
       });
       return {
         needRefresh: [false, vi.fn()],

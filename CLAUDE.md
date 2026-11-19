@@ -162,6 +162,9 @@ game builds on them, and everything must stay smooth on a phone.
 - Before a game, "Hvem er med?" (`src/family/ChoosePlayers.tsx`) chooses its players from the
   family, without codes, within the game's `players.min` and `players.max`; someone new can be
   added there, but a child can add only children, so no one gets a grown-up's profile that way.
+  When there is no choice, as two grown-ups and Parkort, the game starts at once with them.
+  Players are chosen so the same game can be played by different groups, each going on where
+  they left off.
 - A game's progress belongs either to the group (`players.progress: 'sammen'`), saved under
   one key per group whatever the order (`gameSaveKey`), or to each player (`'hver'`), saved
   under `playerSaveKey`. Parkort is for two grown-ups and saved per couple; the deck saved
@@ -240,6 +243,17 @@ game builds on them, and everything must stay smooth on a phone.
 - The manifest has an id, scope, description, icons for any purpose and maskable, and phone
   screenshots for Chromium's install dialog; `public/screenshots/` is retaken when the look
   changes. Apple's old meta tags are not used: iOS 26 reads the manifest.
+- Everything the games use, music and sounds too, is fetched when the app is first opened
+  (Workbox precache), so every game works without the internet; updates fetch only the files
+  that changed. "Om Småspil" says whether it is all fetched (`src/lib/offline.ts`). The owner
+  chose this while the whole is small (about 3.5 MB now, 10–15 MB expected). If many games
+  make it large (50+ MB), the owner wants to fetch only what is needed and the rest per game
+  with a button: each game imports its own art and sound in its own lazy chunk, so its files
+  can be told apart and cached on their own. A browser cannot reliably tell Wi-Fi from mobile
+  data (Safari gives no way), so "only on Wi-Fi" cannot be offered.
+- Music plays from memory: an iPhone's music player asks for a file in pieces, which the
+  offline store cannot give, so a screen with music reads it in first
+  (`sound.prepareMusic`).
 - `.github/dependabot.yml` proposes updates to the npm packages and the actions once a week.
 
 ## Design
@@ -271,9 +285,9 @@ gradients, glow or glass.
   to blend with and shows as a grainy band.
 - Motion is springy and quick, and anything tapped gives way under the finger. Motion's
   settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
-- Every screen of a game shows the game's icon in its header (`src/ui/GameIcon.tsx`, given by
-  the app around the game), so it is always clear which game is open, even when the phone is
-  picked up again later.
+- Every screen of a game shows the game's icon in its header, and the players' pictures small
+  and overlapping beside it (`src/ui/GameFrame.tsx`, given by the app around the game), so it
+  is always clear which game is open and whose it is, even when the phone is picked up later.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
 
 ## Conventions

@@ -5,6 +5,7 @@ import { ManageFamily } from '../family/ManageFamily';
 import { familyText } from '../family/text';
 import { useMessages } from '../i18n/I18n';
 import { betaSaveKey, reviveBeta } from '../lib/beta';
+import type { OfflineStatus } from '../lib/offline';
 import type { SettingsPage } from '../lib/router';
 import { useSaved } from '../lib/useSaved';
 import { GameHeader } from '../ui/GameHeader';
@@ -28,6 +29,8 @@ interface Props {
   go: (page: SettingsPage) => void;
   /** Goes back to the home screen. */
   onBack: () => void;
+  /** Whether every game is on the phone, to play without the internet. */
+  offline: OfflineStatus;
 }
 
 /**
@@ -35,7 +38,7 @@ interface Props {
  * family, the grown-ups' lock, how the games are saved, and beta, which shows test pages for
  * the parts still being built.
  */
-export function Settings({ family, current, onChange, page, go, onBack }: Props) {
+export function Settings({ family, current, onChange, page, go, onBack, offline }: Props) {
   const t = useMessages(appText);
   const f = useMessages(familyText);
   const lab = useMessages(labText);
@@ -102,7 +105,9 @@ export function Settings({ family, current, onChange, page, go, onBack }: Props)
       <SavedGames />
       <section className="panel settings-about" aria-labelledby="about-title">
         <h2 id="about-title">{t.about(appMeta.name)}</h2>
-        <p>{t.offlineNote(appMeta.name)}</p>
+        <p role="status">
+          {offline === 'unknown' ? t.offline.unknown(appMeta.name) : t.offline[offline]}
+        </p>
         <p>{t.credits}</p>
       </section>
       <div className="settings-beta">

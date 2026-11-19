@@ -59,3 +59,17 @@
   width: 26px;
   height: 26px;
 }
+
+/* The players' pictures, small and overlapping, each ringed so they stay apart. */
+.game-header-players {
+  display: flex;
+  margin-left: var(--space-1);
+}
+
+.game-header-players .avatar {
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.game-header-players .avatar + .avatar {
+  margin-left: calc(-1 * var(--space-2));
+}
