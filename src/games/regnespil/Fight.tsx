@@ -24,6 +24,7 @@ import {
   type Staging,
 } from './clearing';
 import type { PlayerSettings } from './players';
+import type { SavedFight } from './fightSave';
 import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
 import { pick } from './sums';
@@ -66,6 +67,10 @@ interface Props {
   settings: readonly PlayerSettings[];
   /** Back to choosing levels and swords. */
   onBack: () => void;
+  /** The fight as saved, to go on from, or null to begin one. */
+  saved: SavedFight | null;
+  /** Saves the fight, after every answer and when a new one begins. */
+  onSave: (fight: SavedFight) => void;
   /** Shown at the right of the header: the sound's levels. */
   aside?: ReactNode;
   random?: Random;
@@ -143,6 +148,8 @@ export function Fight({
   players,
   settings,
   onBack,
+  saved,
+  onSave,
   aside,
   random = Math.random,
   sound = defaultSound,
@@ -152,15 +159,39 @@ export function Fight({
   const t = useMessages(text);
   const c = useMessages(common);
   const locale = useLocale();
-  const lives = monsterLives(settings.map((own) => own.sword));
-  const [active, setActive] = useState(0);
   const own = (index: number) => settings[index] as PlayerSettings;
-  const [task, setTask] = useState<Task>(() => makeTask(own(0).level, random));
-  /** The sums shown lately, so the next is none of them. */
-  const [recent, setRecent] = useState<readonly string[]>([]);
+  const first = players[0] as Profile;
+  /** A new fight, the first player's turn, its sum none of those shown lately. */
+  const fresh = (recent: readonly string[]): SavedFight => {
+    const lives = monsterLives(settings.map((one) => one.sword));
+    return {
+      fight: startFight(lives),
+      lives,
+      activeId: first.id,
+      task: makeTask(own(0).level, random, recent),
+      recent,
+    };
+  };
+  /** The fight as it stands and goes on, as saved. */
+  const [save, setSave] = useState<SavedFight>(() => saved ?? fresh([]));
+  /**
+   * Whose turn it shows and their sum: the saved ones, except in the pause after an answer,
+   * when it still shows the sum just answered, while the save already holds the next.
+   */
+  const [view, setView] = useState({ activeId: save.activeId, task: save.task });
+  const { fight, lives } = save;
+  const task = view.task;
+  const active = Math.max(
+    0,
+    players.findIndex((one) => one.id === view.activeId),
+  );
   const [chosen, setChosen] = useState<Value>();
-  const [fight, setFight] = useState(() => startFight(lives));
   const [staging, setStaging] = useState<Staging>({});
+
+  function keep(next: SavedFight): void {
+    setSave(next);
+    onSave(next);
+  }
   /** How many answers have been given, so what one answer starts plays out afresh. */
   const [answers, setAnswers] = useState(0);
 
@@ -200,11 +231,7 @@ export function Fight({
     const { right, wrong } = motionTokens.fightPause;
     const timer = setTimeout(
       () => {
-        const next = nextTurn(active, players.length);
-        setActive(next);
-        const shown = shownWith(recent, task);
-        setRecent(shown);
-        setTask(makeTask((settings[next] as PlayerSettings).level, random, shown));
+        setView({ activeId: save.activeId, task: save.task });
         setChosen(undefined);
       },
       (fight.last === 'struck' ? right : wrong) * 1000,
@@ -212,16 +239,14 @@ export function Fight({
     return () => {
       clearTimeout(timer);
     };
-  }, [chosen, fight, active, players.length, settings, random, recent, task]);
+  }, [chosen, fight, save]);
 
   function restart(): void {
     play(music.fight);
-    setActive(0);
-    const shown = shownWith(recent, task);
-    setRecent(shown);
-    setTask(makeTask(own(0).level, random, shown));
+    const next = fresh(shownWith(save.recent, task));
+    keep(next);
+    setView({ activeId: next.activeId, task: next.task });
     setChosen(undefined);
-    setFight(startFight(lives));
     setStaging({});
   }
 
@@ -230,8 +255,17 @@ export function Fight({
     play(music.fight);
     const verdict = judge(choice, task.answer, task.near);
     const next = answerFight(fight, verdict, own(active).sword);
+    // Saved at once with the next turn and its sum, so a closed app goes on from there.
+    const following = nextTurn(active, players.length);
+    const recent = shownWith(save.recent, task);
+    keep({
+      fight: next,
+      lives,
+      activeId: (players[following] as Profile).id,
+      task: makeTask(own(following).level, random, recent),
+      recent,
+    });
     setChosen(choice);
-    setFight(next);
     setStaging(stage(next, now()));
     setAnswers(answers + 1);
     sound.chime(chimes[verdict]);

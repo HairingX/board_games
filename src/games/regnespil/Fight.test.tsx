@@ -7,6 +7,7 @@ import { chimes } from '../../lib/sound/chimes';
 import { sound, SoundEngine } from '../../lib/sound/engine';
 import { motionTokens } from '../../ui/motion';
 import { Fight } from './Fight';
+import type { SavedFight } from './fightSave';
 import type { PlayerSettings } from './players';
 import { hits, sounds, victoryLength } from './sounds';
 
@@ -28,9 +29,11 @@ afterEach(() => {
 function open(
   settings: readonly PlayerSettings[] = [{ level: 1, sword: 'jern' }],
   players: readonly Profile[] = [mille],
+  saved: SavedFight | null = null,
 ) {
   const fake = fakeSoundBrowser();
   const onBack = vi.fn();
+  const onSave = vi.fn<(fight: SavedFight) => void>();
   const engine = new SoundEngine(fake.browser);
   const effect = vi.spyOn(engine, 'effect');
   const chime = vi.spyOn(engine, 'chime');
@@ -38,6 +41,8 @@ function open(
     <Fight
       players={players}
       settings={settings}
+      saved={saved}
+      onSave={onSave}
       onBack={onBack}
       random={() => 0}
       sound={engine}
@@ -47,7 +52,7 @@ function open(
   );
   const played = () => effect.mock.calls.map(([url, volume]) => [url, volume]);
   const chimed = () => chime.mock.calls.map(([made]) => made);
-  return { ...fake, ...view, onBack, played, chimed };
+  return { ...fake, ...view, onBack, onSave, played, chimed };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -170,6 +175,53 @@ describe('Fight', () => {
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
   });
 
+  it('saves the fight after every answer, with the next turn and its sum', async () => {
+    const { onSave } = open(
+      [
+        { level: 7, sword: 'jern' },
+        { level: 1, sword: 'træ' },
+      ],
+      [far, mille],
+    );
+    click('12');
+    const after = onSave.mock.lastCall?.[0];
+    expect(after?.fight).toMatchObject({ health: 8, lives: 3, last: 'bumped' });
+    expect(after?.activeId).toBe('mille');
+    expect(after?.task.sum).toEqual([1, '+', 1]);
+    expect(after?.recent).toEqual(['[12,"×",2]']);
+    // The sum answered stays on screen through the pause; the saved next one comes after.
+    expect(screen.getByRole('img', { name: '12 gange 2' })).toBeInTheDocument();
+    await pause(wrong);
+    expect(screen.getByRole('img', { name: '1 plus 1' })).toBeInTheDocument();
+  });
+
+  it('goes on from a saved fight, where it was', () => {
+    const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 } as const;
+    open([{ level: 1, sword: 'jern' }], [mille], {
+      fight: { health: 3, lives: 1, outcome: 'fighting', last: 'struck' },
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+    });
+    expect(hearts('1,5')).toBeInTheDocument();
+    expect(lives(1)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '3 plus 4' })).toBeInTheDocument();
+  });
+
+  it('saves a new fight when one begins again', async () => {
+    const { onSave } = open([{ level: 1, sword: 'træ' }]);
+    click('2');
+    await pause(right);
+    click('2');
+    click('Ny kamp');
+    expect(onSave.mock.lastCall?.[0]).toMatchObject({
+      fight: { health: 10, lives: 2, outcome: 'fighting' },
+      lives: 2,
+      activeId: 'mille',
+    });
+  });
+
   it('uses the page’s clock and the app’s sound when none are given', () => {
     // The app's own sound needs the browser's Web Audio, which the tests have not.
     vi.spyOn(sound, 'prepareEffects').mockResolvedValue(undefined);
@@ -180,7 +232,13 @@ describe('Fight', () => {
     const music = vi.spyOn(sound, 'music').mockReturnValue(undefined);
     const effect = vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
     const { container } = render(
-      <Fight players={[mille]} settings={[{ level: 1, sword: 'træ' }]} onBack={() => undefined} />,
+      <Fight
+        players={[mille]}
+        settings={[{ level: 1, sword: 'træ' }]}
+        saved={null}
+        onSave={() => undefined}
+        onBack={() => undefined}
+      />,
     );
     const choice = container.querySelector('.task-choice');
     if (choice) fireEvent.click(choice);

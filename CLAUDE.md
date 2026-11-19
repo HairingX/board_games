@@ -161,7 +161,10 @@ game builds on them, and everything must stay smooth on a phone.
   Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
   has its music (the pack's "17 - Fight"); the slime speaks in its own light voice before it
   bumps the hero; victory is a fanfare, a puff of smoke, coins and the hero cheering with a
-  heart over his head, and then happy music. A fight is not yet saved while it is on.
+  heart over his head, and then happy music. A fight is saved after every answer
+  (`fightSave.ts`, one save per group of players, whatever order they were chosen in): the
+  hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
+  or crashed app goes on where it was, with the same sum, not a new one to try instead.
 - Agreed next, after the sounds: the party. Each player chooses a hero, suggested from the
   face on their profile, among figures the story will not use (not `Boy`, `Princess`,
   `Cavegirl`, `Villager3`, `EggBoy`, `EggGirl`, `Woman`, `Child`, `Hunter`, `MaskRacoon`,

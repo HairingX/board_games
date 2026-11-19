@@ -99,6 +99,35 @@ describe('Regnespil', () => {
     expect(go).toHaveBeenCalledWith([]);
   });
 
+  it('goes on with a saved fight when it is opened again, and begins afresh without its player', async () => {
+    const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 };
+    const fight = { health: 4, lives: 1, outcome: 'fighting', last: 'struck' };
+    await saves.write('regnespil/kamp/far+mille', {
+      fight,
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+    });
+    const { unmount } = render(
+      <Regnespil players={[far, mille]} saveKey="regnespil" place={[fightPlace]} go={vi.fn()} />,
+    );
+    expect(await screen.findByRole('img', { name: 'Slimets liv: 1' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '3 plus 4' })).toBeInTheDocument();
+    unmount();
+    await saves.write('regnespil/kamp/far+mille', {
+      fight,
+      lives: 3,
+      activeId: 'oscar',
+      task,
+      recent: [],
+    });
+    render(
+      <Regnespil players={[far, mille]} saveKey="regnespil" place={[fightPlace]} go={vi.fn()} />,
+    );
+    expect(await screen.findByRole('img', { name: /Slimets liv: [34]/ })).toBeInTheDocument();
+  });
+
   it('fights in the clearing, and goes back to the setup', async () => {
     const { go } = open([fightPlace]);
     expect(await screen.findByRole('img', { name: /Slimets liv/ })).toBeInTheDocument();

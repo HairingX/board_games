@@ -6,6 +6,7 @@ import { reviveSoundSettings, soundSaveKey } from '../../lib/sound/settings';
 import { useSaved, useSavedEach } from '../../lib/useSaved';
 import { SoundMenu } from '../../ui/SoundMenu';
 import { Fight, fightMusic } from './Fight';
+import { fightSaveKey, reviveFight } from './fightSave';
 import { Listening } from './Listening';
 import { reviveSettings, suggest } from './players';
 import { Setup } from './Setup';
@@ -29,6 +30,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
     (saved, index) => reviveSettings(saved) ?? suggest(players[index] as Profile, new Date()),
   );
   const [levels, setLevels] = useSaved(soundSaveKey, reviveSoundSettings);
+  const [savedFight, saveFight] = useSaved(fightSaveKey(saveKey, players), reviveFight);
 
   useEffect(() => {
     if (levels) sound.setSettings(levels);
@@ -39,7 +41,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
     void sound.prepareMusic(fightMusic);
   }, []);
 
-  if (!settings || !levels) return null;
+  if (!settings || !levels || savedFight === undefined) return null;
 
   const aside = <SoundMenu settings={levels} onChange={setLevels} />;
   const back = () => {
@@ -48,7 +50,21 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
 
   switch (place[0]) {
     case fightPlace:
-      return <Fight players={players} settings={settings} onBack={back} aside={aside} />;
+      return (
+        <Fight
+          players={players}
+          settings={settings}
+          // A save whose player is no longer at the table is begun afresh.
+          saved={
+            savedFight && players.some((player) => player.id === savedFight.activeId)
+              ? savedFight
+              : null
+          }
+          onSave={saveFight}
+          onBack={back}
+          aside={aside}
+        />
+      );
     case listeningPlace:
       return <Listening onBack={back} />;
     default:
