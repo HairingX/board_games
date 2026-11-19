@@ -4,7 +4,6 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ChoosePlayers } from './family/ChoosePlayers';
 import { mayPlay, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
-import { WhoIsPlaying } from './family/WhoIsPlaying';
 import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
@@ -13,6 +12,7 @@ import { parseGameId } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
 import { Home } from './routes/Home';
 import { Settings } from './routes/Settings';
+import { Start } from './routes/Start';
 import { appText } from './routes/text';
 import { common } from './ui/text';
 
@@ -70,7 +70,17 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     };
   }, []);
 
-  if (!current) return <WhoIsPlaying />;
+  const update = updateWaiting
+    ? () => {
+        loadNewVersion(
+          navigator.serviceWorker,
+          updateServiceWorker,
+          window.location.reload.bind(window.location),
+        );
+      }
+    : undefined;
+
+  if (!current) return <Start games={games} {...(update ? { onUpdate: update } : {})} />;
   if (inSettings) {
     return (
       <Settings
@@ -94,17 +104,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       onSettings={() => {
         setInSettings(true);
       }}
-      {...(updateWaiting
-        ? {
-            onUpdate: () => {
-              loadNewVersion(
-                navigator.serviceWorker,
-                updateServiceWorker,
-                window.location.reload.bind(window.location),
-              );
-            },
-          }
-        : {})}
+      {...(update ? { onUpdate: update } : {})}
     />
   ) : game?.Screen ? (
     <ErrorBoundary key={gameId} fallback={<Message text={t.loadFailed} />}>

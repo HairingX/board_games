@@ -1,0 +1,65 @@
+.start-top {
+  display: grid;
+}
+
+.start-hero {
+  display: grid;
+  justify-items: center;
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.start-tagline {
+  margin: var(--space-4) 0 0;
+  font-size: 1.05rem;
+  max-width: 30ch;
+  color: var(--text-muted);
+}
+
+/* The games' cards, fanned out like a hand: the backs, in each game's colours. */
+.start-fan {
+  --start-card-width: 74px;
+  --start-card-turn: 9deg;
+
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.start-card {
+  display: grid;
+  place-items: center;
+  width: var(--start-card-width);
+  aspect-ratio: 7 / 12;
+  margin: 0 calc(var(--start-card-width) * -0.06);
+  font-size: 1.6rem;
+  color: var(--game-accent);
+  background: var(--game);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  outline: 1px solid var(--game-accent);
+  outline-offset: -6px;
+}
+
+.start-card:first-child {
+  transform: rotate(calc(-1 * var(--start-card-turn))) translateY(6px);
+}
+
+.start-card:nth-child(2) {
+  z-index: 1;
+  transform: translateY(-6px);
+}
+
+.start-card:last-child {
+  transform: rotate(var(--start-card-turn)) translateY(6px);
+}
+
+.start-card-icon {
+  display: grid;
+  place-items: center;
+}
+
+.start-card-icon svg {
+  width: 32px;
+  height: 32px;
+}

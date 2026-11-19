@@ -125,7 +125,10 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## The family and players
 
-- "Hvem spiller?" (`src/family/WhoIsPlaying.tsx`) is asked at every start. The family is saved
+- The start screen (`src/routes/Start.tsx`) says what the app is before anything is asked: its
+  name, what it is for, the games' cards fanned out, the language in the corner, and "Opdatér"
+  when a new version waits, so updating never needs anyone chosen. Under it, "Hvem spiller?"
+  (`src/family/WhoIsPlaying.tsx`) is asked at every start. The family is saved
   on the phone (`src/family/family.ts`, under the key `familie`); who is on the home screen is
   not. The first time, the first grown-up is made there, without being asked for a code.
 - A profile is a name, a colour, and whether it is a grown-up or a child; profiles have no codes,

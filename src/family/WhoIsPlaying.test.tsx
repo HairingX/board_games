@@ -140,13 +140,6 @@ describe('WhoIsPlaying', () => {
     });
   });
 
-  it('offers the app’s language in the corner, the first time too', async () => {
-    await open();
-    fireEvent.change(screen.getByLabelText('Sprog'), { target: { value: 'en' } });
-    expect(await screen.findByRole('heading', { name: 'Welcome to Småspil' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Language')).toHaveValue('en');
-  });
-
   it('needs to be used inside the family', () => {
     function Outside() {
       useFamily();

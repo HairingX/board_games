@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { appMeta } from '../appMeta';
 import { useMessages } from '../i18n/I18n';
-import { LanguageSelect } from '../ui/LanguageSelect';
 import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import {
@@ -32,11 +31,11 @@ type View =
 const list: View = { name: 'list' };
 
 /**
- * "Hvem spiller?", asked at every start, with the app's language in the corner. Anyone may be
- * chosen, unless the grown-ups' lock is on: then choosing a grown-up asks for its code. The
- * first time, the first grown-up is made here; the rest of the family is added in the settings.
+ * "Hvem spiller?", under the start screen's header. Anyone may be chosen, unless the grown-ups'
+ * lock is on: then choosing a grown-up asks for its code, on a screen of its own. The first
+ * time, the first grown-up is made here; the rest of the family is added in the settings.
  */
-export function WhoIsPlaying() {
+export function WhoIsPlaying({ header }: { header?: ReactNode }) {
   const t = useMessages(familyText);
   const { hello } = useMessages(common);
   const { family, save, choose } = useFamily();
@@ -108,6 +107,7 @@ export function WhoIsPlaying() {
     case 'list':
       return family.profiles.length === 0 ? (
         <FirstGrownUp
+          header={header}
           family={family}
           onDone={(profile) => {
             save(addProfile(family, profile));
@@ -116,8 +116,8 @@ export function WhoIsPlaying() {
         />
       ) : (
         <section className="family">
-          <LanguageSelect compact />
-          <h1>{t.whoIsPlaying}</h1>
+          {header}
+          <h2 className="family-question">{t.whoIsPlaying}</h2>
           <ul className="family-grid">
             {family.profiles.map((profile) => {
               const locked = isLocked(family, profile);
@@ -148,12 +148,20 @@ export function WhoIsPlaying() {
 }
 
 /** The first time: the first grown-up. */
-function FirstGrownUp({ family, onDone }: { family: Family; onDone: (profile: Profile) => void }) {
+function FirstGrownUp({
+  header,
+  family,
+  onDone,
+}: {
+  header: ReactNode;
+  family: Family;
+  onDone: (profile: Profile) => void;
+}) {
   const t = useMessages(familyText);
   return (
     <section className="family">
-      <LanguageSelect compact />
-      <h1>{t.welcome(appMeta.name)}</h1>
+      {header}
+      <h2 className="family-question">{t.welcome(appMeta.name)}</h2>
       <p className="family-intro">{t.firstIntro}</p>
       <ProfileForm
         start={{ name: '', role: 'voksen', color: nextColor(family) }}

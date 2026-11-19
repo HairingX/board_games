@@ -8,6 +8,7 @@ import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { common } from '../ui/text';
 import { appText } from './text';
+import { UpdateBanner } from './UpdateBanner';
 import './Home.css';
 
 interface Props {
@@ -48,14 +49,7 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
           </button>
         )}
       </div>
-      {onUpdate && (
-        <div className="update" role="status">
-          <span>{t.newVersion(appMeta.name)}</span>
-          <button type="button" className="btn btn-primary" onClick={onUpdate}>
-            {t.update}
-          </button>
-        </div>
-      )}
+      {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
       <header className="home-header">
         <span className="badge">
           <span className="badge-dot" aria-hidden="true" />

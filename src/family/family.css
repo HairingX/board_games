@@ -8,6 +8,11 @@
   font-size: clamp(2.2rem, 10vw, 3rem);
 }
 
+.family-question {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: 1.8rem;
+}
+
 .family-intro,
 .family-note,
 .pin-text {
