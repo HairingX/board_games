@@ -25,10 +25,10 @@ export interface Mixed {
 /**
  * How loud each part plays, in dB below full scale: the answers' chimes lead (about −15 dB,
  * set in `src/lib/sound/chimes.ts`), what happens in the fight a little under them, a victory
- * above, and the music far under everything, as the owner found the pack's chiptune music hard
- * on the ears over many sums; it steps back further while a sum is thought over.
+ * above, and the music far under everything, at the level the owner liked while thinking, as
+ * the pack's chiptune music is hard on the ears over many sums.
  */
-export const loudness = { action: -18, celebration: -14, music: -38 } as const;
+export const loudness = { action: -18, celebration: -14, music: -44 } as const;
 
 function mixed(url: string, measured: number, target: number): Mixed {
   return { url, gain: 10 ** ((target - measured) / 20) };

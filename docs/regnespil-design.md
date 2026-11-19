@@ -300,4 +300,10 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   to the next level of the adventure, with new and better things, enemies with more life and
   heroes who hit harder.
 - Everything thought through and written down, so nothing is lost.
+- The music steady at its low level, not stepped up and down (it lagged).
+- The monster on a wrong answer runs over and pushes or kicks the hero, who falls over and gets
+  up: teasing, never killing, so the children are annoyed and want to beat it. It roars or
+  squeals when struck, to show it is cross; the hero cries out when knocked over.
+- Game information belongs in the scene, not in the top bar, so no one has to look up while
+  playing; the top bar should be interesting, not informative.
 - Children's text larger and easier to read.

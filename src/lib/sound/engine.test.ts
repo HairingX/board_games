@@ -10,7 +10,7 @@ import {
 } from '../../../tests/audio';
 import type { Voice } from './babble';
 import { chimes, type Chime } from './chimes';
-import { ducking, focusing, musicFade, sound, SoundEngine } from './engine';
+import { ducking, musicFade, sound, SoundEngine } from './engine';
 
 function engine() {
   const fake = fakeSoundBrowser();
@@ -28,11 +28,10 @@ describe('SoundEngine', () => {
 
   it('starts the sound once, with music and effects each on their own volume', () => {
     const { sound, context, browser } = engine();
-    const { music, focused, ducked, effects } = sound.unlock();
+    const { music, ducked, effects } = sound.unlock();
     expect(context.resume).toHaveBeenCalledOnce();
     expect(music).toBeInstanceOf(FakeGain);
-    expect((music as unknown as FakeGain).outputs).toEqual([focused]);
-    expect((focused as unknown as FakeGain).outputs).toEqual([ducked]);
+    expect((music as unknown as FakeGain).outputs).toEqual([ducked]);
     expect((ducked as unknown as FakeGain).outputs).toEqual([context.destination]);
     expect((effects as unknown as FakeGain).outputs).toEqual([context.destination]);
     sound.unlock();
@@ -70,6 +69,14 @@ describe('SoundEngine', () => {
     const level = sources[0]?.outputs[0] as FakeGain;
     expect(level.gain.value).toBe(1);
     expect(level.outputs).toEqual([sound.unlock().effects]);
+  });
+
+  it('plays an effect and a voice a moment later when asked, to meet the scene', async () => {
+    const { sound, context } = engine();
+    await sound.effect('/bump.m4a', 1, 0.25);
+    expect(context.all(FakeBufferSource)[0]?.starts).toEqual([10.25]);
+    sound.babble(tone, 1, () => 0.5, 0.5);
+    expect(context.all(FakeOscillator)[0]?.starts[0]).toBeCloseTo(10.512);
   });
 
   it('plays an effect softer when asked', async () => {
@@ -121,19 +128,6 @@ describe('SoundEngine', () => {
     sound.music('/forest.m4a');
     await Promise.resolve();
     expect(forest?.play).toHaveBeenCalledTimes(3);
-  });
-
-  it('lets the music step back while a player thinks, and come forward again', () => {
-    const { sound } = engine();
-    sound.focusMusic(true);
-    sound.focusMusic(true);
-    const focused = sound.unlock().focused as unknown as FakeGain;
-    expect(focused.gain.value).toBe(focusing.level);
-    expect(focused.gain.calls).toEqual([]);
-    sound.focusMusic(false);
-    expect(focused.gain.calls.at(-1)).toEqual(['ramp', 1, 10 + focusing.up]);
-    sound.focusMusic(true);
-    expect(focused.gain.calls.at(-1)).toEqual(['ramp', focusing.level, 10 + focusing.down]);
   });
 
   it('ducks the music under a chime, and lets a note glide', () => {
@@ -220,7 +214,7 @@ describe('SoundEngine', () => {
     expect(forest).toMatchObject({ src: '/forest.m4a', loop: true });
     expect(forest?.play).toHaveBeenCalledOnce();
     const [element] = context.all(FakeElementSource);
-    const [, , , , first] = context.all(FakeGain);
+    const [, , , first] = context.all(FakeGain);
     expect(element?.outputs).toEqual([first]);
     expect(first?.outputs).toEqual([sound.unlock().music]);
     expect(first?.gain.value).toBe(0);

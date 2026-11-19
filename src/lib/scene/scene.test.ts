@@ -122,6 +122,33 @@ describe('figures acting', () => {
     expect(one(gone, at - 1, true)).toBeUndefined();
   });
 
+  it('charges at another figure, holds there a moment, and runs back', () => {
+    const charge = { acts: [{ kind: 'charge', at, reach: 40 }] } as const;
+    const { out, hold, back } = act.charge;
+    expect(one(charge, at)?.x).toBe(20);
+    expect(one(charge, at + out / 2)?.x).toBe(40);
+    expect(one(charge, at + out + hold / 2)?.x).toBe(60);
+    expect(one({ ...charge, facing: 'left' }, at + out + eps)?.x).toBe(-20);
+    expect(one(charge, at + out + hold + back / 2)?.x).toBe(40);
+    expect(one(charge, at + out + hold + back + eps)?.x).toBe(20);
+    expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
+  });
+
+  it('is knocked backwards and over, lies a while, and gets up again', () => {
+    const knocked = { acts: [{ kind: 'knocked', at }] } as const;
+    const { push, fall, down, rise, drop } = act.knocked;
+    expect(one(knocked, at + fall / 2)).toMatchObject({ x: 20 - push / 2 });
+    expect(one(knocked, at + fall + eps)).toMatchObject({ x: 20 - push, y: 20 + drop, turn: -1 });
+    expect(one({ ...knocked, facing: 'left' }, at + fall + eps)).toMatchObject({
+      x: 20 + push,
+      turn: 1,
+    });
+    const rising = one(knocked, at + fall + down + rise / 2);
+    expect(rising?.x).toBe(20 - push / 2);
+    expect(rising?.turn).toBeUndefined();
+    expect(one(knocked, at + fall + down + rise + eps)?.x).toBe(20);
+  });
+
   it('does the latest act begun, and none not yet begun', () => {
     const acts = [
       { kind: 'cheer', at: at + 1 },

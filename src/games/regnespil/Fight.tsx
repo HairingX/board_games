@@ -13,7 +13,16 @@ import { motionTokens } from '../../ui/motion';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { answerFight, fullHealth, startFight, type Fight as FightState } from './battle';
 import { faces, hud, swordPictures, topFrames } from './art';
-import { clearing, clearingSheets, coinDrop, heroAt, puff, sweep, type Staging } from './clearing';
+import {
+  clearing,
+  clearingSheets,
+  coinDrop,
+  heroAt,
+  puff,
+  slimeAt,
+  sweep,
+  type Staging,
+} from './clearing';
 import type { PlayerSettings } from './players';
 import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
@@ -27,8 +36,14 @@ import './regnespil.css';
 /** The music a fight reads into memory before it is needed, so it plays without the internet. */
 export const fightMusic = [music.fight.url, music.victory.url];
 
-/** How long after the growl the monster's bump lands, in seconds. */
-const growlLead = 0.35;
+/** How far the slime charges to reach the hero, stopping just in front of them, in pixels. */
+const chargeReach = slimeAt.x - heroAt.x - 12;
+
+/** How wide the life bar under the monster is, in the stage's pixels. */
+const lifeWidth = 24;
+
+/** When, after a stroke, the slime squeals at it, in seconds. */
+const squealAfter = 0.15;
 
 /**
  * When the victory's moments come after the last stroke, in seconds, and where each coin lands
@@ -99,12 +114,15 @@ function stage(fight: FightState, at: number): Staging {
       slime: { sign: { sheet: 'alert', at } },
     };
   }
+  // Far off: the slime charges at the hero and knocks them over; they lie a moment and get up.
+  const { charge, knocked } = motionTokens.act;
+  const hit = at + charge.out;
   const lost = fight.outcome === 'lost';
   return {
-    slime: { acts: [{ kind: 'attack', at }] },
+    slime: { acts: [{ kind: 'charge', at, reach: chargeReach }] },
     hero: {
-      acts: [{ kind: 'hurt', at: at + 0.15 }],
-      sign: { sheet: lost ? 'sleepy' : 'dizzy', at: at + 0.15 },
+      acts: [{ kind: 'knocked', at: hit }],
+      sign: { sheet: lost ? 'sleepy' : 'dizzy', at: hit + knocked.fall + knocked.down },
     },
   };
 }
@@ -143,17 +161,9 @@ export function Fight({
     void sound.prepareEffects([...Object.values(sounds), ...hits].map(({ url }) => url));
     void sound.prepareMusic(fightMusic);
     return () => {
-      sound.focusMusic(false);
       sound.stopMusic();
     };
   }, [sound]);
-
-  // The music steps back while a sum waits for its answer, so it never wears on the mind, and
-  // comes forward again as the answer strikes or is struck.
-  const thinking = chosen === undefined && fight.outcome === 'fighting';
-  useEffect(() => {
-    sound.focusMusic(thinking);
-  }, [sound, thinking]);
 
   // A won fight's jingle gives way to the victory's music, until a new fight begins.
   useEffect(() => {
@@ -166,23 +176,12 @@ export function Fight({
     };
   });
 
-  // The monster's bump lands just after its growl.
-  useEffect(() => {
-    if (chosen === undefined || fight.last !== 'bumped') return;
-    const timer = setTimeout(() => {
-      effect(sounds.bump);
-    }, growlLead * 1000);
-    return () => {
-      clearTimeout(timer);
-    };
-  });
-
   function play({ url, gain }: Mixed): void {
     sound.music(url, gain);
   }
 
-  function effect({ url, gain }: Mixed): void {
-    void sound.effect(url, gain);
+  function effect({ url, gain }: Mixed, after = 0): void {
+    void sound.effect(url, gain, after);
   }
 
   // After an answer the fight pauses, so the stroke and the right answer can be seen, then the
@@ -222,16 +221,22 @@ export function Fight({
     setFight(next);
     setStaging(stage(next, now()));
     sound.chime(chimes[verdict]);
+    const { charge } = motionTokens.act;
     if (next.last === 'struck') {
       effect(sounds.slash);
       effect(pick(random, hits));
+      // The slime squeals at the blow, cross at being struck.
+      sound.babble(voices.slime, 2, undefined, squealAfter);
       if (next.outcome === 'won') {
         sound.stopMusic();
         effect(sounds.victory);
         sound.babble(voices.hero, 6);
       }
     } else if (next.last === 'bumped') {
+      // The slime cries out as it charges; the bump and the hero's "ouch" as it lands.
       sound.babble(voices.slime, 3);
+      effect(sounds.bump, charge.out);
+      sound.babble(voices.hero, 2, undefined, charge.out + squealAfter);
     } else {
       effect(sounds.clang);
     }
@@ -261,6 +266,21 @@ export function Fight({
           />
         ))}
       </span>
+      {fight.lives > 0 && (
+        <span
+          className="rs-life"
+          role="img"
+          aria-label={t.lives(fight.lives)}
+          style={{ left: px(slimeAt.x + 8), top: px(slimeAt.y + 17), width: px(lifeWidth) }}
+        >
+          {/* Drawn anew at every stroke, so it shakes and a piece breaks off. */}
+          <span key={fight.lives} className="rs-life-pieces" data-hit={fight.lives < lives}>
+            {Array.from({ length: lives }, (_, index) => (
+              <span key={index} className="rs-life-piece" data-left={index < fight.lives} />
+            ))}
+          </span>
+        </span>
+      )}
       {players.length > 1 && fight.outcome === 'fighting' && (
         <p
           className="rs-nameplate"
@@ -281,15 +301,10 @@ export function Fight({
         <button type="button" className="game-header-button" aria-label={c.back} onClick={onBack}>
           <span aria-hidden="true">‹</span>
         </button>
-        <div className="rs-foe" role="img" aria-label={t.lives(fight.lives)}>
+        <p className="rs-foe">
           <img src={faces.slime} alt="" className="rs-foe-face" />
-          {/* Drawn anew at every stroke, so it shakes and a piece breaks off. */}
-          <span key={fight.lives} className="rs-foe-life" data-hit={fight.lives < lives}>
-            {Array.from({ length: lives }, (_, index) => (
-              <span key={index} className="rs-foe-piece" data-left={index < fight.lives} />
-            ))}
-          </span>
-        </div>
+          <span className="rs-foe-name">{t.slime}</span>
+        </p>
         {aside}
       </header>
       <div

@@ -34,7 +34,6 @@ function open(
   const engine = new SoundEngine(fake.browser);
   const effect = vi.spyOn(engine, 'effect');
   const chime = vi.spyOn(engine, 'chime');
-  const focus = vi.spyOn(engine, 'focusMusic');
   const view = render(
     <Fight
       players={players}
@@ -48,8 +47,7 @@ function open(
   );
   const played = () => effect.mock.calls.map(([url, volume]) => [url, volume]);
   const chimed = () => chime.mock.calls.map(([made]) => made);
-  const focused = () => focus.mock.calls.map(([on]) => on);
-  return { ...fake, ...view, onBack, played, chimed, focused };
+  return { ...fake, ...view, onBack, played, chimed };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -74,8 +72,7 @@ describe('Fight', () => {
   });
 
   it('strikes the slime on a right answer, with music, and asks the next sum after a pause', async () => {
-    const { played, chimed, audios, onBack, focused } = open();
-    expect(focused()).toEqual([true]);
+    const { played, chimed, audios, onBack } = open();
     expect(hearts('5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     click('2');
@@ -87,10 +84,8 @@ describe('Fight', () => {
       [hits[0]?.url, hits[0]?.gain],
     ]);
     expect(audios).toHaveLength(1);
-    expect(focused()).toEqual([true, false]);
     await pause(right);
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
-    expect(focused()).toEqual([true, false, true]);
     expect(screen.queryByRole('status', { name: /tur/ })).not.toBeInTheDocument();
     click('Tilbage');
     expect(onBack).toHaveBeenCalledOnce();

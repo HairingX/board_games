@@ -34,11 +34,28 @@ export function paint(
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, size.width, size.height);
-  for (const { sheet, cut, x, y } of draws) {
+  for (const { sheet, cut, x, y, turn } of draws) {
     const picture = pictures.get(sheet);
-    if (picture) {
+    if (!picture) continue;
+    if (turn === undefined) {
       context.drawImage(picture, cut.x, cut.y, cut.width, cut.height, x, y, cut.width, cut.height);
+      continue;
     }
+    // Turned about its middle by quarter turns, which keep every pixel on the grid.
+    const sin = Math.round(Math.sin((turn * Math.PI) / 2));
+    const cos = Math.round(Math.cos((turn * Math.PI) / 2));
+    const middle = { x: x + cut.width / 2, y: y + cut.height / 2 };
+    context.setTransform(
+      scale * cos,
+      scale * sin,
+      -scale * sin,
+      scale * cos,
+      middle.x * scale,
+      middle.y * scale,
+    );
+    const { width, height } = cut;
+    context.drawImage(picture, cut.x, cut.y, width, height, -width / 2, -height / 2, width, height);
+    context.setTransform(scale, 0, 0, scale, 0, 0);
   }
 }
 

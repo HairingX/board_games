@@ -37,6 +37,8 @@ export interface Thing {
 export interface Act {
   kind: keyof typeof motionTokens.act;
   at: number;
+  /** How far a charge runs, in pixels, toward where the figure faces. */
+  reach?: number;
 }
 
 /** A figure, drawn from a sprite sheet of 16-pixel frames, a column for each way it faces. */
@@ -84,6 +86,8 @@ export interface Draw {
   cut: Cut;
   x: number;
   y: number;
+  /** Quarter turns about its middle, clockwise, as a figure knocked over lies; none if absent. */
+  turn?: number;
 }
 
 /** The stage's size in pixels. */
@@ -124,10 +128,31 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     figure.doing === 'bouncing' ? Math.floor(seconds * motionTokens.bounce.framesPerSecond) % 4 : 0;
   let x = figure.x;
   let y = figure.y - (figure.doing === 'standing' ? breathLift(seconds) : 0);
+  const toward = figure.facing === 'left' ? -1 : figure.facing === 'right' ? 1 : 0;
   if (kind === 'attack' && into < act.attack.seconds) {
     row = 4;
-    const toward = figure.facing === 'left' ? -1 : figure.facing === 'right' ? 1 : 0;
     x += toward * act.attack.lunge;
+  }
+  if (kind === 'charge') {
+    const { out, hold, back } = act.charge;
+    const reach = current?.reach ?? 0;
+    const share = into < out ? into / out : into < out + hold ? 1 : 1 - (into - out - hold) / back;
+    x += toward * Math.round(reach * Math.max(0, share));
+  }
+  if (kind === 'knocked') {
+    const { push, fall, down, rise, drop } = act.knocked;
+    const lying = into >= fall && into < fall + down;
+    const share = into < fall ? into / fall : lying ? 1 : 1 - (into - fall - down) / rise;
+    x -= toward * Math.round(push * Math.max(0, share));
+    if (lying) {
+      return {
+        sheet: figure.sheet,
+        cut: frame(column, 0),
+        x,
+        y: figure.y + drop,
+        turn: toward < 0 ? 1 : -1,
+      };
+    }
   }
   if (kind === 'hurt' && into < act.hurt.seconds && Math.floor(into / act.hurt.blink) % 2 === 0) {
     return undefined;
@@ -200,5 +225,8 @@ export function drawScene(scene: Scene, seconds: number, still = false): Draw[] 
     ...[...standing.map(({ draw }) => draw), ...signs, ...effects].filter(
       (draw): draw is Draw => draw !== undefined,
     ),
-  ].map(({ sheet, cut, x, y }) => ({ sheet, cut, x, y }));
+  ].map((draw: Draw): Draw => {
+    const { sheet, cut, x, y, turn } = draw;
+    return turn === undefined ? { sheet, cut, x, y } : { sheet, cut, x, y, turn };
+  });
 }

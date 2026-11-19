@@ -193,6 +193,28 @@ describe('SceneCanvas', () => {
 });
 
 describe('paint', () => {
+  it('turns a figure about its middle by quarter turns, and back for the next', () => {
+    const context = fakeContext();
+    const picture = document.createElement('canvas');
+    paint(
+      context as unknown as CanvasRenderingContext2D,
+      [
+        { sheet: 'hero', cut: { x: 0, y: 0, width: 16, height: 16 }, x: 10, y: 20, turn: 1 },
+        { sheet: 'hero', cut: { x: 0, y: 0, width: 16, height: 16 }, x: 40, y: 20 },
+      ],
+      new Map([['hero', picture]]),
+      { width: 64, height: 64 },
+      2,
+    );
+    expect(context.setTransform.mock.calls).toEqual([
+      [2, 0, 0, 2, 0, 0],
+      [0, 2, -2, 0, 36, 56],
+      [2, 0, 0, 2, 0, 0],
+    ]);
+    expect(context.drawImage.mock.calls[0]?.slice(5)).toEqual([-8, -8, 16, 16]);
+    expect(context.drawImage.mock.calls[1]?.slice(5)).toEqual([40, 20, 16, 16]);
+  });
+
   it('leaves out a picture it does not have', () => {
     const context = fakeContext();
     paint(

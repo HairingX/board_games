@@ -52,6 +52,8 @@ const da = {
   setupIntro:
     'Hver spiller har sit eget niveau til regnestykkerne og sit eget sværd til kampen: jo sværere sværd, jo stærkere monstre.',
   toFight: 'Til kamp!',
+  /** The monster fought, named at the top of the fight. */
+  slime: 'Slimklatten',
   attack: 'Angreb',
   stakeRight: 'Rigtigt: dit slag rammer slimet',
   stakeWrong: (hearts: number) =>
@@ -114,6 +116,7 @@ export const text: Translations<typeof da> = {
     setupIntro:
       'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',
     toFight: 'To battle!',
+    slime: 'The slime',
     attack: 'Attack',
     stakeRight: 'Right: your stroke hits the slime',
     stakeWrong: (hearts) =>

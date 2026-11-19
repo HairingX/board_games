@@ -42,6 +42,10 @@ export const motionTokens = {
     hurt: { seconds: 0.6, blink: 0.08 },
     cheer: { seconds: 0.7, height: 6 },
     vanish: { seconds: 0.5 },
+    /** Running at another figure, the act's `reach` pixels, a moment there, and back. */
+    charge: { out: 0.25, hold: 0.15, back: 0.35 },
+    /** Shoved backwards and over: lying down a while, then up again. */
+    knocked: { push: 6, fall: 0.12, down: 0.7, rise: 0.25, drop: 3 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },

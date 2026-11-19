@@ -184,16 +184,20 @@ game builds on them, and everything must stay smooth on a phone.
 - The fight looks like a game, as the owner chose from a mock-up (`Fight.tsx`): always dark,
   in the pack's colours (the `--pixel-*` tokens). A top bar outside the scene, framed in the
   look of where the fight is (wood in the forest, `topFrames` in `art.ts`), holds the way
-  back, what the heroes fight (its portrait and its life in pieces that shake and break off
-  as it is struck) and the speaker; no place's name, which tells a child nothing in a fight,
-  as the owner said. The stage takes the whole width, smaller only on a low phone, so the
-  answers never fall below the screen; the hearts and, with more than one player, a name
+  back, the speaker, and, for interest only, what the heroes fight: its portrait and name. No
+  information needed while playing goes there, as the owner said, so a child never has to
+  look up; no place's name either. The stage takes the whole width, smaller only on a low
+  phone, so the answers never fall below the screen; the hearts, the monster's life under it
+  (in pieces that shake and break off as it is struck) and, with more than one player, a name
   plate with the player's picture over the active hero lie in the scene. Below, the battle
   panel to the bottom of the screen: a tab saying what the player does ("Angreb", with their
   own weapon), the stakes as pictures (✓ the weapon hitting the monster, ✗ the hearts it
   costs), the sum in the middle, and the answers low, where the thumbs are, as the pack's
   chunky buttons. "Forsvar", when a monster announces an attack, comes next
   (`docs/regnespil-design.md`).
+- Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
+  answered far off, the slime cries out, charges at the hero and knocks them over; they lie a
+  moment, say "ouch" in their voice and get up, dizzy. Struck, the slime squeals, cross.
 
 ## Languages
 
@@ -301,10 +305,10 @@ game builds on them, and everything must stay smooth on a phone.
 - The sound is mixed, as the owner found the music drowned the sounds and their levels uneven:
   the pack's files were recorded at very different levels, so each plays at a gain from its
   measured loudness (`src/games/regnespil/sounds.ts`): the chimes lead, the fight's own sounds
-  a little under, a victory above, and the music far under it all (about 20 dB), as the owner
-  found the pack's chiptune music hard on the ears over many sums. The music steps back a
-  further 6 dB while a sum waits for its answer and comes forward as it is answered
-  (`focusMusic`), and dips under every chime (`ducking` in the engine). Music and effects each have a level from 0 to
+  a little under, a victory above, and the music far under it all (about 26 dB), always at
+  the low level the owner liked while thinking: stepping it up and down between sums lagged
+  behind and was dropped, on the owner's word. It dips under every chime (`ducking` in the
+  engine). Music and effects each have a level from 0 to
   1, set on two sliders behind the speaker in a game's header (`src/ui/SoundMenu.tsx`),
   instead of a slider per sound, as games' accessibility guidelines recommend.
 - The owner's choices by ear: a stroke's hit varies between four of the pack's hits, so it is
