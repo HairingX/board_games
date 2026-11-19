@@ -26,6 +26,9 @@
 }
 
 .game-header-title {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
   margin: 0;
   font-size: 1.35rem;
   font-weight: 700;
@@ -36,4 +39,23 @@
   font-weight: 700;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* The game's icon, as on its tile on the home screen: its accent on its colour. */
+.game-header-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  font-size: 1.3rem;
+  color: var(--game-accent);
+  background: var(--game);
+  border: 1px solid var(--game-accent);
+  border-radius: 50%;
+}
+
+.game-header-icon svg {
+  width: 26px;
+  height: 26px;
 }

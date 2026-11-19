@@ -129,6 +129,7 @@ describe('App', () => {
 
     goTo('#/spil/testspil');
     expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Testspil' })).toHaveTextContent('🎲Testspil');
     expect(scrollTo).toHaveBeenCalledWith(0, 0);
     click(/^Mille/);
     click('Start');

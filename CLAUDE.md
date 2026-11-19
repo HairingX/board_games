@@ -271,6 +271,9 @@ gradients, glow or glass.
   to blend with and shows as a grainy band.
 - Motion is springy and quick, and anything tapped gives way under the finger. Motion's
   settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
+- Every screen of a game shows the game's icon in its header (`src/ui/GameIcon.tsx`, given by
+  the app around the game), so it is always clear which game is open, even when the phone is
+  picked up again later.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
 
 ## Conventions

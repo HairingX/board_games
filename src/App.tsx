@@ -6,6 +6,7 @@ import { mayPlay, type Family, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
+import { GameIconProvider } from './ui/GameIcon';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { moveSave, saves } from './lib/saves';
 import { navigate, useRoute } from './lib/router';
@@ -146,40 +147,42 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       return (
         <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
           <Suspense fallback={<p className="status">{t.loading}</p>}>
-            <div className="game" style={gameTheme(game)}>
-              {players ? (
-                <game.Screen
-                  players={players}
-                  saveKey={gameSaveKey(game, players)}
-                  place={route.place}
-                  go={(next) => {
-                    navigate({ ...route, place: next });
-                  }}
-                />
-              ) : (
-                <ChoosePlayers
-                  game={game}
-                  family={family}
-                  current={current}
-                  onChange={save}
-                  onStart={(chosen) => {
-                    const moved = game.formerSaveKey
-                      ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
-                      : Promise.resolve();
-                    void moved
-                      .catch(() => undefined)
-                      .then(() => {
-                        navigate({
-                          name: 'game',
-                          id: game.id,
-                          players: chosen.map((player) => player.id),
-                          place: [],
+            <GameIconProvider icon={game.icon}>
+              <div className="game" style={gameTheme(game)}>
+                {players ? (
+                  <game.Screen
+                    players={players}
+                    saveKey={gameSaveKey(game, players)}
+                    place={route.place}
+                    go={(next) => {
+                      navigate({ ...route, place: next });
+                    }}
+                  />
+                ) : (
+                  <ChoosePlayers
+                    game={game}
+                    family={family}
+                    current={current}
+                    onChange={save}
+                    onStart={(chosen) => {
+                      const moved = game.formerSaveKey
+                        ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
+                        : Promise.resolve();
+                      void moved
+                        .catch(() => undefined)
+                        .then(() => {
+                          navigate({
+                            name: 'game',
+                            id: game.id,
+                            players: chosen.map((player) => player.id),
+                            place: [],
+                          });
                         });
-                      });
-                  }}
-                />
-              )}
-            </div>
+                    }}
+                  />
+                )}
+              </div>
+            </GameIconProvider>
           </Suspense>
         </ErrorBoundary>
       );
