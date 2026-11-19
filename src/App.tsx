@@ -1,5 +1,5 @@
 import { MotionConfig } from 'motion/react';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ChoosePlayers } from './family/ChoosePlayers';
 import { mayPlay, type Family, type Profile } from './family/family';
@@ -19,7 +19,7 @@ import { Home } from './routes/Home';
 import { Settings } from './routes/Settings';
 import { Start } from './routes/Start';
 import { appText } from './routes/text';
-import type { UpdateOffer } from './routes/UpdateToast';
+import { UpdateToast, type UpdateOffer } from './routes/UpdateToast';
 import { common } from './ui/text';
 
 /**
@@ -142,113 +142,129 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
         }
       : undefined;
 
-  if (!current || route.name === 'start') {
-    return <Start games={shown} {...(update ? { update } : {})} />;
-  }
+  return (
+    <>
+      {screen()}
+      {/* A new version is offered on every screen, games too, as the owner wants: it can be put off. */}
+      {update && <UpdateToast offer={update} />}
+    </>
+  );
 
-  const playable = shown.filter((candidate) => mayPlay(current.role, candidate.audience));
-  const home = () => {
-    navigate({ name: 'home' });
-  };
-
-  switch (route.name) {
-    case 'home':
-      return (
-        <Home
-          games={playable}
-          player={current}
-          onSwitch={leave}
-          onSettings={() => {
-            navigate({ name: 'settings', page: { name: 'main' } });
-          }}
-          {...(update ? { update } : {})}
-        />
-      );
-    case 'settings':
-      return current.role === 'voksen' ? (
-        <Settings
-          family={family}
-          current={current}
-          onChange={save}
-          page={route.page}
-          go={(page) => {
-            navigate({ name: 'settings', page });
-          }}
-          onBack={home}
-          offline={offline}
-          beta={beta === true}
-          onBeta={setBeta}
-        />
-      ) : (
-        <Message text={t.noSuchPage} />
-      );
-    case 'game': {
-      // A game still being built waits until it is known whether beta is on.
-      if (beta === undefined && games.some((game) => game.beta === true && game.id === route.id)) {
-        return null;
-      }
-      const game = playable.find((candidate) => candidate.id === route.id);
-      if (!game?.Screen) return <Message text={t.noSuchGame} />;
-      const players = playersFor(game, route.players, family);
-      /** Starts the game with these players, once a save from before they were chosen is theirs. */
-      const start = (chosen: readonly Profile[], replace = false) => {
-        const moved = game.formerSaveKey
-          ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
-          : Promise.resolve();
-        void moved
-          .catch(() => undefined)
-          .then(() => {
-            navigate(
-              {
-                name: 'game',
-                id: game.id,
-                players: chosen.map((player) => player.id),
-                place: [],
-              },
-              { replace },
-            );
-          });
-      };
-      const only = players ? undefined : onlyGroup(game, family);
-      return (
-        <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
-          <Suspense fallback={<p className="status">{t.loading}</p>}>
-            <GameFrameProvider icon={game.icon} players={players ?? []}>
-              <div className="game" style={gameTheme(game)}>
-                {only ? (
-                  <StartAlone
-                    onStart={() => {
-                      start(only, true);
-                    }}
-                  />
-                ) : players ? (
-                  <game.Screen
-                    players={players}
-                    saveKey={gameSaveKey(game, players)}
-                    place={route.place}
-                    go={(next) => {
-                      navigate({ ...route, place: next });
-                    }}
-                  />
-                ) : (
-                  <ChoosePlayers
-                    game={game}
-                    family={family}
-                    current={current}
-                    onChange={save}
-                    onStart={(chosen) => {
-                      start(chosen);
-                    }}
-                  />
-                )}
-              </div>
-            </GameFrameProvider>
-          </Suspense>
-        </ErrorBoundary>
-      );
+  /**
+   * The screen the address names, as part of this component, not one of its own, so a game
+   * keeps its state when the shell draws again.
+   */
+  function screen(): ReactNode {
+    if (!current || route.name === 'start') {
+      return <Start games={shown} />;
     }
-    case 'unknown':
-      return <Message text={t.noSuchPage} />;
+
+    const playable = shown.filter((candidate) => mayPlay(current.role, candidate.audience));
+    const home = () => {
+      navigate({ name: 'home' });
+    };
+
+    switch (route.name) {
+      case 'home':
+        return (
+          <Home
+            games={playable}
+            player={current}
+            onSwitch={leave}
+            onSettings={() => {
+              navigate({ name: 'settings', page: { name: 'main' } });
+            }}
+          />
+        );
+      case 'settings':
+        return current.role === 'voksen' ? (
+          <Settings
+            family={family}
+            current={current}
+            onChange={save}
+            page={route.page}
+            go={(page) => {
+              navigate({ name: 'settings', page });
+            }}
+            onBack={home}
+            offline={offline}
+            beta={beta === true}
+            onBeta={setBeta}
+          />
+        ) : (
+          <Message text={t.noSuchPage} />
+        );
+      case 'game': {
+        // A game still being built waits until it is known whether beta is on.
+        if (
+          beta === undefined &&
+          games.some((game) => game.beta === true && game.id === route.id)
+        ) {
+          return null;
+        }
+        const game = playable.find((candidate) => candidate.id === route.id);
+        if (!game?.Screen) return <Message text={t.noSuchGame} />;
+        const players = playersFor(game, route.players, family);
+        /** Starts the game with these players, once a save from before they were chosen is theirs. */
+        const start = (chosen: readonly Profile[], replace = false) => {
+          const moved = game.formerSaveKey
+            ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
+            : Promise.resolve();
+          void moved
+            .catch(() => undefined)
+            .then(() => {
+              navigate(
+                {
+                  name: 'game',
+                  id: game.id,
+                  players: chosen.map((player) => player.id),
+                  place: [],
+                },
+                { replace },
+              );
+            });
+        };
+        const only = players ? undefined : onlyGroup(game, family);
+        return (
+          <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
+            <Suspense fallback={<p className="status">{t.loading}</p>}>
+              <GameFrameProvider icon={game.icon} players={players ?? []}>
+                <div className="game" style={gameTheme(game)}>
+                  {only ? (
+                    <StartAlone
+                      onStart={() => {
+                        start(only, true);
+                      }}
+                    />
+                  ) : players ? (
+                    <game.Screen
+                      players={players}
+                      saveKey={gameSaveKey(game, players)}
+                      place={route.place}
+                      go={(next) => {
+                        navigate({ ...route, place: next });
+                      }}
+                    />
+                  ) : (
+                    <ChoosePlayers
+                      game={game}
+                      family={family}
+                      current={current}
+                      onChange={save}
+                      onStart={(chosen) => {
+                        start(chosen);
+                      }}
+                    />
+                  )}
+                </div>
+              </GameFrameProvider>
+            </Suspense>
+          </ErrorBoundary>
+        );
+      }
+      case 'unknown':
+        return <Message text={t.noSuchPage} />;
+    }
   }
 }
 

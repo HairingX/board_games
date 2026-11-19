@@ -177,7 +177,7 @@ describe('App', () => {
     read.mockRestore();
   });
 
-  it('offers a waiting new version on the home screen, loads it, or puts it off', async () => {
+  it('offers a waiting new version on every screen, games too, loads it, or puts it off', async () => {
     const updateServiceWorker = vi.fn(() => Promise.resolve());
     const original = vi.mocked(useRegisterSW).getMockImplementation();
     vi.mocked(useRegisterSW).mockImplementation(() => ({
@@ -190,11 +190,14 @@ describe('App', () => {
       value: { controller: {} },
     });
     await startAs('Far');
+    expect(screen.getByText('Ny version klar.')).toBeInTheDocument();
+    goTo('#/spil/parkort');
+    expect(screen.getByText('Ny version klar.')).toBeInTheDocument();
     click('Opdatér');
     expect(updateServiceWorker).toHaveBeenCalledOnce();
     click('Senere');
     expect(screen.queryByText('Ny version klar.')).not.toBeInTheDocument();
-    goTo('#/spil/parkort');
+    goTo('#/');
     expect(screen.queryByText('Ny version klar.')).not.toBeInTheDocument();
     Reflect.deleteProperty(navigator, 'serviceWorker');
     if (original) vi.mocked(useRegisterSW).mockImplementation(original);

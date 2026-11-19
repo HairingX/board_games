@@ -65,29 +65,6 @@ describe('Home', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('offers a waiting new version, and says nothing when there is none', () => {
-    const onUpdate = vi.fn();
-    const onLater = vi.fn();
-    const { rerender } = render(
-      <Home
-        games={[]}
-        player={far}
-        onSwitch={() => undefined}
-        onSettings={() => undefined}
-        update={{ load: onUpdate, later: onLater }}
-      />,
-    );
-    expect(screen.getByText('Ny version klar.')).toBeInTheDocument();
-    screen.getByRole('button', { name: 'Opdatér' }).click();
-    expect(onUpdate).toHaveBeenCalledOnce();
-    screen.getByRole('button', { name: 'Senere' }).click();
-    expect(onLater).toHaveBeenCalledOnce();
-    rerender(
-      <Home games={[]} player={far} onSwitch={() => undefined} onSettings={() => undefined} />,
-    );
-    expect(screen.queryByText('Ny version klar.')).not.toBeInTheDocument();
-  });
-
   it('greets the player, lets them switch, and offers grown-ups the settings only', () => {
     const onSwitch = vi.fn();
     const onSettings = vi.fn();

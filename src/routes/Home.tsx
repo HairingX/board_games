@@ -8,7 +8,6 @@ import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { GameName } from '../ui/GameName';
 import { appText } from './text';
-import { UpdateToast, type UpdateOffer } from './UpdateToast';
 import './Home.css';
 
 interface Props {
@@ -19,15 +18,13 @@ interface Props {
   onSwitch: () => void;
   /** Opens the settings; offered to grown-ups only. */
   onSettings: () => void;
-  /** The new version that is waiting; given only while one is and it was not put off. */
-  update?: UpdateOffer;
 }
 
 /**
  * The games the player may play, who is playing, and a note when a new version of the app is
  * ready. Grown-ups open the settings from here; children never see them.
  */
-export function Home({ games, player, onSwitch, onSettings, update }: Props) {
+export function Home({ games, player, onSwitch, onSettings }: Props) {
   const t = useMessages(appText);
   return (
     <>
@@ -81,7 +78,6 @@ export function Home({ games, player, onSwitch, onSettings, update }: Props) {
           ))}
         </ul>
       )}
-      {update && <UpdateToast offer={update} />}
     </>
   );
 }

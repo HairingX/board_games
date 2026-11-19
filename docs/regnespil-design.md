@@ -326,7 +326,8 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   eyes are on the sum when they must act.
 - Overlays done properly and alike: dim the rest, a clear layer above, professional like a game
   made by experienced developers with a design background.
-- No notes or dialogs in the middle of a game.
+- No notes or dialogs in the middle of a game. Later changed: the note of a new version may show in a game too, as it
+  can be put off with "Senere", so updating needs no leaving the game.
 - A monster engine: monsters that burrow and pop up to hit one of the heroes; that walk to a
   berry bush to heal every few rounds; that weigh healing against attacking by how much life
   they have; that change when their life falls (harder to beat, a spear fetched from behind a

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { far, seedFamily } from '../../tests/family';
 import { about } from '../../tests/games';
 import { FamilyProvider } from '../family/FamilyContext';
@@ -20,12 +20,11 @@ const games: GameInfo[] = [
   },
 ];
 
-async function open(onUpdate?: () => void) {
-  const update = onUpdate && { load: onUpdate, later: () => undefined };
+async function open() {
   render(
     <I18nProvider>
       <FamilyProvider>
-        <Start games={games} {...(update ? { update } : {})} />
+        <Start games={games} />
       </FamilyProvider>
     </I18nProvider>,
   );
@@ -49,14 +48,6 @@ describe('Start', () => {
     expect(screen.getByRole('heading', { name: 'Velkommen til Småspil' })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Sprog'), { target: { value: 'en' } });
     expect(await screen.findByRole('heading', { name: 'Welcome to Småspil' })).toBeInTheDocument();
-  });
-
-  it('offers a new version before anyone is chosen', async () => {
-    const onUpdate = vi.fn();
-    await open(onUpdate);
-    expect(screen.getByRole('status')).toHaveTextContent('Ny version klar.');
-    fireEvent.click(screen.getByRole('button', { name: 'Opdatér' }));
-    expect(onUpdate).toHaveBeenCalledOnce();
   });
 
   it('leaves the header out while the grown-ups’ code is asked for', async () => {
