@@ -54,7 +54,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   const t = useMessages(appText);
   const { family, current, save, leave, place, notePlace } = useFamily();
   const route = useRoute();
-  /** Whether the app opened on someone remembered, so it goes back where they were. */
+  /** Whether the app opened on someone remembered, who stays on the address it opened on. */
   const resumed = useRef(current !== undefined);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
   const {
@@ -73,16 +73,15 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     lastPlace.current = place;
   }, [place]);
 
-  // When the player changes, they go where they are to be: back where they were when the app
-  // opened on them from its start address, else home. Opened on any other address, it stays.
-  // Only a new player moves the address; moving about the app only notes where they are.
+  // Someone newly chosen goes home. The one the app opened on stays where it opened: on the
+  // start screen, or on the screen a reload or an update kept. Only a new player moves the
+  // address; moving about the app only notes where they are.
   const playerId = current?.id;
   useEffect(() => {
     if (playerId === undefined) return;
-    const opened = window.location.hash === '';
-    const stay = resumed.current && !opened;
+    const opened = resumed.current;
     resumed.current = false;
-    if (!stay && window.location.hash !== lastPlace.current) {
+    if (!opened && window.location.hash !== lastPlace.current) {
       window.location.replace(lastPlace.current);
     }
   }, [playerId]);
@@ -103,7 +102,9 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
       }
     : undefined;
 
-  if (!current) return <Start games={games} {...(update ? { onUpdate: update } : {})} />;
+  if (!current || route.name === 'start') {
+    return <Start games={games} {...(update ? { onUpdate: update } : {})} />;
+  }
 
   const playable = games.filter((candidate) => mayPlay(current.role, candidate.audience));
   const home = () => {

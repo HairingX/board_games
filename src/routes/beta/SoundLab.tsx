@@ -11,7 +11,7 @@ import sword from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/S
 import { useMessages } from '../../i18n/I18n';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { reviveSoundSettings, soundSaveKey } from '../../lib/sound/settings';
-import { voiceClips, voices } from '../../lib/sound/voices';
+import { voices } from '../../lib/sound/voices';
 import { useSaved } from '../../lib/useSaved';
 import { GameHeader } from '../../ui/GameHeader';
 import { Switch } from '../../ui/Switch';
@@ -25,8 +25,8 @@ const sounds = { coin, sword, hit, magic, power, success } as const;
 const sentence = 8;
 
 /**
- * The sound engine to try: music that fades from piece to piece, effects, and the two ways of
- * making the characters' voices. Music and effects can be turned off, as players will.
+ * The sound engine to try: music that fades from piece to piece, effects, and the characters'
+ * voices. Music and effects can be turned off, as players will.
  */
 export function SoundLab({
   onBack,
@@ -111,34 +111,33 @@ export function SoundLab({
 
       <h2>{t.voices}</h2>
       <p className="family-intro">{t.voicesNote}</p>
-      <h3>{t.madeFromTones}</h3>
-      <div className="lab-buttons">
-        <Babble name={t.characters.hero} onSay={() => sound.babble(voices.heroTone, sentence)} />
-        <Babble name={t.characters.troll} onSay={() => sound.babble(voices.trollTone, sentence)} />
-        <Babble name={t.characters.fairy} onSay={() => sound.babble(voices.fairyTone, sentence)} />
-      </div>
-      <h3>{t.madeFromClips}</h3>
       <div className="lab-buttons">
         <Babble
           name={t.characters.hero}
-          onSay={() => sound.babble(voices.heroClips, sentence, voiceClips)}
+          onSay={() => {
+            sound.babble(voices.hero, sentence);
+          }}
         />
         <Babble
           name={t.characters.troll}
-          onSay={() => sound.babble(voices.trollClips, sentence, voiceClips)}
+          onSay={() => {
+            sound.babble(voices.troll, sentence);
+          }}
         />
         <Babble
           name={t.characters.fairy}
-          onSay={() => sound.babble(voices.fairyClips, sentence, voiceClips)}
+          onSay={() => {
+            sound.babble(voices.fairy, sentence);
+          }}
         />
       </div>
     </section>
   );
 }
 
-function Babble({ name, onSay }: { name: string; onSay: () => Promise<void> }) {
+function Babble({ name, onSay }: { name: string; onSay: () => void }) {
   return (
-    <button type="button" className="btn btn-ghost" onClick={() => void onSay()}>
+    <button type="button" className="btn btn-ghost" onClick={onSay}>
       {name}
     </button>
   );

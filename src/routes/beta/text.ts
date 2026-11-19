@@ -9,10 +9,7 @@ const da = {
   stopMusic: 'Stop musikken',
   effects: 'Lydeffekter',
   voices: 'Stemmer uden ord',
-  voicesNote:
-    'Figurerne pludrer i stedet for at tale. Hør de to måder at lave stemmerne på, og vælg den, der lyder bedst.',
-  madeFromTones: 'Lavet af toner i telefonen',
-  madeFromClips: 'Lavet af korte optagelser',
+  voicesNote: 'Figurerne pludrer i stedet for at tale, hver i sin egen tone.',
   tracks: { adventure: 'Eventyret begynder', forest: 'Den mørke skov', tension: 'Spænding' },
   sounds: {
     coin: 'Mønt',
@@ -35,10 +32,7 @@ export const labText: Translations<typeof da> = {
     stopMusic: 'Stop the music',
     effects: 'Sound effects',
     voices: 'Voices without words',
-    voicesNote:
-      'The characters babble instead of speaking. Hear the two ways of making the voices, and pick the one that sounds best.',
-    madeFromTones: 'Made from tones in the phone',
-    madeFromClips: 'Made from short recordings',
+    voicesNote: 'The characters babble instead of speaking, each in a tone of its own.',
     tracks: { adventure: 'The adventure begins', forest: 'The dark forest', tension: 'Tension' },
     sounds: {
       coin: 'Coin',

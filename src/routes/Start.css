@@ -63,3 +63,18 @@
   width: 32px;
   height: 32px;
 }
+
+/* Whoever played last, ready to go on. */
+.start-continue {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+  margin-top: var(--space-7);
+}
+
+.start-hello {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+}

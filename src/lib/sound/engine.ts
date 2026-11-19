@@ -125,15 +125,9 @@ export class SoundEngine {
   }
 
   /** Says something without words, in the voice: a few syllables at its pitch and pace. */
-  async babble(
-    voice: Voice,
-    syllables: number,
-    clips: readonly string[] = [],
-    random?: Random,
-  ): Promise<void> {
+  babble(voice: Voice, syllables: number, random?: Random): void {
     const { context, effects } = this.unlock();
     if (!this.settings.effects) return;
-    const recorded = await Promise.all(clips.map((url) => this.load(url)));
     const start = context.currentTime + syllableEdge;
     for (const syllable of babble(voice, syllables, random)) {
       const at = start + syllable.at;
@@ -143,28 +137,16 @@ export class SoundEngine {
       envelope.gain.setValueAtTime(syllableVolume, at + syllable.length - syllableEdge);
       envelope.gain.linearRampToValueAtTime(0, at + syllable.length);
       envelope.connect(effects);
-      const pitch = shift(voice.pitch, syllable.step);
-      if (voice.timbre.kind === 'tone') {
-        const tone = context.createOscillator();
-        tone.type = voice.timbre.wave;
-        tone.frequency.value = pitch;
-        const vowel = context.createBiquadFilter();
-        vowel.type = 'bandpass';
-        vowel.frequency.value = voice.timbre.vowel;
-        tone.connect(vowel);
-        vowel.connect(envelope);
-        tone.start(at);
-        tone.stop(at + syllable.length);
-      } else {
-        const clip = recorded[syllable.clip % recorded.length];
-        if (!clip) return;
-        const source = context.createBufferSource();
-        source.buffer = clip;
-        source.playbackRate.value = pitch;
-        source.connect(envelope);
-        source.start(at);
-        source.stop(at + syllable.length);
-      }
+      const tone = context.createOscillator();
+      tone.type = voice.wave;
+      tone.frequency.value = shift(voice.pitch, syllable.step);
+      const vowel = context.createBiquadFilter();
+      vowel.type = 'bandpass';
+      vowel.frequency.value = voice.vowel;
+      tone.connect(vowel);
+      vowel.connect(envelope);
+      tone.start(at);
+      tone.stop(at + syllable.length);
     }
   }
 

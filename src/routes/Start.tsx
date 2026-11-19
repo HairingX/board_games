@@ -1,8 +1,11 @@
 import { appMeta } from '../appMeta';
+import { Avatar } from '../family/Avatar';
+import { useFamily } from '../family/FamilyContext';
 import { WhoIsPlaying } from '../family/WhoIsPlaying';
 import { useMessages } from '../i18n/I18n';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { LanguageSelect } from '../ui/LanguageSelect';
+import { common } from '../ui/text';
 import { appText } from './text';
 import { UpdateBanner } from './UpdateBanner';
 import './Home.css';
@@ -16,32 +19,56 @@ interface Props {
 }
 
 /**
- * What the app opens on when no one is playing: its name, what it is, the games' cards, and
- * "Hvem spiller?". A new version can be loaded here, before anyone is chosen.
+ * Where the app opens, as a game's title screen: its name, what it is, the games' cards, and
+ * whoever played last, who continues where they were with one tap or switches player. With no
+ * one to continue, "Hvem spiller?" is asked here. A new version can be loaded here too.
  */
 export function Start({ games, onUpdate }: Props) {
   const t = useMessages(appText);
+  const { hello } = useMessages(common);
+  const { current, leave, place } = useFamily();
+
+  const header = (
+    <>
+      <div className="start-top">
+        <LanguageSelect compact />
+      </div>
+      {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
+      <header className="start-hero">
+        <div className="start-fan" aria-hidden="true">
+          {games.map((game) => (
+            <span key={game.id} className="start-card" style={gameTheme(game)}>
+              <span className="start-card-icon">{game.icon}</span>
+            </span>
+          ))}
+        </div>
+        <h1 className="home-title">{appMeta.name}</h1>
+        <p className="start-tagline">{t.tagline}</p>
+      </header>
+    </>
+  );
+
+  if (!current) return <WhoIsPlaying header={header} />;
+
   return (
-    <WhoIsPlaying
-      header={
-        <>
-          <div className="start-top">
-            <LanguageSelect compact />
-          </div>
-          {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
-          <header className="start-hero">
-            <div className="start-fan" aria-hidden="true">
-              {games.map((game) => (
-                <span key={game.id} className="start-card" style={gameTheme(game)}>
-                  <span className="start-card-icon">{game.icon}</span>
-                </span>
-              ))}
-            </div>
-            <h1 className="home-title">{appMeta.name}</h1>
-            <p className="start-tagline">{t.tagline}</p>
-          </header>
-        </>
-      }
-    />
+    <section className="family">
+      {header}
+      <div className="start-continue">
+        <Avatar profile={current} />
+        <p className="start-hello">{hello(current.name)}</p>
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          onClick={() => {
+            window.location.replace(place);
+          }}
+        >
+          {t.continue}
+        </button>
+        <button type="button" className="btn btn-quiet btn-block" onClick={leave}>
+          {t.switchPlayer}
+        </button>
+      </div>
+    </section>
   );
 }

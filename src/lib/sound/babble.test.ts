@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { babble, shift, type Voice } from './babble';
 
-const voice: Voice = { timbre: { kind: 'clips' }, pitch: 1, pace: 10, spread: 2 };
+const voice: Voice = { wave: 'sine', vowel: 1000, pitch: 200, pace: 10, spread: 2 };
 
 describe('babble', () => {
   it('says one syllable after another at the voice’s pace', () => {
@@ -14,10 +14,6 @@ describe('babble', () => {
     expect(babble(voice, 3, () => 0.5).map((s) => s.step)).toEqual([0, 0, -3]);
     expect(babble(voice, 2, () => 0).map((s) => s.step)).toEqual([-2, -5]);
     expect(babble(voice, 2, () => 0.999).map((s) => s.step)).toEqual([2, -1]);
-  });
-
-  it('picks a clip for each syllable', () => {
-    expect(babble(voice, 1, () => 0.25)[0]?.clip).toBe(250);
   });
 
   it('says nothing for no syllables', () => {

@@ -17,6 +17,8 @@ export type SettingsPage =
 
 /** Where in the app a screen is. */
 export type Route =
+  /** The start screen: the app's start address, with no hash. */
+  | { name: 'start' }
   | { name: 'home' }
   | { name: 'settings'; page: SettingsPage }
   | {
@@ -40,8 +42,9 @@ const settingsPages: Readonly<Record<string, SettingsPage>> = {
   'beta/lyd': { name: 'sound' },
 };
 
-/** The screen a location hash names: `#/` and an empty hash are the home screen. */
+/** The screen a location hash names: no hash is the start screen, `#/` the home screen. */
 export function parseRoute(hash: string): Route {
+  if (hash === '') return { name: 'start' };
   const parts = hash.replace(/^#\/?/, '').replace(/\/$/, '').split('/');
   const [first = '', ...rest] = parts;
   if (first === '' && rest.length === 0) return { name: 'home' };
@@ -67,8 +70,11 @@ export function parseRoute(hash: string): Route {
   return { name: 'unknown' };
 }
 
+/** A screen the app goes to; the start screen is where it opens, never gone to. */
+export type Destination = Exclude<Route, { name: 'start' | 'unknown' }>;
+
 /** The hash that leads to the screen. */
-export function routeHref(route: Exclude<Route, { name: 'unknown' }>): string {
+export function routeHref(route: Destination): string {
   switch (route.name) {
     case 'home':
       return '#/';
@@ -105,7 +111,7 @@ export function gameHref(id: string): string {
 }
 
 /** Goes to the screen, as a new step the back gesture can undo. */
-export function navigate(route: Exclude<Route, { name: 'unknown' }>): void {
+export function navigate(route: Destination): void {
   window.location.hash = routeHref(route);
 }
 

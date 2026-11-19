@@ -125,18 +125,21 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## The family and players
 
-- The start screen (`src/routes/Start.tsx`) says what the app is before anything is asked: its
-  name, what it is for, the games' cards fanned out, the language in the corner, and "Opdatér"
-  when a new version waits, so updating never needs anyone chosen. Under it, "Hvem spiller?"
-  (`src/family/WhoIsPlaying.tsx`). The family is saved on the phone (`src/family/family.ts`,
-  under the key `familie`). The first time, the first grown-up is made there, without being
-  asked for a code.
-- The app remembers who is playing and where (`src/family/remembered.ts`, saved under `sted`),
-  and opens straight there: after a reload, an update, or when the phone reopens the app from
-  its start address. The owner decided this: being asked again and again was a nuisance. A
-  grown-up behind the lock is remembered only for `lockedGrace` (30 minutes) after the app
-  was last used, so a child opening it the next morning does not land on them. Choosing
-  someone on the start screen goes home; "Skift spiller" forgets who played.
+- The app opens on a start screen (`src/routes/Start.tsx`), like a game's title screen, as the
+  owner wants it to feel like an app: its name, what it is for, the games' cards fanned out,
+  the language in the corner, and "Opdatér" when a new version waits, so updating never needs
+  anyone chosen. Whoever played last is greeted there, with "Fortsæt", which goes back where
+  they were, and "Skift spiller". With no one to continue, "Hvem spiller?"
+  (`src/family/WhoIsPlaying.tsx`) is asked there instead. The family is saved on the phone
+  (`src/family/family.ts`, under the key `familie`). The first time, the first grown-up is
+  made there, without being asked for a code.
+- The app remembers who is playing and where (`src/family/remembered.ts`, saved under `sted`).
+  A reload or an update stays on the screen it was on; opened from its start address, the app
+  shows the start screen, and "Fortsæt" goes back. The owner decided this: being asked again
+  and again was a nuisance. A grown-up behind the lock is remembered only for `lockedGrace`
+  (30 minutes) after the app was last used, so a child opening it the next morning does not
+  land on them. Choosing someone on the start screen goes home; "Skift spiller" forgets who
+  played.
 - A profile is a name, a colour, and whether it is a grown-up or a child; profiles have no codes,
   and anyone may choose anyone. The owner decided this: codes per person were a nuisance.
 - The grown-ups' lock (`src/family/AdultLock.tsx`) is off until a grown-up turns it on in the
@@ -185,7 +188,8 @@ game builds on them, and everything must stay smooth on a phone.
 - The sound engine (`src/lib/sound/engine.ts`, one `sound` for the app) is Web Audio: music
   fades from one piece to the next, effects are fetched and decoded once, and babbling voices
   (`src/lib/sound/babble.ts`, voices in `voices.ts`) are syllables at a character's pitch and
-  pace, made from tones or from the pack's short voice clips. Sound starts only from a tap.
+  pace, made from tones in the phone: the owner heard both and chose tones over the pack's
+  recorded voice clips. Sound starts only from a tap.
   Whether music and effects play is saved on the phone under `lyd`. An iPhone's silent switch
   silences it all. Music is not yet in the offline cache.
 
@@ -194,7 +198,7 @@ game builds on them, and everything must stay smooth on a phone.
 - Parts still being built are tried by grown-ups on test pages, never by children: "Beta" in the
   settings (`src/lib/beta.ts`, saved on the phone under `beta`) is off until turned on, and then
   lists the test pages (`src/routes/beta/`). The owner wants to see each step this way.
-- `src/routes/beta/SoundLab.tsx`: music, effects, and the two ways of making the voices.
+- `src/routes/beta/SoundLab.tsx`: music, effects, and the characters' babbling voices.
 
 ## Saving
 
@@ -212,7 +216,8 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## The app shell
 
-- Every screen has its own address in the location's hash (`src/lib/router.ts`): `#/` home,
+- Every screen has its own address in the location's hash (`src/lib/router.ts`): no hash the
+  start screen, `#/` home,
   `#/indstillinger/...` the settings' pages, `#/spil/<game>` choosing players,
   `#/spil/<game>/<id>+<id>` the game with its players, and further parts for where in the
   game (`place` and `go` in `GameProps`; Parkort's table is `kort`). Reloading stays, and the

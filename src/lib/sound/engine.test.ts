@@ -16,13 +16,7 @@ function engine() {
   return { ...fake, sound: new SoundEngine(fake.browser) };
 }
 
-const tone: Voice = {
-  timbre: { kind: 'tone', wave: 'square', vowel: 900 },
-  pitch: 200,
-  pace: 10,
-  spread: 0,
-};
-const clips: Voice = { timbre: { kind: 'clips' }, pitch: 2, pace: 10, spread: 0 };
+const tone: Voice = { wave: 'square', vowel: 900, pitch: 200, pace: 10, spread: 0 };
 
 describe('SoundEngine', () => {
   it('makes nothing before the first sound, as browsers allow sound only from a tap', () => {
@@ -85,7 +79,7 @@ describe('SoundEngine', () => {
     const { sound, context, fetch } = engine();
     sound.setSettings({ music: true, effects: false });
     await sound.effect('/coin.m4a');
-    await sound.babble(tone, 3);
+    sound.babble(tone, 3);
     expect(fetch).not.toHaveBeenCalled();
     expect(context.all(FakeBufferSource)).toEqual([]);
     expect(context.all(FakeOscillator)).toEqual([]);
@@ -124,9 +118,9 @@ describe('SoundEngine', () => {
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
   });
 
-  it('babbles in a made voice: a tone through a vowel for each syllable, swelling and fading', async () => {
+  it('babbles: a tone through a vowel for each syllable, swelling and fading', () => {
     const { sound, context } = engine();
-    await sound.babble(tone, 2, [], () => 0.5);
+    sound.babble(tone, 2, () => 0.5);
     const tones = context.all(FakeOscillator);
     expect(tones.map((t) => [t.type, t.frequency.value])).toEqual([
       ['square', 200],
@@ -147,22 +141,6 @@ describe('SoundEngine', () => {
       ['ramp', 0],
     ]);
     expect(envelope.outputs).toEqual([sound.unlock().effects]);
-  });
-
-  it('babbles in a recorded voice: the clips, sped up to the voice’s pitch', async () => {
-    const { sound, context, fetch } = engine();
-    await sound.babble(clips, 2, ['/a.m4a', '/bb.m4a'], () => 0.001);
-    expect(fetch).toHaveBeenCalledTimes(2);
-    const sources = context.all(FakeBufferSource);
-    expect(sources.map((s) => s.buffer)).toEqual([{ length: 7 }, { length: 7 }]);
-    expect(sources.map((s) => s.playbackRate.value)).toEqual([2, 2 * 2 ** (-3 / 12)]);
-    expect(sources.map((s) => s.stops.length)).toEqual([1, 1]);
-  });
-
-  it('says nothing in a recorded voice without clips', async () => {
-    const { sound, context } = engine();
-    await sound.babble(clips, 3);
-    expect(context.all(FakeBufferSource)).toEqual([]);
   });
 
   it('uses the browser’s own audio, music player, fetch and timer, quietly when refused', async () => {

@@ -53,6 +53,7 @@ async function startAs(name: string, games?: readonly GameInfo[]): Promise<void>
   await seedFamily({ profiles: [far, mor, mille] });
   render(games ? <App games={games} /> : <App />);
   await playAs(name);
+  await screen.findByText('Virker uden internet');
 }
 
 describe('App', () => {
@@ -216,8 +217,8 @@ describe('App', () => {
 
   it('says so when a game cannot be loaded', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    window.location.hash = '#/spil/i-stykker';
     await startAs('Far', [brokenGame]);
+    goTo('#/spil/i-stykker');
     click('Start');
     expect(await screen.findByText('Spillet kunne ikke hentes.')).toBeInTheDocument();
   });
@@ -258,11 +259,25 @@ describe('App, opened again', () => {
     render(<App />);
   }
 
-  it('opens where the player was, from the start address', async () => {
+  it('opens on the start screen, and continues where the player was', async () => {
     await reopen({ player: 'mille', locked: false, place: '#/spil/regnespil', at: 0 });
+    expect(await screen.findByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
+    expect(screen.getByText('Hej, Mille')).toBeInTheDocument();
+    click('Fortsæt');
     await waitFor(() => {
       expect(window.location.hash).toBe('#/spil/regnespil');
     });
+  });
+
+  it('lets someone else play from the start screen', async () => {
+    await reopen({ player: 'mille', locked: false, place: '#/spil/regnespil', at: 0 });
+    fireEvent.click(await screen.findByRole('button', { name: 'Skift spiller' }));
+    await playAs('Mor');
+    expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
+    click('Annullér');
+    await playAs('Mille');
+    expect(await screen.findByText('Virker uden internet')).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/');
   });
 
   it('stays on the address it was reloaded on', async () => {
@@ -286,6 +301,8 @@ describe('App, opened again', () => {
   it('notes when the app was last used each time it is left', async () => {
     await reopen({ player: 'mor', locked: true, place: '#/', at: Date.now() - 60_000 });
     await screen.findByText('Hej, Mor');
+    // React runs effects after it shows a screen; let them run before the app is left.
+    await act(() => Promise.resolve());
     const before = Date.now();
     Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
     document.dispatchEvent(new Event('visibilitychange'));

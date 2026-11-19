@@ -1,17 +1,16 @@
 import type { Random } from '../random';
 
-/** How a voice sounds: made from a tone in the phone, or from short recorded voice clips. */
-export type Timbre =
-  | { kind: 'tone'; wave: OscillatorType; /** The vowel's colour, in hertz. */ vowel: number }
-  | { kind: 'clips' };
-
 /**
- * A character's babbling voice: no words, only syllables in the character's own pitch and pace,
- * so it speaks every language.
+ * A character's babbling voice: no words, only syllables of a tone made in the phone, in the
+ * character's own pitch and pace, so it speaks every language. The owner chose tones over
+ * recorded voice clips, which sounded worse.
  */
 export interface Voice {
-  timbre: Timbre;
-  /** For a tone, its pitch in hertz; for clips, how much faster than recorded they play. */
+  /** The tone's shape: soft as a sine, bright as a triangle, rough as a sawtooth. */
+  wave: OscillatorType;
+  /** The vowel's colour, in hertz: where the tone is let through. */
+  vowel: number;
+  /** The voice's pitch, in hertz. */
   pitch: number;
   /** Syllables a second. */
   pace: number;
@@ -25,8 +24,6 @@ export interface Syllable {
   length: number;
   /** Semitones above or below the voice's pitch. */
   step: number;
-  /** Which recorded clip to play, for a voice made from clips. */
-  clip: number;
 }
 
 /** How much of each syllable's turn it sounds; the rest is the pause before the next. */
@@ -45,7 +42,6 @@ export function babble(voice: Voice, count: number, random: Random = Math.random
     at: index * turn,
     length: turn * sounding,
     step: Math.round((random() * 2 - 1) * voice.spread) - (index === count - 1 ? endFall : 0),
-    clip: Math.floor(random() * 1000),
   }));
 }
 

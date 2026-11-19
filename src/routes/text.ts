@@ -9,6 +9,7 @@ const da = {
   noSuchPage: 'Den side findes ikke.',
 
   switchPlayer: 'Skift spiller',
+  continue: 'Fortsæt',
   settings: 'Indstillinger',
   beta: 'Beta',
   betaNote: 'Prøv dele af spillene, der stadig bygges.',
@@ -50,6 +51,7 @@ export const appText: Translations<typeof da> = {
     noSuchPage: 'There is no such page.',
 
     switchPlayer: 'Switch player',
+    continue: 'Continue',
     settings: 'Settings',
     beta: 'Beta',
     betaNote: 'Try parts of the games that are still being built.',

@@ -44,15 +44,11 @@ describe('SoundLab', () => {
     });
   });
 
-  it('lets each character babble, made from tones and from recordings', async () => {
+  it('lets each character babble in a tone of its own', async () => {
     const { context } = await open();
-    for (const button of screen.getAllByRole('button', { name: /Helten|Trolden|Feen/ })) {
-      fireEvent.click(button);
-    }
-    await waitFor(() => {
-      expect(context.all(FakeOscillator)).toHaveLength(3 * 8);
-      expect(context.all(FakeBufferSource)).toHaveLength(3 * 8);
-    });
+    for (const name of ['Helten', 'Trolden', 'Feen']) click(name);
+    expect(context.all(FakeOscillator)).toHaveLength(3 * 8);
+    expect(new Set(context.all(FakeOscillator).map((tone) => tone.type)).size).toBe(3);
   });
 
   it('turns music and effects off and on, and keeps the choice', async () => {
