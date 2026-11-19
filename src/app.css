@@ -179,6 +179,8 @@ a {
 .game,
 .tile {
   --game-accent-ink: color-mix(in oklab, var(--game-accent), black 40%);
+  /* What is chosen, clear in both themes: the game's colour on light, its accent on dark. */
+  --game-chosen: light-dark(var(--game), var(--game-accent));
 }
 
 /* Said to screen readers, not shown. */

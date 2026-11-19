@@ -256,7 +256,9 @@ gradients, glow or glass.
   Jakarta Sans for the app's own text, all bundled with Fontsource so they work offline.
 - Each game has a card colour and an accent for its fine lines (`colors` in
   `src/lib/games.tsx`), set as `--game`, `--game-accent` and `--on-game`; buttons and tiles use
-  them. The home screen's tiles look like the backs of the game's cards.
+  them. Whatever is chosen is marked with `--game-chosen`, the game's colour in the
+  light theme and its accent in the dark, as a dark game colour vanishes on a dark page, and
+  with a tick, so it never rests on colour alone. The home screen's tiles look like the backs of the game's cards.
 - Cards are real card proportions and drawn as SVG in the card's own box, with sizes in `cqw`
   so they scale as one. Parkort's cards (`src/games/parkort/CardFaces.tsx`) are 7:12, like
   tarot cards: an aubergine back with a brass double frame, rays and a medallion with the

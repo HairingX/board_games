@@ -78,6 +78,11 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
                       toggle(profile.id);
                     }}
                   >
+                    {on && (
+                      <span className="family-pick-check" aria-hidden="true">
+                        ✓
+                      </span>
+                    )}
                     <Avatar profile={profile} />
                     <span className="family-pick-name">{profile.name}</span>
                   </button>

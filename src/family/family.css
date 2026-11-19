@@ -47,9 +47,31 @@
   transition: transform var(--duration-press) var(--ease-spring);
 }
 
+.family-pick {
+  position: relative;
+}
+
 .family-pick[aria-pressed='true'] {
-  border: 2px solid var(--game);
-  background: color-mix(in oklab, var(--game) 10%, var(--surface));
+  border-color: var(--game-chosen);
+  outline: 2px solid var(--game-chosen);
+  outline-offset: -2px;
+  background: color-mix(in oklab, var(--game-chosen) 14%, var(--surface));
+}
+
+/* The tick on a chosen player, so who is chosen shows at a glance, whatever the colours. */
+.family-pick-check {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--game-chosen);
+  border-radius: 50%;
 }
 
 .family-pick:disabled {
