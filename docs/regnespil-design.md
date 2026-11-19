@@ -358,3 +358,5 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   wrong, the monster hits back (a slimeball, say) and the hero falls, or the hero falls or
   hurts himself. A sound when an answer is chosen, then a sound for the stroke, or for the
   fall.
+- The monster's voice was hardly heard; its blows were always a push, never a shot of slime or
+  the like. Defence is only a hop: is it a dodge?

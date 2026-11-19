@@ -75,8 +75,11 @@ export interface Effect {
   at: number;
   /** How long it shows, in seconds, its frames over and over; played once without it. */
   lasts?: number;
-  /** Flies this far sideways in an arc this high, in pixels, as it begins, then lies there. */
-  arc?: { dx: number; height: number };
+  /**
+   * Flies this far sideways in an arc this high, in pixels, as it begins, then lies there; in
+   * its own time, in seconds, or the effects' usual flight.
+   */
+  arc?: { dx: number; height: number; seconds?: number };
 }
 
 export interface Scene {
@@ -234,7 +237,7 @@ function drawEffect(effect: Effect, seconds: number): Draw | undefined {
   const index = step % effect.frames;
   let { x, y } = effect;
   if (effect.arc) {
-    const done = Math.min(1, into / flight);
+    const done = Math.min(1, into / (effect.arc.seconds ?? flight));
     x += Math.round(effect.arc.dx * done);
     y -= Math.round(effect.arc.height * 4 * done * (1 - done));
   }

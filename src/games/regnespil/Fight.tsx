@@ -3,7 +3,7 @@ import type { Profile } from '../../family/family';
 import { formatNumber } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
 import { common } from '../../ui/text';
-import type { Random } from '../../lib/random';
+import { seeded, type Random } from '../../lib/random';
 import { chimes } from '../../lib/sound/chimes';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
@@ -29,7 +29,10 @@ import {
   puff,
   reach,
   shieldUp,
+  shotReach,
   slimeAt,
+  slimeShot,
+  slimeSplash,
   smash,
   sweep,
   type Party,
@@ -50,6 +53,13 @@ import './regnespil.css';
 
 /** The music a fight reads into memory before it is needed, so it plays without the internet. */
 export const fightMusic = [music.fight.url, music.victory.url];
+
+/**
+ * How often the slime spits a ball of slime when it strikes back, rather than charging, so its
+ * blows are not all alike; how high, in pixels, a ball that hits is lobbed; and, when the hero
+ * jumps clear of one skimming the ground, how much further it flies on.
+ */
+const spitting = { share: 0.5, lob: 12, onward: 1.8 } as const;
 
 /** Whether the blow was a stroke at the monster, a power stroke or not. */
 const isStroke = (blow: Blow | undefined) => blow === 'struck' || blow === 'smashed';
@@ -181,8 +191,9 @@ function shownWith(recent: readonly string[], task: Task): readonly string[] {
  * what shows over their heads, and the effects. Attacking, the hero runs at the slime, and as
  * they reach it the answer shows: a stroke, a parry, or the slime bouncing them over.
  * Defending, the slime runs at the hero, and as it reaches them the hero jumps clear or is
- * knocked over. A slime that had `walked` toward the hero hurries home first. At a victory
- * the heroes waiting behind, by these ids, cheer too.
+ * knocked over; or it `spits` a ball of slime at them, which they jump over or are splashed
+ * by. A slime that had `walked` toward the hero hurries home first. At a victory the heroes
+ * waiting behind, by these ids, cheer too.
  */
 function stage(
   fight: FightState,
@@ -190,6 +201,7 @@ function stage(
   at: number,
   walked: number,
   others: readonly string[],
+  spits: boolean,
 ): Staging {
   const { attack, knocked } = motionTokens.act;
   const hurry = walked > 0 ? [{ kind: 'return', at, reach: walked } as const] : [];
@@ -198,6 +210,23 @@ function stage(
     sheet: fight.outcome === 'lost' ? 'sleepy' : 'dizzy',
     at: shown + knocked.fall + knocked.down,
   } as const;
+  if (spits && fight.last === 'dodged') {
+    // The ball skims along the ground, the hero jumps over it, and it flies on.
+    const { onward } = spitting;
+    return {
+      slime: { acts: [{ kind: 'cheer', at }] },
+      hero: { acts: [{ kind: 'cheer', at: shown - moments.dodge }] },
+      effects: [slimeShot(at, shotReach * onward, reveal * onward, 0)],
+    };
+  }
+  if (spits && fight.last === 'hit') {
+    // A lob of slime that splashes over the hero, who goes over.
+    return {
+      slime: { acts: [{ kind: 'cheer', at }] },
+      hero: { acts: [{ kind: 'knocked', at: shown }], sign: down },
+      effects: [slimeShot(at, shotReach, reveal, spitting.lob), slimeSplash(shown)],
+    };
+  }
   if (fight.last === 'dodged' || fight.last === 'hit') {
     const run = { kind: 'charge', at, reach: reach.slime } as const;
     if (fight.last === 'dodged') {
@@ -341,6 +370,8 @@ export function Fight({
   const [chosen, setChosen] = useState<Value>();
   /** Whether how the answer chosen went shows yet. */
   const [revealed, setRevealed] = useState(false);
+  /** Whether the slime spat at the hero, rather than charging, at the last answer. */
+  const [spat, setSpat] = useState(false);
   /** How many lives the last stroke took. */
   const [damage, setDamage] = useState(0);
   const [staging, setStaging] = useState<Staging>({});
@@ -549,7 +580,10 @@ export function Fight({
     // The slime, if it was on its way, hurries home as the hero runs at it.
     const walked = walkedAt(walk, at);
     const others = players.filter((one) => one.id !== view.activeId).map((one) => one.id);
-    setStaging(stage(next, fight, at, walked, others));
+    // Striking back, the slime charges or spits, as the fight's seed has it for this turn.
+    const spits = fight.threat && seeded(save.seed + fight.round)() < spitting.share;
+    setSpat(spits);
+    setStaging(stage(next, fight, at, walked, others, spits));
     if (walk) {
       setPaces({ ...paces, [view.activeId]: withTime(paces[view.activeId], at - walk.asked) });
     }
@@ -562,7 +596,11 @@ export function Fight({
     effect(sounds.choose);
     // How it went is heard as it shows.
     sound.chime(chimes[verdict], random, reveal);
-    if (fight.threat) {
+    if (spits) {
+      // The slime cries out and spits.
+      sound.babble(voices.slime, 3);
+      effect(sounds.spit);
+    } else if (fight.threat) {
       // The slime cries out as it charges.
       sound.babble(voices.slime, 4);
     } else {
@@ -592,11 +630,13 @@ export function Fight({
       effect(sounds.slash, reveal - moments.dodge);
     } else if (next.last === 'bumped' || next.last === 'hit') {
       if (next.last === 'bumped') sound.babble(voices.slime, 3, undefined, reveal - moments.hop);
-      // The bump, and the hero's "ouch", as it lands.
-      effect(sounds.bump, reveal);
+      // The bump or the splash, and the hero's "ouch", as it lands.
+      effect(spits ? sounds.splash : sounds.bump, reveal);
       sound.babble(voices.hero, 2, undefined, reveal + moments.ouch);
     } else {
       effect(sounds.clang, reveal);
+      // The slime giggles at the parry.
+      sound.babble(voices.slime, 2, undefined, reveal + moments.squeal);
     }
   }
 
@@ -680,7 +720,7 @@ export function Fight({
           role="img"
           aria-label={t.lives(shown.lives)}
           // Away while the monster charges, as the bar stays where the monster stood.
-          data-away={chosen !== undefined && view.threat}
+          data-away={chosen !== undefined && view.threat && !spat}
           // Going with the monster as it walks up to the hero; when it turns back, the bar
           // waits at home, unseen until the monster is there again.
           data-walking={walking && walk !== undefined}

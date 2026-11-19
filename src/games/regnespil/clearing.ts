@@ -11,6 +11,8 @@ import star from '../../../assets/ninja-adventure/Ui/Emote/emote29.png';
 import coin from '../../../assets/ninja-adventure/Items/Treasure/Coin2.png';
 import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetBlue.png';
 import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.png';
+import slimeball from '../../../assets/ninja-adventure/FX/Projectile/EnergyBall.png';
+import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteSheet.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
 import { heroSheets, type Hero } from './heroes';
@@ -35,6 +37,8 @@ export const clearingSheets = {
   coin,
   shield,
   cross,
+  slimeball,
+  splash,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -91,6 +95,37 @@ export const sweep = (at: number): Effect => ({
   y: slimeAt.y - 10,
   at,
 });
+/**
+ * A ball of slime the slime spits at the hero: flying `dx` pixels in an arc over `seconds`,
+ * wobbling as it goes, then gone; frames side by side.
+ */
+export const slimeShot = (at: number, dx: number, seconds: number, height: number): Effect => ({
+  sheet: 'slimeball',
+  width: 16,
+  height: 16,
+  frames: 4,
+  x: shotFrom,
+  y: slimeAt.y + 6,
+  at,
+  lasts: seconds,
+  arc: { dx, height, seconds },
+});
+
+/** Where a ball of slime leaves the slime, and how far it has to fly to reach the hero. */
+const shotFrom = slimeAt.x - 6;
+export const shotReach = heroAt.x - shotFrom;
+
+/** The ball of slime splashing over the hero; frames side by side. */
+export const slimeSplash = (at: number): Effect => ({
+  sheet: 'splash',
+  width: 44,
+  height: 33,
+  frames: 10,
+  x: heroAt.x - 14,
+  y: heroAt.y - 14,
+  at,
+});
+
 /** A power stroke: two cuts crossing over the slime; frames side by side. */
 export const smash = (at: number): Effect => ({
   sheet: 'cross',

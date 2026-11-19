@@ -157,8 +157,11 @@ game builds on them, and everything must stay smooth on a phone.
   a heart (half with the wooden sword), so guessing never pays. Every third turn the monster
   strikes back (`strikeBackEvery`), a rhythm a child can learn: it shows "!" and growls the turn
   before, the tab turns blue, "Forsvar" with the pack's shield, and a right answer dodges the
-  blow, the hero jumping clear in a flash of the pack's blue shield, while any other lets it
-  land, costing what far off does. The slime takes the strokes of every player's sword added
+  blow, while any other lets it land, costing what far off does. The slime's blows are not all
+  alike, as the owner asked: by the fight's seed it either charges, the hero jumping clear in a
+  flash of the pack's blue shield or knocked over, or spits a ball of slime (the pack's
+  `EnergyBall`, with "Bubble2"), skimming the ground for the hero to jump over, or lobbed to
+  splash over them ("Water2"). The slime takes the strokes of every player's sword added
   together (2, 3 or 4 each). Halfway, down to half its lives (`rageAt`), the
   monster grows enraged, as the owner asked for a change midway: a cross face (the pack's
   `Slime3`, in the scene and the portrait), an angry sign and a roar, and it strikes back at
@@ -337,7 +340,10 @@ game builds on them, and everything must stay smooth on a phone.
   fades from one piece to the next, effects are fetched and decoded once, and babbling voices
   (`src/lib/sound/babble.ts`, voices in `voices.ts`) are syllables at a character's pitch and
   pace, made from tones in the phone: the owner heard both and chose tones over the pack's
-  recorded voice clips. Sound starts only from a tap.
+  recorded voice clips. A phone's small speaker gives almost nothing low down, so a soft tone
+  there was all but silent, as the owner heard: each voice speaks in a tone rich in overtones,
+  its vowel where a phone plays well, at a volume from its loudness measured through a filter
+  like a phone's speaker, all at `voiceLoudness`, just under the chimes. Sound starts only from a tap.
   An answer is told by a chime of tones (`src/lib/sound/chimes.ts`), the same on every page and
   a shade higher or lower each time, telling how far off it was, as the owner chose by ear: up
   and landing for right; a half step down for close; four notes stepping down, the last

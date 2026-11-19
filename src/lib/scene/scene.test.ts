@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { motionTokens } from '../../ui/motion';
-import { breathLift, drawScene, signSize, stageSize, type Figure, type Scene } from './scene';
+import {
+  breathLift,
+  drawScene,
+  signSize,
+  stageSize,
+  type Effect,
+  type Figure,
+  type Scene,
+} from './scene';
 
 const cut = { x: 0, y: 0, width: 16, height: 32 };
 
@@ -276,6 +284,11 @@ describe('figures acting', () => {
     expect(landed?.cut.x).toBe(10);
     expect(drawScene(coin, at + 1.5)[0]).toMatchObject({ x: 20, y: 50 });
     expect(drawScene(coin, at + 2 + eps)).toEqual([]);
+    const ball: Scene = {
+      ...coin,
+      effects: [{ ...(coin.effects?.[0] as Effect), arc: { dx: -40, height: 0, seconds: 1 } }],
+    };
+    expect(drawScene(ball, at + 0.5)[0]?.x).toBe(-20);
   });
 
   it('plays an effect’s frames over the stage, and none with motion stilled', () => {

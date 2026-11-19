@@ -11,6 +11,7 @@ import { faces } from './art';
 import { Fight } from './Fight';
 import { monsterName } from './names';
 import { text } from './text';
+import { startFight } from './battle';
 import type { SavedFight } from './fightSave';
 import type { PlayerSettings } from './players';
 import { hits, sounds, victoryLength } from './sounds';
@@ -376,6 +377,32 @@ describe('Fight', () => {
     expect(container.querySelector('.rs-damage')).toHaveAttribute('data-heal', 'true');
     await pause(wrong);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
+  });
+
+  it('lets the slime spit a ball of slime, as the fight’s seed has it, to jump over or be splashed by', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 } as const;
+    // The seed 5 has the slime spit at the third turn.
+    const saved: SavedFight = {
+      fight: { ...startFight(3), round: 2, threat: true },
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+      seed: 5,
+    };
+    const jumped = open([{ level: 1, sword: 'jern' }], [mille], saved);
+    expect(screen.getByText('Forsvar')).toBeInTheDocument();
+    click('2');
+    expect(lives(3)).toHaveAttribute('data-away', 'false');
+    expect(jumped.babbled()).toContainEqual([voices.slime, 3]);
+    expect(jumped.played()).toContainEqual([sounds.spit.url, sounds.spit.gain, 0]);
+    await pause(reveal);
+    expect(hearts('5')).toBeInTheDocument();
+    jumped.unmount();
+    const splashed = open([{ level: 1, sword: 'jern' }], [mille], saved);
+    await choose('1');
+    expect(hearts('4')).toBeInTheDocument();
+    expect(splashed.played()).toContainEqual([sounds.splash.url, sounds.splash.gain, reveal]);
   });
 
   it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {
