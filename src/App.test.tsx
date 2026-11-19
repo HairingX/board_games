@@ -249,7 +249,8 @@ describe('App', () => {
     await startAs('Mille');
     expect(screen.queryByRole('link', { name: /Regnespil/ })).not.toBeInTheDocument();
     goTo('#/spil/regnespil');
-    expect(screen.getByText('Det spil findes ikke.')).toBeInTheDocument();
+    // It waits until it is read whether beta is on, which may take a moment.
+    expect(await screen.findByText('Det spil findes ikke.')).toBeInTheDocument();
   });
 
   it('keeps children out of the settings', async () => {
