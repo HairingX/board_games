@@ -170,6 +170,7 @@ describe('Fight', () => {
     vi.spyOn(sound, 'prepareMusic').mockResolvedValue(undefined);
     vi.spyOn(sound, 'stopMusic').mockReturnValue(undefined);
     vi.spyOn(sound, 'chime').mockReturnValue(undefined);
+    vi.spyOn(sound, 'babble').mockReturnValue(undefined);
     const music = vi.spyOn(sound, 'music').mockReturnValue(undefined);
     const effect = vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
     const { container } = render(
