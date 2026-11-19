@@ -107,6 +107,11 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## Regnespil
 
+- `docs/regnespil-design.md` is the game's whole design: what is decided, what is proposed,
+  the fight engine for monsters and bosses, biomes, progression, and every idea the owner has
+  raised, in a list kept as close to the owner's words as possible. The owner fears losing
+  ideas: whenever the owner raises one, add it there in the same change, and move it to
+  "Decided" (and into this file) when the owner says yes.
 - The owner's design, from the start: the children cannot read yet, so the math drives a
   roguelite adventure told in pictures and sound. Fights are won by answering sums, with heart
   lives. A sword chosen at the start sets how forgiving it is (an easy sword allows many
