@@ -185,7 +185,7 @@ const berryTroll: MonsterDefinition = {
 
 ### 5.7 Generated monsters and bosses
 
-**Proposed (owner's idea).** Monsters and bosses are not all written by hand: the game puts
+**Decided (owner's idea, approved as written here).** Monsters and bosses are not all written by hand: the game puts
 them together from pools, so two runs never feel the same.
 
 - **Families, written by hand.** A family is a kind of creature: slime, wolf, troll, bat, frog,
