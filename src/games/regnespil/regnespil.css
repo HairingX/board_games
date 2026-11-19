@@ -530,6 +530,24 @@
     inset 0 3px 0 var(--pixel-attack-light);
 }
 
+/* Defending: the monster strikes back, and the tab turns blue, with a shield. */
+.rs-tab[data-defend='true'] {
+  text-shadow: 0 2px 0 var(--pixel-defend-dark);
+  background: var(--pixel-defend);
+  box-shadow:
+    inset 0 -4px 0 var(--pixel-defend-dark),
+    inset 0 3px 0 var(--pixel-defend-light);
+}
+
+/* The pack's shield, 24 pixels, at a whole-number scale. */
+.rs-tab-guard,
+.rs-stake-guard {
+  width: 48px;
+  height: 48px;
+  margin: -8px 0;
+  image-rendering: pixelated;
+}
+
 .rs-tab-weapon,
 .rs-stake-weapon,
 .rs-stake-heart {

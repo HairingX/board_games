@@ -19,6 +19,7 @@ import {
   coinDrop,
   heroAt,
   puff,
+  shieldUp,
   slimeAt,
   sweep,
   type Staging,
@@ -124,9 +125,18 @@ function stage(fight: FightState, at: number): Staging {
       slime: { sign: { sheet: 'alert', at } },
     };
   }
-  // Far off: the slime charges at the hero and knocks them over; they lie a moment and get up.
   const { charge, knocked } = motionTokens.act;
   const hit = at + charge.out;
+  if (fight.last === 'dodged') {
+    // Defended: the slime charges, and the hero jumps clear as it arrives.
+    return {
+      slime: { acts: [{ kind: 'charge', at, reach: chargeReach }] },
+      hero: { acts: [{ kind: 'cheer', at: hit - charge.out / 2 }] },
+      effects: [shieldUp(hit - charge.out / 2)],
+    };
+  }
+  // Far off, or a blow not dodged: the slime charges at the hero and knocks them over; they
+  // lie a moment and get up.
   const lost = fight.outcome === 'lost';
   return {
     slime: { acts: [{ kind: 'charge', at, reach: chargeReach }] },
@@ -178,7 +188,11 @@ export function Fight({
    * Whose turn it shows and their sum: the saved ones, except in the pause after an answer,
    * when it still shows the sum just answered, while the save already holds the next.
    */
-  const [view, setView] = useState({ activeId: save.activeId, task: save.task });
+  const [view, setView] = useState({
+    activeId: save.activeId,
+    task: save.task,
+    threat: save.fight.threat,
+  });
   const { fight, lives } = save;
   const task = view.task;
   const active = Math.max(
@@ -225,27 +239,32 @@ export function Fight({
   }
 
   // After an answer the fight pauses, so the stroke and the right answer can be seen, then the
-  // turn passes and the next sum comes by itself.
+  // turn passes and the next sum comes by itself; sooner after a right answer.
   useEffect(() => {
     if (chosen === undefined || fight.outcome !== 'fighting') return;
     const { right, wrong } = motionTokens.fightPause;
     const timer = setTimeout(
       () => {
-        setView({ activeId: save.activeId, task: save.task });
+        setView({ activeId: save.activeId, task: save.task, threat: save.fight.threat });
         setChosen(undefined);
+        // The monster announces its blow: a sign over its head and a growl.
+        if (save.fight.threat) {
+          setStaging({ slime: { sign: { sheet: 'alert', at: now() } } });
+          sound.babble(voices.slime, 2);
+        }
       },
-      (fight.last === 'struck' ? right : wrong) * 1000,
+      (fight.last === 'struck' || fight.last === 'dodged' ? right : wrong) * 1000,
     );
     return () => {
       clearTimeout(timer);
     };
-  }, [chosen, fight, save]);
+  }, [chosen, fight, save, now, sound]);
 
   function restart(): void {
     play(music.fight);
     const next = fresh(shownWith(save.recent, task));
     keep(next);
-    setView({ activeId: next.activeId, task: next.task });
+    setView({ activeId: next.activeId, task: next.task, threat: false });
     setChosen(undefined);
     setStaging({});
   }
@@ -280,7 +299,11 @@ export function Fight({
         effect(sounds.victory);
         sound.babble(voices.hero, 6);
       }
-    } else if (next.last === 'bumped') {
+    } else if (next.last === 'dodged') {
+      // The slime charges and misses: the hero jumps clear with a swish.
+      sound.babble(voices.slime, 3);
+      effect(sounds.slash, charge.out);
+    } else if (next.last === 'bumped' || next.last === 'hit') {
       // The slime cries out as it charges; the bump and the hero's "ouch" as it lands.
       sound.babble(voices.slime, 3);
       effect(sounds.bump, charge.out);
@@ -383,20 +406,34 @@ export function Fight({
       <div className="rs-panel">
         {fight.outcome === 'fighting' ? (
           <>
-            <p className="rs-tab">
-              <img src={swordPictures[sword]} alt="" className="rs-tab-weapon" />
-              {t.attack}
-            </p>
+            {view.threat ? (
+              <p className="rs-tab" data-defend="true">
+                <img src={hud.guard} alt="" className="rs-tab-guard" />
+                {t.defend}
+              </p>
+            ) : (
+              <p className="rs-tab">
+                <img src={swordPictures[sword]} alt="" className="rs-tab-weapon" />
+                {t.attack}
+              </p>
+            )}
             <p className="rs-stakes">
-              <span className="rs-stake" data-good="true" aria-label={t.stakeRight}>
-                <span aria-hidden="true">✓</span>
-                <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
-                <span aria-hidden="true">→</span>
-                <span
-                  className="rs-stake-slime"
-                  style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
-                />
-              </span>
+              {view.threat ? (
+                <span className="rs-stake" data-good="true" aria-label={t.stakeDodge}>
+                  <span aria-hidden="true">✓</span>
+                  <img src={hud.guard} alt="" className="rs-stake-guard" />
+                </span>
+              ) : (
+                <span className="rs-stake" data-good="true" aria-label={t.stakeRight}>
+                  <span aria-hidden="true">✓</span>
+                  <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
+                  <span aria-hidden="true">→</span>
+                  <span
+                    className="rs-stake-slime"
+                    style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
+                  />
+                </span>
+              )}
               <span className="rs-stake" data-good="false" aria-label={t.stakeWrong(cost / 2)}>
                 <span aria-hidden="true">✗</span>
                 <img src={hud.heartIcon} alt="" className="rs-stake-heart" />

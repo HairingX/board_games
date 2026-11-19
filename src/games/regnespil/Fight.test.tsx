@@ -198,7 +198,7 @@ describe('Fight', () => {
   it('goes on from a saved fight, where it was', () => {
     const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 } as const;
     open([{ level: 1, sword: 'jern' }], [mille], {
-      fight: { health: 3, lives: 1, outcome: 'fighting', last: 'struck' },
+      fight: { health: 3, lives: 1, outcome: 'fighting', last: 'struck', round: 4, threat: false },
       lives: 3,
       activeId: 'mille',
       task,
@@ -220,6 +220,35 @@ describe('Fight', () => {
       lives: 2,
       activeId: 'mille',
     });
+  });
+
+  it('defends every third turn: the slime warns, the tab turns blue, and a right answer dodges', async () => {
+    const { onSave } = open([{ level: 1, sword: 'flamme' }]);
+    expect(screen.getByText('Angreb')).toBeInTheDocument();
+    click('2');
+    await pause(right);
+    click('2');
+    // The sum answered still shows as an attack through the pause.
+    expect(screen.getByText('Angreb')).toBeInTheDocument();
+    await pause(right);
+    expect(screen.getByText('Forsvar')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rigtigt: du undviger slimets angreb')).toBeInTheDocument();
+    click('2');
+    expect(lives(2)).toBeInTheDocument();
+    expect(hearts('5')).toBeInTheDocument();
+    expect(onSave.mock.lastCall?.[0].fight).toMatchObject({ last: 'dodged', threat: false });
+    await pause(right);
+    expect(screen.getByText('Angreb')).toBeInTheDocument();
+  });
+
+  it('lets the slime’s blow land when the answer to defend is wrong', async () => {
+    open([{ level: 1, sword: 'jern' }]);
+    click('2');
+    await pause(right);
+    click('2');
+    await pause(right);
+    click('1');
+    expect(hearts('4')).toBeInTheDocument();
   });
 
   it('uses the page’s clock and the app’s sound when none are given', () => {

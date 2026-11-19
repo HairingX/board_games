@@ -3,6 +3,7 @@ import flame from '../../../assets/ninja-adventure/Items/Weapons/Sword/Sprite.pn
 import iron from '../../../assets/ninja-adventure/Items/Weapons/Sword2/Sprite.png';
 import heart from '../../../assets/ninja-adventure/Ui/Receptacle/Heart.png';
 import heartIcon from '../../../assets/ninja-adventure/Ui/Receptacle/IconHeart.png';
+import guard from '../../../assets/ninja-adventure/Ui/Skill Icon/Spell/DefenseUpgrade.png';
 import slimeFace from '../../../assets/ninja-adventure/Actor/Monster/Slime/Faceset.png';
 import woodFrame from '../../../assets/ninja-adventure/Ui/Theme/Wip/ThemeWood2/nine_path_panel.png';
 import type { Sword } from './swords';
@@ -16,8 +17,8 @@ export const swordPictures: Readonly<Record<Sword, string>> = {
   flamme: flame,
 };
 
-/** A heart in five frames, empty to full, and a small heart. */
-export const hud = { heart, heartIcon } as const;
+/** A heart in five frames, empty to full; a small heart; a shield, for defending. */
+export const hud = { heart, heartIcon, guard } as const;
 
 /** The monsters' portraits, shown at the top of a fight. */
 export const faces = { slime: slimeFace } as const;

@@ -7,6 +7,7 @@ import sleepy from '../../../assets/ninja-adventure/Ui/Emote/emote28.png';
 import heart from '../../../assets/ninja-adventure/Ui/Emote/emote27.png';
 import star from '../../../assets/ninja-adventure/Ui/Emote/emote29.png';
 import coin from '../../../assets/ninja-adventure/Items/Treasure/Coin2.png';
+import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetBlue.png';
 import type { Act, Effect, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
 
@@ -22,6 +23,7 @@ export const clearingSheets = {
   star,
   heart,
   coin,
+  shield,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart';
@@ -47,6 +49,17 @@ export const puff = (at: number): Effect => ({
   frames: 6,
   x: slimeAt.x - 8,
   y: slimeAt.y - 12,
+  at,
+});
+
+/** A blue shield flashing up around the hero as they dodge a blow; frames side by side. */
+export const shieldUp = (at: number): Effect => ({
+  sheet: 'shield',
+  width: 24,
+  height: 26,
+  frames: 6,
+  x: heroAt.x - 4,
+  y: heroAt.y - 6,
   at,
 });
 

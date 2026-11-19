@@ -28,7 +28,15 @@ export function fightSaveKey(saveKey: string, players: readonly Profile[]): stri
 }
 
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
-const blows: readonly (string | undefined)[] = ['struck', 'parried', 'nicked', 'bumped', undefined];
+const blows: readonly (string | undefined)[] = [
+  'struck',
+  'parried',
+  'nicked',
+  'bumped',
+  'dodged',
+  'hit',
+  undefined,
+];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -36,7 +44,11 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isCount = (value: unknown, most: number): value is number =>
   Number.isInteger(value) && (value as number) >= 0 && (value as number) <= most;
 
-/** The fight as saved, or null when none is, or what is saved is not a fight this game knows. */
+/**
+ * The fight as saved, or null when none is, or what is saved is not a fight this game knows. A
+ * fight saved before turns to defend came is upgraded: its turns counted from none, and no
+ * blow announced.
+ */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
   const { fight, lives, activeId, task, recent } = saved;
@@ -48,6 +60,8 @@ export function reviveFight(saved: unknown): SavedFight | null {
     isCount(fight.lives, lives) &&
     outcomes.includes(fight.outcome as string) &&
     blows.includes(fight.last as string | undefined) &&
+    (fight.round === undefined || isCount(fight.round, Number.MAX_SAFE_INTEGER)) &&
+    (fight.threat === undefined || typeof fight.threat === 'boolean') &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&
@@ -57,5 +71,12 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (typeof task.answer === 'number' || isRecord(task.answer)) &&
     Array.isArray(recent) &&
     recent.every((key) => typeof key === 'string');
-  return known ? (saved as unknown as SavedFight) : null;
+  if (!known) return null;
+  const kept = saved as unknown as Omit<SavedFight, 'fight'> & {
+    fight: Omit<Fight, 'round' | 'threat'> & Partial<Pick<Fight, 'round' | 'threat'>>;
+  };
+  return {
+    ...kept,
+    fight: { ...kept.fight, round: kept.fight.round ?? 0, threat: kept.fight.threat ?? false },
+  };
 }

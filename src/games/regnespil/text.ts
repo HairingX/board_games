@@ -55,6 +55,8 @@ const da = {
   /** The monster fought, named at the top of the fight. */
   slime: 'Slimklatten',
   attack: 'Angreb',
+  defend: 'Forsvar',
+  stakeDodge: 'Rigtigt: du undviger slimets angreb',
   stakeRight: 'Rigtigt: dit slag rammer slimet',
   stakeWrong: (hearts: number) =>
     `Forkert: ${formatNumber('da', hearts)} ${plural('da', hearts, { one: 'hjerte', other: 'hjerter' })} mindre`,
@@ -118,6 +120,8 @@ export const text: Translations<typeof da> = {
     toFight: 'To battle!',
     slime: 'The slime',
     attack: 'Attack',
+    defend: 'Defend',
+    stakeDodge: 'Right: you dodge the slime’s attack',
     stakeRight: 'Right: your stroke hits the slime',
     stakeWrong: (hearts) =>
       `Wrong: ${formatNumber('en', hearts)} ${plural('en', hearts, { one: 'heart', other: 'hearts' })} less`,

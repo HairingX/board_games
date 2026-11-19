@@ -32,8 +32,8 @@ The owner's observation, and the rule that follows from it:
   happens if it is right, and what if it is wrong.
 - **Decided and built** (the owner chose it from a mock-up). The sum sits in a battle panel
   whose tab says what the player is doing: "Angreb" (orange, the player's own weapon) when it
-  is their turn to strike. **Proposed:** "Forsvar" (blue, a shield) when the monster has
-  announced an attack. Under the tab, the stakes as pictures: ✓ the player's
+  is their turn to strike. **Decided and built:** "Forsvar" (blue, the pack's shield) when the
+  monster has announced an attack, every third turn: a right answer dodges it. Under the tab, the stakes as pictures: ✓ the player's
   own weapon hitting the monster, ✗ a heart with "−½" or "−1". A mock-up was shown to the owner;
   the music steps back while a sum waits (decided, built).
 
@@ -286,7 +286,7 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 
 ## 10. Open decisions
 
-1. The rhythm of attack and defence (the fight screen itself is decided and built).
+1. Built: attack and defence, two to attack and one to defend; to tune once played.
 2. The order of work: overlays (sheets and dialogs), the design review, the party, the fight
    screen, the monster engine.
 3. A typeface for children's reading (section 9).

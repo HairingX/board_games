@@ -154,7 +154,11 @@ game builds on them, and everything must stay smooth on a phone.
 - A fight (`battle.ts`): the hero has five hearts, counted in halves. A right answer is a
   stroke that takes one of the monster's lives; a close answer is parried and costs half a
   heart (nothing with the wooden sword); an answer far off lets the monster bump the hero for
-  a heart (half with the wooden sword), so guessing never pays. The slime takes 2, 3 or 4
+  a heart (half with the wooden sword), so guessing never pays. Every third turn the monster
+  strikes back (`strikeBackEvery`), a rhythm a child can learn: it shows "!" and growls the turn
+  before, the tab turns blue, "Forsvar" with the pack's shield, and a right answer dodges the
+  blow, the hero jumping clear in a flash of the pack's blue shield, while any other lets it
+  land, costing what far off does. The slime takes 2, 3 or 4
   strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
   tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as a name
   plate with the player's picture over the hero, said in full to screen readers ("Nu er det
@@ -204,8 +208,8 @@ game builds on them, and everything must stay smooth on a phone.
   panel to the bottom of the screen: a tab saying what the player does ("Angreb", with their
   own weapon), the stakes as pictures (✓ the weapon hitting the monster, ✗ the hearts it
   costs), the sum in the middle, and the answers low, where the thumbs are, as the pack's
-  chunky buttons. "Forsvar", when a monster announces an attack, comes next
-  (`docs/regnespil-design.md`).
+  chunky buttons. Defending, the tab is "Forsvar" in blue, with a shield, and the stakes ✓ the
+  shield, ✗ the hearts the blow costs.
 - Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
   answered far off, the slime cries out, charges at the hero and knocks them over; they lie a
   moment, say "ouch" in their voice and get up, dizzy. Struck, the slime squeals, cross.
