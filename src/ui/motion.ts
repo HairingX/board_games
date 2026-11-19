@@ -56,6 +56,11 @@ export const motionTokens = {
     knocked: { push: 6, fall: 0.12, down: 0.7, rise: 0.4, drop: 3 },
     /** Walking home from where the act's `reach` took the figure. */
     return: { seconds: 0.4 },
+    /**
+     * Walking slowly the act's `reach` toward another figure, over the act's own `lasts`, as a
+     * monster comes at the hero while a sum is thought over; this long if the act says not.
+     */
+    approach: { seconds: 15 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },

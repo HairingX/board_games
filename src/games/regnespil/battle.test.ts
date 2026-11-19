@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   answerFight,
+  reachedHero,
   fullHealth,
   powerAfter,
   powerStroke,
@@ -97,6 +98,14 @@ describe('a fight', () => {
     });
     expect(answerFight(threatened, 'close', 'jern')).toMatchObject({ health: 8, last: 'hit' });
     expect(answerFight(threatened, 'far', 'træ')).toMatchObject({ health: 9, last: 'hit' });
+  });
+
+  it('lets a monster that reaches the hero strike only with the flame sword', () => {
+    const fight = { ...startFight(3), combo: 2 };
+    expect(reachedHero(fight, 'jern')).toBe(fight);
+    expect(reachedHero(fight, 'flamme')).toMatchObject({ health: 8, last: 'hit', combo: 2 });
+    const over = { ...fight, outcome: 'lost' } as const;
+    expect(reachedHero(over, 'flamme')).toBe(over);
   });
 
   it('lets the hero rest when the hearts are gone, and stays over', () => {

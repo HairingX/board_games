@@ -49,7 +49,8 @@ function open(
       onBack={onBack}
       random={() => 0}
       sound={engine}
-      now={() => 50}
+      // The fake timers' clock, so the scene's times go with them.
+      now={() => Date.now() / 1000}
       load={() => new Promise(() => undefined)}
     />,
   );
@@ -289,6 +290,46 @@ describe('Fight', () => {
     expect(stage()).toHaveAttribute('data-shake', 'true');
     expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
     expect(played().filter(([url]) => hits.some((hit) => hit.url === url))).toHaveLength(4);
+  });
+
+  it('walks the slime up to the hero while a sum is thought over; with iron it roars and steps back', async () => {
+    const { container, babbled } = open();
+    const bar = () => container.querySelector('.rs-life');
+    expect(bar()).toHaveAttribute('data-walking', 'false');
+    await pause(1);
+    expect(bar()).toHaveAttribute('data-walking', 'true');
+    expect(bar()).toHaveStyle({ '--walk-time': '15s' });
+    await pause(15);
+    expect(babbled()).toContainEqual([voices.slime, 8]);
+    expect(bar()).toHaveAttribute('data-walking', 'false');
+    expect(bar()).toHaveAttribute('data-back', 'true');
+    expect(hearts('5')).toBeInTheDocument();
+    await pause(2);
+    expect(bar()).toHaveAttribute('data-walking', 'true');
+  });
+
+  it('lets the slime strike when it reaches the hero with the flame sword, the sum staying', async () => {
+    const { onSave } = open([{ level: 1, sword: 'flamme' }]);
+    await pause(16);
+    expect(hearts('4')).toBeInTheDocument();
+    expect(onSave.mock.lastCall?.[0].fight).toMatchObject({ last: 'hit', round: 0 });
+    expect(screen.getByRole('img', { name: '1 plus 1' })).toBeInTheDocument();
+    for (let blow = 1; blow < 5; blow++) await pause(19);
+    expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
+    await pause(30);
+    expect(hearts('0')).toBeInTheDocument();
+  });
+
+  it('sends the slime home when an answer comes, and keeps the player’s pace for the next walk', async () => {
+    const { container } = open();
+    const bar = () => container.querySelector('.rs-life');
+    await pause(9);
+    click('2');
+    expect(bar()).toHaveAttribute('data-back', 'true');
+    expect(bar()).toHaveAttribute('data-walking', 'false');
+    await pause(reveal);
+    await pause(right);
+    expect(bar()).toHaveStyle({ '--walk-time': '27s' });
   });
 
   it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {

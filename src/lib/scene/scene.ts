@@ -43,6 +43,8 @@ export interface Act {
    * a stroke with a `return`, or as it gets up after being knocked over.
    */
   reach?: number;
+  /** How long an approach takes, in seconds. */
+  lasts?: number;
 }
 
 /** A figure, drawn from a sprite sheet of 16-pixel frames, a column for each way it faces. */
@@ -151,6 +153,12 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     const left = Math.max(0, 1 - into / act.return.seconds);
     x += toward * Math.round((current?.reach ?? 0) * left);
     walking(left > 0);
+  }
+  if (kind === 'approach') {
+    const lasts = current?.lasts ?? act.approach.seconds;
+    const share = Math.min(1, into / lasts);
+    x += toward * Math.round((current?.reach ?? 0) * share);
+    walking(share < 1);
   }
   if (kind === 'charge') {
     const { out, hold, back } = act.charge;

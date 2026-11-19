@@ -188,9 +188,14 @@ game builds on them, and everything must stay smooth on a phone.
   third is a power stroke, two crossing cuts that take two lives (`powerStroke`), or, if the
   third was a dodge, the next stroke is. A close answer keeps the combo; only one far off
   breaks it, as the research warns against streaks that are easily lost.
-- Agreed next, in order: the monster walking towards the hero while a sum is thought over, at the child's own pace and
-  at least 15 seconds, roaring and stepping back with the wooden and iron swords and striking
-  only with the flame sword, so time stays off unless chosen; then bosses that fight back
+- While a sum to attack is thought over, the monster walks slowly up to the hero, its life
+  bar going with it, at the player's own pace (`pace.ts`: three times their usual time over
+  their last five sums, and at least 15 seconds), as agreed. With the wooden and iron swords
+  it roars there and steps back, and walks again; only with the flame sword does it strike
+  (`strikesInTime`, `reachedHero`), costing what far off does while the sum stays, so time
+  counts only when it is chosen. An answer sends it hurrying home as the hero runs at it.
+  With reduced motion it stays where it is, but still roars or strikes.
+- Agreed next: bosses that fight back
   with the flame sword (a shield only a power stroke breaks, a warned attack, rage at half
   life), and monsters with more lives further on.
 - Monsters and bosses are generated, as the owner decided (section 5.7 of

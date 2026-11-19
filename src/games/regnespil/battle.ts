@@ -86,6 +86,16 @@ export function answerFight(fight: Fight, verdict: Verdict, sword: Sword): Fight
   return { ...after, enraged, threat };
 }
 
+/**
+ * The fight when the monster reaches the hero before the sum is answered: with a sword whose
+ * monsters strike in time, the blow lands, costing what an answer far off does; the turn and
+ * its sum stay. With any other, nothing happens: the monster only roars and steps back.
+ */
+export function reachedHero(fight: Fight, sword: Sword): Fight {
+  if (fight.outcome !== 'fighting' || !swordRules[sword].strikesInTime) return fight;
+  return hurt(fight, swordRules[sword].far, 'hit');
+}
+
 /** What the answer does to the hero or the monster, before the turns move on. */
 function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
   const costs = swordRules[sword];

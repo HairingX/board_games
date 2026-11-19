@@ -8,17 +8,21 @@ export const swords = ['træ', 'jern', 'flamme'] as const;
 export type Sword = (typeof swords)[number];
 
 /**
- * What each sword makes of a fight: the half hearts a close or a far answer costs, and how many
- * strokes the monster takes. The wooden sword forgives "nearly" and soft monsters; the iron
- * sword is the standard; the flame sword meets tougher monsters (later, also ones that come at
- * the hero and bosses that fight back).
+ * What each sword makes of a fight: the half hearts a close or a far answer costs, how many
+ * strokes the monster takes, and whether a monster that reaches the hero while a sum is thought
+ * over strikes. The wooden sword forgives "nearly" and soft monsters; the iron sword is the
+ * standard; the flame sword meets tougher monsters that strike when they reach the hero, so
+ * time counts only with it, as the owner decided (later, also bosses that fight back).
  */
 export const swordRules: Readonly<
-  Record<Sword, { close: number; far: number; lives: number; stars: number }>
+  Record<
+    Sword,
+    { close: number; far: number; lives: number; stars: number; strikesInTime: boolean }
+  >
 > = {
-  træ: { close: 0, far: 1, lives: 2, stars: 1 },
-  jern: { close: 1, far: 2, lives: 3, stars: 2 },
-  flamme: { close: 1, far: 2, lives: 4, stars: 3 },
+  træ: { close: 0, far: 1, lives: 2, stars: 1, strikesInTime: false },
+  jern: { close: 1, far: 2, lives: 3, stars: 2, strikesInTime: false },
+  flamme: { close: 1, far: 2, lives: 4, stars: 3, strikesInTime: true },
 };
 
 export function isSword(value: unknown): value is Sword {

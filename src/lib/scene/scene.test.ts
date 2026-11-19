@@ -134,6 +134,16 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('approaches slowly over its own time, and waits there', () => {
+    const near = { acts: [{ kind: 'approach', at, reach: 40, lasts: 20 }] } as const;
+    expect(one(near, at + 10)?.x).toBe(40);
+    expect(one(near, at + 10.05)?.cut.y).toBeGreaterThanOrEqual(0);
+    expect(one(near, at + 30)).toMatchObject({ x: 60, cut: { y: 0 } });
+    const usual = { acts: [{ kind: 'approach', at, reach: 30 }] } as const;
+    expect(one(usual, at + act.approach.seconds / 3)?.x).toBe(30);
+    expect(one({ acts: [{ kind: 'approach', at }] }, at + 1)?.x).toBe(20);
+  });
+
   it('walks through its frames while it runs, and stands while it holds', () => {
     const charge = { acts: [{ kind: 'charge', at, reach: 40 }] } as const;
     const { out } = act.charge;

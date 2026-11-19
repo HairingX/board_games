@@ -313,8 +313,8 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - Yellow should cost a little, red more, so guessing does not pay; ten half hearts.
 - Victory should feel like victory: music, the hero cheering.
 - Monsters start with few lives and get more further on.
-- The monster walks towards the hero while a sum is thought over, so time matters, but not
-  tightly; on medium it runs over now and then and shouts; the music swells just before.
+- (Built, see `CLAUDE.md`.) The monster walks towards the hero while a sum is thought over, so
+  time matters, but not tightly; on medium it runs over now and then and shouts; the music swells just before.
 - Difficulty as a mode beside the level: easy, medium, hard, where hard gives resistance from
   the bosses; chosen per person, children gently and grown-ups hard.
 - A birthday on the profile, to suggest where each player starts, in every game.

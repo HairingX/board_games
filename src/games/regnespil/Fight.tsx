@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Profile } from '../../family/family';
 import { Avatar } from '../../family/Avatar';
 import { formatNumber } from '../../i18n/format';
@@ -15,6 +15,7 @@ import {
   answerFight,
   fullHealth,
   powerAfter,
+  reachedHero,
   startFight,
   type Blow,
   type Fight as FightState,
@@ -35,6 +36,7 @@ import {
 } from './clearing';
 import type { PlayerSettings } from './players';
 import type { SavedFight } from './fightSave';
+import { approachSeconds, withTime } from './pace';
 import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
 import { pick } from './sums';
@@ -75,7 +77,43 @@ const moments = {
   ouch: 0.15,
   rage: 0.5,
   second: 0.12,
+  settle: 1,
+  glare: 0.6,
 } as const;
+
+/**
+ * The slime walking up to the hero while a sum is thought over: when the sum was asked, when
+ * the walk begins, and how long it takes, on the page's clock, in seconds.
+ */
+interface Walk {
+  asked: number;
+  at: number;
+  lasts: number;
+}
+
+/**
+ * A walk for the player whose turn it is, asked their sum at `at`, at their own pace, if it is
+ * a turn to attack.
+ */
+function walkFor(
+  paces: Readonly<Record<string, readonly number[]>>,
+  turn: SavedFight,
+  at: number,
+): Walk | undefined {
+  return turn.fight.outcome === 'fighting' && !turn.fight.threat
+    ? { asked: at, at: at + moments.settle, lasts: approachSeconds(paces[turn.activeId]) }
+    : undefined;
+}
+
+/** The slime's walk as an act. */
+const approachOf = (walk: Walk) =>
+  ({ kind: 'approach', at: walk.at, reach: reach.slime, lasts: walk.lasts }) as const;
+
+/** How far the slime has walked at the moment, in pixels. */
+const walkedAt = (walk: Walk | undefined, seconds: number) =>
+  walk && seconds > walk.at
+    ? Math.round(reach.slime * Math.min(1, (seconds - walk.at) / walk.lasts))
+    : 0;
 
 /**
  * When the victory's moments come after the last stroke, in seconds, and how far to the side
@@ -124,10 +162,11 @@ function shownWith(recent: readonly string[], task: Task): readonly string[] {
  * what shows over their heads, and the effects. Attacking, the hero runs at the slime, and as
  * they reach it the answer shows: a stroke, a parry, or the slime bouncing them over.
  * Defending, the slime runs at the hero, and as it reaches them the hero jumps clear or is
- * knocked over.
+ * knocked over. A slime that had `walked` toward the hero hurries home first.
  */
-function stage(fight: FightState, before: FightState, at: number): Staging {
+function stage(fight: FightState, before: FightState, at: number, walked = 0): Staging {
   const { attack, knocked } = motionTokens.act;
+  const hurry = walked > 0 ? [{ kind: 'return', at, reach: walked } as const] : [];
   const shown = at + reveal;
   const down = {
     sheet: fight.outcome === 'lost' ? 'sleepy' : 'dizzy',
@@ -148,7 +187,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
   if (fight.last === 'bumped') {
     return {
       hero: { acts: [run, { kind: 'knocked', at: shown, reach: reach.hero }], sign: down },
-      slime: { acts: [{ kind: 'cheer', at: shown - moments.hop }] },
+      slime: { acts: [...hurry, { kind: 'cheer', at: shown - moments.hop }] },
     };
   }
   const home = shown + attack.seconds;
@@ -168,7 +207,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
             : []),
         ],
       },
-      slime: { sign: { sheet: 'alert', at: shown } },
+      slime: { acts: hurry, sign: { sheet: 'alert', at: shown } },
     };
   }
   if (fight.outcome === 'won') {
@@ -180,7 +219,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
         ],
         sign: { sheet: 'heart', at: shown + victory.cheers[0] },
       },
-      slime: { acts: [{ kind: 'vanish', at: shown + victory.vanish }] },
+      slime: { acts: [...hurry, { kind: 'vanish', at: shown + victory.vanish }] },
       effects: [
         ...cuts,
         puff(shown + victory.puff),
@@ -192,7 +231,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
   return {
     hero: { acts: strike },
     slime: {
-      acts: [{ kind: 'hurt', at: shown + victory.vanish }],
+      acts: [...hurry, { kind: 'hurt', at: shown + victory.vanish }],
       ...(rage ? { sign: { sheet: 'angry', at: shown + moments.rage } as const } : {}),
     },
     effects: cuts,
@@ -204,7 +243,9 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
  * The players take turns, each with a sum at their own level, and what a wrong answer costs is
  * their own sword's. An answer chosen sends the hero running at the slime, and only as they
  * reach it does it show how it went: a right answer strikes the slime; a close one is parried;
- * one far off lets the slime bounce the hero over. Halfway the slime grows enraged. The next
+ * one far off lets the slime bounce the hero over. While a sum is thought over, the slime walks
+ * slowly up to the hero, at the player's own pace (`pace.ts`): it roars and steps back, or,
+ * with the flame sword, strikes. Halfway the slime grows enraged. The next
  * sum comes by itself after a short pause. A won fight ends with a fanfare, a puff of smoke,
  * coins springing out and a cheering hero; a lost one with the hero resting.
  */
@@ -263,6 +304,16 @@ export function Fight({
   /** How many lives the last stroke took. */
   const [damage, setDamage] = useState(0);
   const [staging, setStaging] = useState<Staging>({});
+  /** How long each player took over their latest sums, by their profile's id. */
+  const [paces, setPaces] = useState<Readonly<Record<string, readonly number[]>>>({});
+  /** The slime's walk up to the hero now, or the next one. */
+  const [walk, setWalk] = useState(() => walkFor({}, save, now()));
+  /** Whether the slime is on its way, so its life bar goes with it. */
+  const [walking, setWalking] = useState(false);
+  /** How long the life bar takes to come back, in seconds, after the slime left it. */
+  const [back, setBack] = useState(0);
+  /** How many walks ended in a roar or a blow, so the life bar comes back afresh. */
+  const [walks, setWalks] = useState(0);
 
   function keep(next: SavedFight): void {
     setSave(next);
@@ -329,6 +380,7 @@ export function Fight({
         });
         setChosen(undefined);
         setRevealed(false);
+        setWalk(walkFor(paces, save, now()));
         // The monster announces its blow: a sign over its head and a growl.
         if (save.fight.threat) {
           setStaging({ slime: { sign: { sheet: 'alert', at: now() } } });
@@ -340,7 +392,70 @@ export function Fight({
     return () => {
       clearTimeout(timer);
     };
-  }, [chosen, revealed, fight, save, now, sound]);
+  }, [chosen, revealed, fight, save, now, sound, paces]);
+
+  // The slime walks up to the hero while the sum is thought over; once there, it roars and
+  // steps back, or, with a sword whose monsters strike in time, strikes.
+  const reached = useEffectEvent((walk: Walk) => {
+    const at = now();
+    const ownSword = own(active).sword;
+    const { knocked } = motionTokens.act;
+    const home = { kind: 'return', at: at + moments.glare, reach: reach.slime } as const;
+    const next = reachedHero(fight, ownSword);
+    const struck = next !== fight;
+    setWalking(false);
+    setWalks(walks + 1);
+    setBack(moments.glare + motionTokens.act.return.seconds);
+    if (struck) {
+      keep({ ...save, fight: next });
+      setView((before) => ({ ...before, fight: next }));
+      setStaging({
+        slime: { acts: [approachOf(walk), home] },
+        hero: {
+          acts: [{ kind: 'knocked', at }],
+          sign: {
+            sheet: next.outcome === 'lost' ? 'sleepy' : 'dizzy',
+            at: at + knocked.fall + knocked.down,
+          },
+        },
+      });
+      sound.babble(voices.slime, 4);
+      effect(sounds.bump);
+      sound.babble(voices.hero, 2, undefined, moments.ouch);
+    } else {
+      setStaging({ slime: { acts: [approachOf(walk), home], sign: { sheet: 'angry', at } } });
+      sound.babble(voices.slime, 8);
+    }
+    const rested = struck ? knocked.fall + knocked.down + knocked.rise : 0;
+    setWalk(
+      next.outcome === 'fighting'
+        ? {
+            ...walk,
+            at: at + moments.glare + motionTokens.act.return.seconds + rested + moments.settle,
+          }
+        : undefined,
+    );
+  });
+  useEffect(() => {
+    if (!walk || chosen !== undefined) return;
+    const at = now();
+    const begin = setTimeout(
+      () => {
+        setWalking(true);
+      },
+      Math.max(0, walk.at - at) * 1000,
+    );
+    const end = setTimeout(
+      () => {
+        reached(walk);
+      },
+      Math.max(0, walk.at + walk.lasts - at) * 1000,
+    );
+    return () => {
+      clearTimeout(begin);
+      clearTimeout(end);
+    };
+  }, [walk, chosen, now]);
 
   function restart(): void {
     play(music.fight);
@@ -350,6 +465,9 @@ export function Fight({
     setChosen(undefined);
     setRevealed(false);
     setStaging({});
+    setBack(0);
+    setWalking(false);
+    setWalk(walkFor(paces, next, now()));
   }
 
   function answer(choice: Value): void {
@@ -367,9 +485,18 @@ export function Fight({
       task: makeTask(own(following).level, random, recent),
       recent,
     });
+    const at = now();
+    // The slime, if it was on its way, hurries home as the hero runs at it.
+    const walked = walkedAt(walk, at);
+    setStaging(stage(next, fight, at, walked));
+    if (walk) {
+      setPaces({ ...paces, [view.activeId]: withTime(paces[view.activeId], at - walk.asked) });
+    }
+    setWalk(undefined);
+    setWalking(false);
+    setBack(walked > 0 ? motionTokens.act.return.seconds : 0);
     setChosen(choice);
     setDamage(fight.lives - next.lives);
-    setStaging(stage(next, fight, now()));
     setAnswers(answers + 1);
     effect(sounds.choose);
     // How it went is heard as it shows.
@@ -415,7 +542,15 @@ export function Fight({
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
   const { charge } = motionTokens.act;
 
-  const scene = clearing(staging, shown.enraged);
+  const scene = clearing(
+    walk
+      ? {
+          ...staging,
+          slime: { ...staging.slime, acts: [...(staging.slime?.acts ?? []), approachOf(walk)] },
+        }
+      : staging,
+    shown.enraged,
+  );
 
   const overlay = (
     <div className="rs-hud">
@@ -462,19 +597,26 @@ export function Fight({
       )}
       {shown.lives > 0 && (
         <span
-          // Drawn anew at every answer, so its fading plays out again.
-          key={answers}
+          // Drawn anew at every answer, and when a walk ends, so its fading plays out again.
+          key={`life-${String(answers)}-${String(walks)}`}
           className="rs-life"
           role="img"
           aria-label={t.lives(shown.lives)}
           // Away while the monster charges, as the bar stays where the monster stood.
           data-away={chosen !== undefined && view.threat}
+          // Going with the monster as it walks up to the hero; when it turns back, the bar
+          // waits at home, unseen until the monster is there again.
+          data-walking={walking && walk !== undefined}
+          data-back={back > 0}
           style={
             {
               left: px(slimeAt.x + 8),
               top: px(slimeAt.y + 17),
               width: px(lifeWidth),
               '--away': `${String(charge.out + charge.hold + charge.back)}s`,
+              '--back': `${String(back)}s`,
+              '--walk': px(-reach.slime),
+              '--walk-time': `${String(walk?.lasts ?? 0)}s`,
             } as CSSProperties
           }
         >
