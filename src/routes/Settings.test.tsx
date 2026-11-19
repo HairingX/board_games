@@ -1,20 +1,28 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille } from '../../tests/family';
 import type { Family } from '../family/family';
 import { I18nProvider } from '../i18n/I18n';
+import type { SettingsPage } from '../lib/router';
 import { Settings } from './Settings';
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
 };
 
+/** The settings where the app puts them, each page as the address would name it. */
+function InApp(props: { family: Family; onChange: (family: Family) => void; onBack: () => void }) {
+  const [page, setPage] = useState<SettingsPage>({ name: 'main' });
+  return <Settings {...props} current={far} page={page} go={setPage} />;
+}
+
 async function open(family: Family) {
   const onChange = vi.fn<(family: Family) => void>();
   const onBack = vi.fn();
   render(
     <I18nProvider>
-      <Settings family={family} current={far} onChange={onChange} onBack={onBack} />
+      <InApp family={family} onChange={onChange} onBack={onBack} />
     </I18nProvider>,
   );
   await screen.findByRole('heading', { name: 'Indstillinger' });

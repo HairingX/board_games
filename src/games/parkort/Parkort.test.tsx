@@ -1,11 +1,12 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { useState } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { saves } from '../../lib/saves';
 import { drag } from '../../../tests/drag';
 import { cards, type CategoryId } from './cards';
 import { newDeck, type DeckState } from './deck';
 import { far, mor } from '../../../tests/family';
-import Parkort, { legacyKey, reviveDeck } from './Parkort';
+import Parkort, { legacyKey, reviveDeck, tablePlace } from './Parkort';
 
 const saveKey = 'parkort/test';
 
@@ -32,8 +33,14 @@ const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
 };
 
+/** The game where the app puts it, starting at the place given. */
+function Game({ at = [] }: { at?: readonly string[] }) {
+  const [place, setPlace] = useState(at);
+  return <Parkort players={[far, mor]} saveKey={saveKey} place={place} go={setPlace} />;
+}
+
 async function open(): Promise<void> {
-  render(<Parkort players={[far, mor]} saveKey={saveKey} />);
+  render(<Game />);
   await screen.findByRole('heading', { name: 'Parkort' });
 }
 
@@ -237,7 +244,7 @@ describe('Parkort play', () => {
 
   it('reopens at the furthest card even after looking back', async () => {
     await save(deckStartingWith('os-to-1', 'os-to-2'));
-    const { unmount } = render(<Parkort players={[far, mor]} saveKey={saveKey} />);
+    const { unmount } = render(<Game />);
     await screen.findByRole('heading', { name: 'Parkort' });
     click('Start');
     click('Vend kortet');
@@ -335,11 +342,17 @@ describe('Parkort play', () => {
 
   it('shows the cards underneath only while there are any', async () => {
     await save({ ...newDeck(cards), categories: ['minder'], seen: minder.slice(2) });
-    const { container } = render(<Parkort players={[far, mor]} saveKey={saveKey} />);
+    const { container } = render(<Game />);
     await screen.findByRole('heading', { name: 'Parkort' });
     act(() => {
       click('Fortsæt hvor I slap');
     });
     expect(container.querySelectorAll('.pk-stack')).toHaveLength(1);
+  });
+
+  it('opens on the table when its address says the cards are out, as after a reload', async () => {
+    await save(newDeck(cards));
+    render(<Game at={[tablePlace]} />);
+    expect(await screen.findByRole('button', { name: 'Vend kortet' })).toBeInTheDocument();
   });
 });

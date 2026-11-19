@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { GameProps } from '../../lib/games';
 import { takeLegacy } from '../../lib/storage';
 import { useSaved } from '../../lib/useSaved';
@@ -17,13 +16,16 @@ export function reviveDeck(saved: unknown): DeckState {
   return deck ? reconcile(deck, cards) : newDeck(cards);
 }
 
+/** The game's place while the cards are on the table; its start is choosing them. */
+export const tablePlace = 'kort';
+
 /**
  * Question cards for couples, remembering which cards the two players have talked about: each
- * couple has its own deck.
+ * couple has its own deck. The cards on the table have their own address, so a reload stays.
  */
-export default function Parkort({ saveKey }: GameProps) {
+export default function Parkort({ saveKey, place, go }: GameProps) {
   const [deck, setDeck] = useSaved(saveKey, reviveDeck);
-  const [playing, setPlaying] = useState(false);
+  const playing = place[0] === tablePlace;
 
   if (!deck) return null;
 
@@ -34,7 +36,7 @@ export default function Parkort({ saveKey }: GameProps) {
           deck={deck}
           onChange={setDeck}
           onBack={() => {
-            setPlaying(false);
+            go([]);
           }}
         />
       ) : (
@@ -42,7 +44,7 @@ export default function Parkort({ saveKey }: GameProps) {
           deck={deck}
           onChange={setDeck}
           onStart={() => {
-            setPlaying(true);
+            go([tablePlace]);
           }}
         />
       )}

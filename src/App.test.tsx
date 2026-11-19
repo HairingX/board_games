@@ -3,6 +3,8 @@ import { lazy } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { far, mille, mor, playAs, savedFamily, seedFamily, typePin } from '../tests/family';
+import { hashPin } from './family/pin';
+import { rememberedSaveKey } from './family/remembered';
 import FakeGame from '../tests/fixtures/FakeGame';
 import { App } from './App';
 import { cards } from './games/parkort/cards';
@@ -89,19 +91,22 @@ describe('App', () => {
   it('lets a grown-up open the settings from the home screen, and come back', async () => {
     await startAs('Far');
     click('Indstillinger');
-    expect(screen.getByRole('heading', { name: 'Indstillinger' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Indstillinger' })).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/indstillinger');
     click(/^Familien/);
-    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/indstillinger/familien');
     click('Tilbage');
+    await screen.findByRole('heading', { name: 'Indstillinger' });
     click('Tilbage');
-    expect(screen.getByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
   });
 
   it('asks for the grown-ups’ code when the lock is turned on in the settings', async () => {
     await startAs('Far');
     click('Indstillinger');
-    click(/^Voksenlås/);
-    click('Slå voksenlåsen til');
+    fireEvent.click(await screen.findByRole('button', { name: /^Voksenlås/ }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Slå voksenlåsen til' }));
     typePin('1357');
     await screen.findByRole('heading', { name: 'Skriv koden igen' });
     typePin('1357');
@@ -110,13 +115,14 @@ describe('App', () => {
       expect((await savedFamily()).lock).not.toBeNull();
     });
     click('Tilbage');
+    await screen.findByRole('heading', { name: 'Indstillinger' });
     click('Tilbage');
-    click('Skift spiller');
+    fireEvent.click(await screen.findByRole('button', { name: 'Skift spiller' }));
     await playAs('Far');
     expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
   });
 
-  it('asks who joins a game before it starts', async () => {
+  it('asks who joins a game, then keeps the players and the place in the address', async () => {
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
     await startAs('Far', [fakeGame]);
 
@@ -126,19 +132,31 @@ describe('App', () => {
     click(/^Mille/);
     click('Start');
     expect(await screen.findByText('Et testspil')).toBeInTheDocument();
-    goTo('#/spil/testspil');
-    expect(screen.getByText('Et testspil')).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/spil/testspil/far+mille');
+    expect(screen.getByText(/Spillere: Far, Mille · testspil ·/)).toBeInTheDocument();
+    click('Videre');
+    expect(await screen.findByText(/· videre$/)).toBeInTheDocument();
+    expect(window.location.hash).toBe('#/spil/testspil/far+mille/videre');
 
-    goTo('#/');
-    expect(screen.getByRole('link', { name: /Testspil/ })).toBeInTheDocument();
     goTo('#/spil/testspil');
+    expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['someone not in the family', '#/spil/testspil/far+oscar'],
+    ['the same player twice', '#/spil/testspil/far+far'],
+    ['too many players', '#/spil/testspil/far+mor+mille'],
+    ['a child in a grown-ups’ game', '#/spil/voksenspil/far+mille'],
+  ])('asks who joins when the address names %s', async (_what, hash) => {
+    await startAs('Far', [fakeGame, grownUpGame]);
+    goTo(hash);
     expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
   });
 
   it('gives a couple the Parkort deck that was played before players were chosen', async () => {
     await saves.write('parkort', { ...newDeck(cards), seen: ['os-to-1'] });
-    window.location.hash = '#/spil/parkort';
     await startAs('Far');
+    goTo('#/spil/parkort');
     click(/^Mor/);
     click('Start');
     expect(await screen.findByText(`1 af ${String(cards.length)}`)).toBeInTheDocument();
@@ -149,8 +167,8 @@ describe('App', () => {
 
   it('starts the game even when the old save cannot be moved', async () => {
     const read = vi.spyOn(saves, 'read');
-    window.location.hash = '#/spil/parkort';
     await startAs('Far');
+    goTo('#/spil/parkort');
     read.mockRejectedValueOnce(new Error('broken'));
     click(/^Mor/);
     click('Start');
@@ -204,13 +222,86 @@ describe('App', () => {
     expect(await screen.findByText('Spillet kunne ikke hentes.')).toBeInTheDocument();
   });
 
-  it('says so when the hash names no game', async () => {
-    window.location.hash = '#/spil/findes-ikke';
+  it('says so when the hash names no game or page', async () => {
     await startAs('Far', [fakeGame]);
+    goTo('#/spil/findes-ikke');
     expect(screen.getByText('Det spil findes ikke.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tilbage til forsiden' })).toHaveAttribute(
       'href',
       '#/',
     );
+    goTo('#/findes-ikke');
+    expect(screen.getByText('Den side findes ikke.')).toBeInTheDocument();
+  });
+
+  it('keeps children out of the settings', async () => {
+    await startAs('Mille');
+    goTo('#/indstillinger');
+    expect(screen.getByText('Den side findes ikke.')).toBeInTheDocument();
+  });
+
+  it('goes home when someone is chosen, wherever the address was', async () => {
+    window.location.hash = '#/indstillinger/familien';
+    await startAs('Mille');
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/');
+    });
+    expect(screen.getByText('Hej, Mille')).toBeInTheDocument();
+  });
+});
+
+describe('App, opened again', () => {
+  async function reopen(remembered: object, hash = ''): Promise<void> {
+    await seedFamily({ profiles: [far, mor, mille], lock: await hashPin('1234') });
+    await saves.write(rememberedSaveKey, remembered);
+    window.location.hash = hash;
+    render(<App />);
+  }
+
+  it('opens where the player was, from the start address', async () => {
+    await reopen({ player: 'mille', locked: false, place: '#/spil/regnespil', at: 0 });
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/spil/regnespil');
+    });
+  });
+
+  it('stays on the address it was reloaded on', async () => {
+    await reopen(
+      { player: 'far', locked: true, place: '#/indstillinger', at: Date.now() },
+      '#/indstillinger/familien',
+    );
+    expect(await screen.findByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+    await waitFor(async () => {
+      expect(await saves.read(rememberedSaveKey)).toMatchObject({
+        place: '#/indstillinger/familien',
+      });
+    });
+  });
+
+  it('asks a grown-up behind the lock for the code once the app has lain unused', async () => {
+    await reopen({ player: 'far', locked: true, place: '#/indstillinger', at: 0 });
+    expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
+  });
+
+  it('notes when the app was last used each time it is left', async () => {
+    await reopen({ player: 'mor', locked: true, place: '#/', at: Date.now() - 60_000 });
+    await screen.findByText('Hej, Mor');
+    const before = Date.now();
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+    Reflect.deleteProperty(document, 'visibilityState');
+    await waitFor(async () => {
+      const saved = (await saves.read(rememberedSaveKey)) as { at: number };
+      expect(saved.at).toBeGreaterThanOrEqual(before);
+    });
+  });
+
+  it('forgets who played when they switch', async () => {
+    await reopen({ player: 'mille', locked: false, place: '#/', at: 0 }, '#/');
+    fireEvent.click(await screen.findByRole('button', { name: 'Skift spiller' }));
+    expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
+    await waitFor(async () => {
+      expect(await saves.read(rememberedSaveKey)).toMatchObject({ player: null });
+    });
   });
 });

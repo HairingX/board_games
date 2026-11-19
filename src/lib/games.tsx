@@ -14,6 +14,13 @@ export interface GameProps {
    * `playerSaveKey(saveKey, player)`.
    */
   saveKey: string;
+  /**
+   * Where in the game the players are, as parts of its address after the players, such as
+   * `['kort']`; empty at the game's start. It comes back after a reload or an update.
+   */
+  place: readonly string[];
+  /** Goes to another place in the game, as a step the back gesture undoes. */
+  go: (place: readonly string[]) => void;
 }
 
 /** How many play a game, and whether its progress belongs to the group or to each player. */

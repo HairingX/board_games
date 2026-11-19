@@ -4,6 +4,7 @@ import { cleanup } from '@testing-library/react';
 import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
 import { familySaveKey } from '../src/family/FamilyContext';
+import { rememberedSaveKey } from '../src/family/remembered';
 import { localeSaveKey } from '../src/i18n/I18n';
 import { betaSaveKey } from '../src/lib/beta';
 import { soundSaveKey } from '../src/lib/sound/settings';
@@ -27,6 +28,7 @@ afterEach(async () => {
   localStorage.clear();
   window.location.hash = '';
   await saves.remove(familySaveKey);
+  await saves.remove(rememberedSaveKey);
   await saves.remove(localeSaveKey);
   await saves.remove(betaSaveKey);
   await saves.remove(soundSaveKey);

@@ -128,9 +128,15 @@ game builds on them, and everything must stay smooth on a phone.
 - The start screen (`src/routes/Start.tsx`) says what the app is before anything is asked: its
   name, what it is for, the games' cards fanned out, the language in the corner, and "Opdatér"
   when a new version waits, so updating never needs anyone chosen. Under it, "Hvem spiller?"
-  (`src/family/WhoIsPlaying.tsx`) is asked at every start. The family is saved
-  on the phone (`src/family/family.ts`, under the key `familie`); who is on the home screen is
-  not. The first time, the first grown-up is made there, without being asked for a code.
+  (`src/family/WhoIsPlaying.tsx`). The family is saved on the phone (`src/family/family.ts`,
+  under the key `familie`). The first time, the first grown-up is made there, without being
+  asked for a code.
+- The app remembers who is playing and where (`src/family/remembered.ts`, saved under `sted`),
+  and opens straight there: after a reload, an update, or when the phone reopens the app from
+  its start address. The owner decided this: being asked again and again was a nuisance. A
+  grown-up behind the lock is remembered only for `lockedGrace` (30 minutes) after the app
+  was last used, so a child opening it the next morning does not land on them. Choosing
+  someone on the start screen goes home; "Skift spiller" forgets who played.
 - A profile is a name, a colour, and whether it is a grown-up or a child; profiles have no codes,
   and anyone may choose anyone. The owner decided this: codes per person were a nuisance.
 - The grown-ups' lock (`src/family/AdultLock.tsx`) is off until a grown-up turns it on in the
@@ -205,6 +211,13 @@ game builds on them, and everything must stay smooth on a phone.
   (`src/lib/backup.ts`): every save in one JSON file, which also moves games between browsers.
 
 ## The app shell
+
+- Every screen has its own address in the location's hash (`src/lib/router.ts`): `#/` home,
+  `#/indstillinger/...` the settings' pages, `#/spil/<game>` choosing players,
+  `#/spil/<game>/<id>+<id>` the game with its players, and further parts for where in the
+  game (`place` and `go` in `GameProps`; Parkort's table is `kort`). Reloading stays, and the
+  phone's back gesture goes back a screen. A new player moves the address; moving about only
+  notes it.
 
 - A new version never reloads the app by itself: it waits, and the home screen offers
   "Opdatér" between games (`registerType: 'prompt'`). Browsers look for a new version only

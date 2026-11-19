@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille, mor } from '../../tests/family';
+import type { SettingsPage } from '../lib/router';
 import type { Family } from './family';
 import { ManageFamily } from './ManageFamily';
 
@@ -13,15 +15,44 @@ const open = (name: string) => {
   click(new RegExp(`^${name} `));
 };
 
-function renderWith(profiles: Family['profiles'], current = far) {
+type FamilyPage = Extract<SettingsPage, { name: 'family' | 'family-new' | 'person' }>;
+
+/** The family's pages where the settings put them; leaving them calls onBack. */
+function InSettings({
+  start,
+  onBack,
+  ...props
+}: Omit<Parameters<typeof ManageFamily>[0], 'page' | 'go'> & {
+  start: FamilyPage;
+  onBack: () => void;
+}) {
+  const [page, setPage] = useState<FamilyPage>(start);
+  return (
+    <ManageFamily
+      {...props}
+      page={page}
+      go={(next) => {
+        if (next.name === 'main') onBack();
+        else setPage(next as FamilyPage);
+      }}
+    />
+  );
+}
+
+function renderWith(
+  profiles: Family['profiles'],
+  current = far,
+  start: FamilyPage = { name: 'family' },
+) {
   const onChange = vi.fn<(family: Family) => void>();
   const onBack = vi.fn();
   const view = render(
-    <ManageFamily
+    <InSettings
       family={{ profiles, lock: null }}
       current={current}
       onChange={onChange}
       onBack={onBack}
+      start={start}
     />,
   );
   const changed = () => onChange.mock.lastCall?.[0];
@@ -101,5 +132,10 @@ describe('ManageFamily', () => {
     renderWith([far, mille], mor);
     open('Far');
     expect(screen.getByRole('button', { name: 'Fjern Far' })).toBeDisabled();
+  });
+
+  it('shows the list for a person who is no longer in the family', () => {
+    renderWith([far], far, { name: 'person', id: 'mille' });
+    expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ const da = {
   loadFailed: 'Spillet kunne ikke hentes.',
   loading: 'Henter spillet…',
   noSuchGame: 'Det spil findes ikke.',
+  noSuchPage: 'Den side findes ikke.',
 
   switchPlayer: 'Skift spiller',
   settings: 'Indstillinger',
@@ -46,6 +47,7 @@ export const appText: Translations<typeof da> = {
     loadFailed: 'The game could not be loaded.',
     loading: 'Loading the game…',
     noSuchGame: 'There is no such game.',
+    noSuchPage: 'There is no such page.',
 
     switchPlayer: 'Switch player',
     settings: 'Settings',

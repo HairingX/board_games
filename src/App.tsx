@@ -1,14 +1,14 @@
 import { MotionConfig } from 'motion/react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { ChoosePlayers } from './family/ChoosePlayers';
-import { mayPlay, type Profile } from './family/family';
+import { mayPlay, type Family, type Profile } from './family/family';
 import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { moveSave, saves } from './lib/saves';
-import { parseGameId } from './lib/router';
+import { navigate, useRoute } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
 import { Home } from './routes/Home';
 import { Settings } from './routes/Settings';
@@ -17,8 +17,9 @@ import { appText } from './routes/text';
 import { common } from './ui/text';
 
 /**
- * The app: "Hvem spiller?" first, then the home screen, or the game the location's hash names.
- * Only the games the player may play are offered or opened.
+ * The app: the start screen until someone is chosen, then the screen the location's hash names.
+ * It opens again on whoever was playing, where they were. Only the games the player may play
+ * are offered or opened.
  */
 export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   return (
@@ -32,19 +33,29 @@ export function App({ games = allGames }: { games?: readonly GameInfo[] }) {
   );
 }
 
-/** A game being played: who plays it and where it saves. */
-interface Session {
-  gameId: string;
-  players: Profile[];
-  saveKey: string;
+/** The players a game's address names, if they are all in the family and may play it. */
+function playersFor(
+  game: GameInfo,
+  ids: readonly string[] | null,
+  family: Family,
+): Profile[] | undefined {
+  if (!ids || new Set(ids).size !== ids.length) return undefined;
+  const players = ids.map((id) => family.profiles.find((profile) => profile.id === id));
+  const known = players.filter((player): player is Profile => player !== undefined);
+  const fits =
+    known.length === ids.length &&
+    known.length >= game.players.min &&
+    known.length <= game.players.max &&
+    known.every((player) => mayPlay(player.role, game.audience));
+  return fits ? known : undefined;
 }
 
 function Shell({ games }: { games: readonly GameInfo[] }) {
   const t = useMessages(appText);
-  const { family, current, save, leave } = useFamily();
-  const [inSettings, setInSettings] = useState(false);
-  const [session, setSession] = useState<Session>();
-  const [gameId, setGameId] = useState(() => parseGameId(window.location.hash));
+  const { family, current, save, leave, place, notePlace } = useFamily();
+  const route = useRoute();
+  /** Whether the app opened on someone remembered, so it goes back where they were. */
+  const resumed = useRef(current !== undefined);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
   const {
     needRefresh: [updateWaiting],
@@ -56,19 +67,31 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   });
   useUpdateChecks(registration);
 
+  /** Where the player was last noted, read when the player changes. */
+  const lastPlace = useRef(place);
   useEffect(() => {
-    function onHashChange(): void {
-      const next = parseGameId(window.location.hash);
-      setGameId(next);
-      // The players are chosen again only when another game opens, not when the same is named.
-      setSession((playing) => (playing?.gameId === next ? playing : undefined));
-      window.scrollTo(0, 0);
+    lastPlace.current = place;
+  }, [place]);
+
+  // When the player changes, they go where they are to be: back where they were when the app
+  // opened on them from its start address, else home. Opened on any other address, it stays.
+  // Only a new player moves the address; moving about the app only notes where they are.
+  const playerId = current?.id;
+  useEffect(() => {
+    if (playerId === undefined) return;
+    const opened = window.location.hash === '';
+    const stay = resumed.current && !opened;
+    resumed.current = false;
+    if (!stay && window.location.hash !== lastPlace.current) {
+      window.location.replace(lastPlace.current);
     }
-    window.addEventListener('hashchange', onHashChange);
-    return () => {
-      window.removeEventListener('hashchange', onHashChange);
-    };
-  }, []);
+  }, [playerId]);
+
+  // Where someone is, is remembered for the next time the app opens.
+  useEffect(() => {
+    // The start address is left for where the player was as soon as they are known.
+    if (current && window.location.hash !== '') notePlace(window.location.hash);
+  }, [current, route, notePlace]);
 
   const update = updateWaiting
     ? () => {
@@ -81,62 +104,88 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     : undefined;
 
   if (!current) return <Start games={games} {...(update ? { onUpdate: update } : {})} />;
-  if (inSettings) {
-    return (
-      <Settings
-        family={family}
-        current={current}
-        onChange={save}
-        onBack={() => {
-          setInSettings(false);
-        }}
-      />
-    );
-  }
-  const playable = games.filter((candidate) => mayPlay(current.role, candidate.audience));
-  const game = playable.find((candidate) => candidate.id === gameId);
 
-  return gameId === undefined ? (
-    <Home
-      games={playable}
-      player={current}
-      onSwitch={leave}
-      onSettings={() => {
-        setInSettings(true);
-      }}
-      {...(update ? { onUpdate: update } : {})}
-    />
-  ) : game?.Screen ? (
-    <ErrorBoundary key={gameId} fallback={<Message text={t.loadFailed} />}>
-      <Suspense fallback={<p className="status">{t.loading}</p>}>
-        <div className="game" style={gameTheme(game)}>
-          {session?.gameId === game.id ? (
-            <game.Screen players={session.players} saveKey={session.saveKey} />
-          ) : (
-            <ChoosePlayers
-              game={game}
-              family={family}
-              current={current}
-              onChange={save}
-              onStart={(players) => {
-                const saveKey = gameSaveKey(game, players);
-                const moved = game.formerSaveKey
-                  ? moveSave(saves, game.formerSaveKey, saveKey)
-                  : Promise.resolve();
-                void moved
-                  .catch(() => undefined)
-                  .then(() => {
-                    setSession({ gameId: game.id, players, saveKey });
-                  });
-              }}
-            />
-          )}
-        </div>
-      </Suspense>
-    </ErrorBoundary>
-  ) : (
-    <Message text={t.noSuchGame} />
-  );
+  const playable = games.filter((candidate) => mayPlay(current.role, candidate.audience));
+  const home = () => {
+    navigate({ name: 'home' });
+  };
+
+  switch (route.name) {
+    case 'home':
+      return (
+        <Home
+          games={playable}
+          player={current}
+          onSwitch={leave}
+          onSettings={() => {
+            navigate({ name: 'settings', page: { name: 'main' } });
+          }}
+          {...(update ? { onUpdate: update } : {})}
+        />
+      );
+    case 'settings':
+      return current.role === 'voksen' ? (
+        <Settings
+          family={family}
+          current={current}
+          onChange={save}
+          page={route.page}
+          go={(page) => {
+            navigate({ name: 'settings', page });
+          }}
+          onBack={home}
+        />
+      ) : (
+        <Message text={t.noSuchPage} />
+      );
+    case 'game': {
+      const game = playable.find((candidate) => candidate.id === route.id);
+      if (!game?.Screen) return <Message text={t.noSuchGame} />;
+      const players = playersFor(game, route.players, family);
+      return (
+        <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
+          <Suspense fallback={<p className="status">{t.loading}</p>}>
+            <div className="game" style={gameTheme(game)}>
+              {players ? (
+                <game.Screen
+                  players={players}
+                  saveKey={gameSaveKey(game, players)}
+                  place={route.place}
+                  go={(next) => {
+                    navigate({ ...route, place: next });
+                  }}
+                />
+              ) : (
+                <ChoosePlayers
+                  game={game}
+                  family={family}
+                  current={current}
+                  onChange={save}
+                  onStart={(chosen) => {
+                    const moved = game.formerSaveKey
+                      ? moveSave(saves, game.formerSaveKey, gameSaveKey(game, chosen))
+                      : Promise.resolve();
+                    void moved
+                      .catch(() => undefined)
+                      .then(() => {
+                        navigate({
+                          name: 'game',
+                          id: game.id,
+                          players: chosen.map((player) => player.id),
+                          place: [],
+                        });
+                      });
+                  }}
+                />
+              )}
+            </div>
+          </Suspense>
+        </ErrorBoundary>
+      );
+    }
+    case 'unknown':
+      return <Message text={t.noSuchPage} />;
+  }
 }
 
 function Message({ text }: { text: string }) {

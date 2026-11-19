@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { AdultLock } from '../family/AdultLock';
 import type { Family, Profile } from '../family/family';
 import { ManageFamily } from '../family/ManageFamily';
 import { familyText } from '../family/text';
 import { useMessages } from '../i18n/I18n';
 import { betaSaveKey, reviveBeta } from '../lib/beta';
+import type { SettingsPage } from '../lib/router';
 import { useSaved } from '../lib/useSaved';
 import { GameHeader } from '../ui/GameHeader';
 import { LanguageSelect } from '../ui/LanguageSelect';
@@ -21,6 +21,10 @@ interface Props {
   /** The grown-up in the settings. */
   current: Profile;
   onChange: (family: Family) => void;
+  /** The page of the settings shown. */
+  page: SettingsPage;
+  /** Goes to another page of the settings. */
+  go: (page: SettingsPage) => void;
   /** Goes back to the home screen. */
   onBack: () => void;
 }
@@ -30,24 +34,28 @@ interface Props {
  * family, the grown-ups' lock, how the games are saved, and beta, which shows test pages for
  * the parts still being built.
  */
-export function Settings({ family, current, onChange, onBack }: Props) {
+export function Settings({ family, current, onChange, page, go, onBack }: Props) {
   const t = useMessages(appText);
   const f = useMessages(familyText);
   const lab = useMessages(labText);
   const [beta, setBeta] = useSaved(betaSaveKey, reviveBeta);
-  const [page, setPage] = useState<'main' | 'family' | 'lock' | 'sound'>('main');
   const toMain = () => {
-    setPage('main');
+    go({ name: 'main' });
   };
 
-  if (page === 'family') {
-    return <ManageFamily family={family} current={current} onChange={onChange} onBack={toMain} />;
-  }
-  if (page === 'lock') {
-    return <AdultLock family={family} onChange={onChange} onBack={toMain} />;
-  }
-  if (page === 'sound') {
-    return <SoundLab onBack={toMain} />;
+  switch (page.name) {
+    case 'family':
+    case 'family-new':
+    case 'person':
+      return (
+        <ManageFamily family={family} current={current} onChange={onChange} page={page} go={go} />
+      );
+    case 'lock':
+      return <AdultLock family={family} onChange={onChange} onBack={toMain} />;
+    case 'sound':
+      return <SoundLab onBack={toMain} />;
+    case 'main':
+      break;
   }
 
   return (
@@ -62,7 +70,7 @@ export function Settings({ family, current, onChange, onBack }: Props) {
             type="button"
             className="family-row"
             onClick={() => {
-              setPage('family');
+              go({ name: 'family' });
             }}
           >
             <span className="family-row-name">
@@ -78,7 +86,7 @@ export function Settings({ family, current, onChange, onBack }: Props) {
             type="button"
             className="family-row"
             onClick={() => {
-              setPage('lock');
+              go({ name: 'lock' });
             }}
           >
             <span className="family-row-name">
@@ -100,7 +108,7 @@ export function Settings({ family, current, onChange, onBack }: Props) {
                 type="button"
                 className="family-row"
                 onClick={() => {
-                  setPage('sound');
+                  go({ name: 'sound' });
                 }}
               >
                 <span className="family-row-name">
