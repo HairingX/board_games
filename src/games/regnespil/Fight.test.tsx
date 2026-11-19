@@ -8,7 +8,7 @@ import { sound, SoundEngine } from '../../lib/sound/engine';
 import { motionTokens } from '../../ui/motion';
 import { Fight } from './Fight';
 import type { PlayerSettings } from './players';
-import { jingleLength, sounds } from './sounds';
+import { hits, sounds, victoryLength } from './sounds';
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
@@ -34,6 +34,7 @@ function open(
   const engine = new SoundEngine(fake.browser);
   const effect = vi.spyOn(engine, 'effect');
   const chime = vi.spyOn(engine, 'chime');
+  const focus = vi.spyOn(engine, 'focusMusic');
   const view = render(
     <Fight
       players={players}
@@ -47,7 +48,8 @@ function open(
   );
   const played = () => effect.mock.calls.map(([url, volume]) => [url, volume]);
   const chimed = () => chime.mock.calls.map(([made]) => made);
-  return { ...fake, ...view, onBack, played, chimed };
+  const focused = () => focus.mock.calls.map(([on]) => on);
+  return { ...fake, ...view, onBack, played, chimed, focused };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -64,7 +66,7 @@ const { right, wrong } = motionTokens.fightPause;
 describe('Fight', () => {
   it('makes its sounds and music ready when it opens, and fades the music when left', () => {
     const { fetch, unmount, audios, runLater } = open();
-    expect(fetch).toHaveBeenCalledTimes(7);
+    expect(fetch).toHaveBeenCalledTimes(Object.keys(sounds).length + hits.length + 2);
     click('2');
     unmount();
     runLater();
@@ -72,7 +74,8 @@ describe('Fight', () => {
   });
 
   it('strikes the slime on a right answer, with music, and asks the next sum after a pause', async () => {
-    const { played, chimed, audios, onBack } = open();
+    const { played, chimed, audios, onBack, focused } = open();
+    expect(focused()).toEqual([true]);
     expect(hearts('5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     click('2');
@@ -81,11 +84,13 @@ describe('Fight', () => {
     expect(chimed()).toEqual([chimes.right]);
     expect(played()).toEqual([
       [sounds.slash.url, sounds.slash.gain],
-      [sounds.hit.url, sounds.hit.gain],
+      [hits[0]?.url, hits[0]?.gain],
     ]);
     expect(audios).toHaveLength(1);
+    expect(focused()).toEqual([true, false]);
     await pause(right);
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
+    expect(focused()).toEqual([true, false, true]);
     expect(screen.queryByRole('status', { name: /tur/ })).not.toBeInTheDocument();
     click('Tilbage');
     expect(onBack).toHaveBeenCalledOnce();
@@ -115,11 +120,11 @@ describe('Fight', () => {
     await pause(right);
     click('2');
     expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
-    expect(played()).toContainEqual([sounds.fanfare.url, sounds.fanfare.gain]);
+    expect(played()).toContainEqual([sounds.victory.url, sounds.victory.gain]);
     expect(context.all(FakeOscillator).length).toBeGreaterThan(0);
     runLater();
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
-    await pause(jingleLength.fanfare);
+    await pause(victoryLength);
     expect(audios[1]?.src).toMatch(/^blob:/);
     expect(audios).toHaveLength(2);
     click('Ny kamp');

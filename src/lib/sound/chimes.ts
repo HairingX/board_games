@@ -1,8 +1,8 @@
 /*
  * The answers' sounds: short tunes of tones made in the phone, the same every time, so a child
  * who cannot read learns at once how an answer went, and how far off it was: a rising tune that
- * lands for right; a small step down for close, "nearly"; and a clear fall of three notes for
- * far off, as the owner asked, the last one gliding down, soft in tone and never a buzzer, as
+ * lands for right; a half step down for close, "nearly"; and a clear fall of four notes for
+ * far off, the last one gliding down, as the owner chose by ear, soft in tone and never a buzzer, as
  * harsh sounds for mistakes make children anxious about maths. All three are about as loud,
  * so none is missed; the music gives way under each.
  */
@@ -43,25 +43,26 @@ export const chimes = {
       { at: 0.14, length: 0.34, step: 7 },
     ],
   },
-  /** Close: the same bright tone, a step down: nearly. */
+  /** Close: the same bright tone, a half step down: nearly. */
   close: {
     wave: 'triangle',
     pitch: high,
     volume: 0.5,
     notes: [
       { at: 0, length: 0.13, step: 0 },
-      { at: 0.12, length: 0.24, step: -2 },
+      { at: 0.12, length: 0.28, step: -1 },
     ],
   },
-  /** Far off: three notes falling, the last gliding further down: not this time. */
+  /** Far off: four notes stepping down by half steps, the last gliding further: not this time. */
   far: {
     wave: 'triangle',
     pitch: low,
     volume: 0.6,
     notes: [
-      { at: 0, length: 0.17, step: 0 },
-      { at: 0.16, length: 0.17, step: -3 },
-      { at: 0.32, length: 0.5, step: -7, slide: -3 },
+      { at: 0, length: 0.2, step: 0 },
+      { at: 0.2, length: 0.2, step: -1 },
+      { at: 0.4, length: 0.2, step: -2 },
+      { at: 0.6, length: 0.6, step: -3, slide: -2 },
     ],
   },
 } as const satisfies Record<'right' | 'close' | 'far', Chime>;

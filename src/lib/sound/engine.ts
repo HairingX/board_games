@@ -38,6 +38,13 @@ const silence = 0.0001;
  */
 export const ducking = { level: 0.4, down: 0.04, hold: 0.5, back: 0.6 } as const;
 
+/**
+ * How the music steps back while a player thinks, so it never wears on the mind over many sums:
+ * down to this share of its level (about 6 dB lower), slowly, in seconds; and up again
+ * quickly when something happens.
+ */
+export const focusing = { level: 0.5, down: 1.5, up: 0.3 } as const;
+
 /** What the engine needs from the browser; the tests give their own. */
 export interface SoundBrowser {
   makeContext: () => AudioContext;
@@ -67,8 +74,9 @@ interface Playing {
 
 interface Buses {
   context: AudioContext;
-  /** The music's level as set; its ducking follows it, on its own level. */
+  /** The music's level as set; its focusing and its ducking follow it, each on its own level. */
   music: GainNode;
+  focused: GainNode;
   ducked: GainNode;
   effects: GainNode;
 }
@@ -81,6 +89,7 @@ interface Buses {
 export class SoundEngine {
   private buses?: Buses;
   private settings: SoundSettings = { music: 1, effects: 1 };
+  private focus = false;
   private playing: Playing | undefined;
   private readonly sounds = new Map<string, Promise<AudioBuffer>>();
   /** Music read into memory, by its address, so it plays without the internet. */
@@ -104,14 +113,17 @@ export class SoundEngine {
     if (!this.buses) {
       const context = this.browser.makeContext();
       const music = context.createGain();
+      const focused = context.createGain();
       const ducked = context.createGain();
       const effects = context.createGain();
       music.gain.value = this.settings.music;
+      focused.gain.value = this.focus ? focusing.level : 1;
       effects.gain.value = this.settings.effects;
-      music.connect(ducked);
+      music.connect(focused);
+      focused.connect(ducked);
       ducked.connect(context.destination);
       effects.connect(context.destination);
-      this.buses = { context, music, ducked, effects };
+      this.buses = { context, music, focused, ducked, effects };
     }
     return this.buses;
   }
@@ -141,6 +153,23 @@ export class SoundEngine {
     const { context, music, effects } = this.buses;
     glide(music.gain, settings.music, context.currentTime, switchFade);
     glide(effects.gain, settings.effects, context.currentTime, switchFade);
+  }
+
+  /**
+   * Lets the music step back while a player thinks, or come forward again when something
+   * happens, gently, and remembers it for when the sound starts.
+   */
+  focusMusic(on: boolean): void {
+    if (on === this.focus) return;
+    this.focus = on;
+    if (!this.buses) return;
+    const { context, focused } = this.buses;
+    glide(
+      focused.gain,
+      on ? focusing.level : 1,
+      context.currentTime,
+      on ? focusing.down : focusing.up,
+    );
   }
 
   /**

@@ -65,17 +65,12 @@ const da = {
   listen: {
     title: 'Lyttetest',
     intro:
-      'Lyt til buddene og vælg dem, der lyder bedst. »Nu« er det, kampen bruger i dag. Slå kampmusikken til for at høre dem, som de lyder i kampen.',
+      'Fjenderne får hver deres stemme efter deres størrelse. Slå kampmusikken til for at høre dem, som de lyder i kampen.',
     withMusic: 'Kampmusik under',
-    stroke: 'Slaget',
-    attack: 'Monsteret angriber',
-    victory: 'Sejren',
-    answers: 'Svarene',
-    now: 'Nu',
-    option: (number: number) => `Bud ${formatNumber('da', number)}`,
-    right: 'Rigtigt',
-    close: 'Tæt på',
-    far: 'Langt fra',
+    monsters: 'Fjendernes stemmer',
+    slime: 'Slim',
+    troll: 'Trold',
+    giant: 'Kæmpe',
   },
 };
 
@@ -128,17 +123,12 @@ export const text: Translations<typeof da> = {
     listen: {
       title: 'Listening test',
       intro:
-        'Listen to the options and pick the ones that sound best. “Now” is what the fight uses today. Turn the fight music on to hear them as they sound in the fight.',
+        'Each enemy has a voice of its own, by its size. Turn the fight music on to hear them as they sound in the fight.',
       withMusic: 'Fight music under',
-      stroke: 'The stroke',
-      attack: 'The monster attacks',
-      victory: 'The victory',
-      answers: 'The answers',
-      now: 'Now',
-      option: (number) => `Option ${formatNumber('en', number)}`,
-      right: 'Right',
-      close: 'Close',
-      far: 'Far off',
+      monsters: 'The enemies’ voices',
+      slime: 'Slime',
+      troll: 'Troll',
+      giant: 'Giant',
     },
   },
 };

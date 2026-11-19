@@ -151,7 +151,7 @@ game builds on them, and everything must stay smooth on a phone.
   strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
   tries again. The players take turns (`src/lib/turns.ts`, `src/ui/TurnBanner.tsx`: "Nu er
   det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
-  has its music (the pack's "17 - Fight"); the slime growls in a low tone voice before it
+  has its music (the pack's "17 - Fight"); the slime speaks in its own light voice before it
   bumps the hero; victory is a fanfare, a puff of smoke, coins and the hero cheering with a
   heart over his head, and then happy music. A fight is not yet saved while it is on.
 - Agreed next, after the sounds: the party. Each player chooses a hero, suggested from the
@@ -276,20 +276,29 @@ game builds on them, and everything must stay smooth on a phone.
   pace, made from tones in the phone: the owner heard both and chose tones over the pack's
   recorded voice clips. Sound starts only from a tap.
   An answer is told by a chime of tones (`src/lib/sound/chimes.ts`), the same on every page and
-  a shade higher or lower each time, telling how far off it was, as the owner asked: up and
-  landing for right; a small step down for close; three notes falling, the last gliding, for
-  far off; soft in tone, never a buzzer, and all about as loud, so none is missed.
+  a shade higher or lower each time, telling how far off it was, as the owner chose by ear: up
+  and landing for right; a half step down for close; four notes stepping down, the last
+  gliding, for far off; soft in tone, never a buzzer, and all about as loud, so none is missed.
 - The sound is mixed, as the owner found the music drowned the sounds and their levels uneven:
   the pack's files were recorded at very different levels, so each plays at a gain from its
   measured loudness (`src/games/regnespil/sounds.ts`): the chimes lead, the fight's own sounds
-  a little under, a victory above, and the music about 12 dB under it all. The music dips
-  under every chime (`ducking` in the engine). Music and effects each have a level from 0 to
+  a little under, a victory above, and the music far under it all (about 20 dB), as the owner
+  found the pack's chiptune music hard on the ears over many sums. The music steps back a
+  further 6 dB while a sum waits for its answer and comes forward as it is answered
+  (`focusMusic`), and dips under every chime (`ducking` in the engine). Music and effects each have a level from 0 to
   1, set on two sliders behind the speaker in a game's header (`src/ui/SoundMenu.tsx`),
   instead of a slider per sound, as games' accessibility guidelines recommend.
-- While the game's sounds are chosen, the owner compares options on its "Lyttetest" place
-  (`Listening.tsx`, reached from the setup): the stroke, the monster's growl and blow, the
-  victory with its music, and the answers' chimes. What is chosen there replaces "Nu", and
-  the place goes once the choices are made.
+- The owner's choices by ear: a stroke's hit varies between four of the pack's hits, so it is
+  never the same over and over (later each weapon and monster may have its own); a victory is
+  the pack's "LevelUp2" jingle and then "20 - Good Time". Each monster speaks in a tone voice
+  that fits its size (`voices.ts`): the slime light, a troll deep, a giant boss deeper still.
+  The "Lyttetest" place (`Listening.tsx`, reached from the setup) compares the monsters'
+  voices while they are chosen, and goes once they are.
+- The music is the Ninja Adventure pack's, by its composer, not made here. Proposed, not yet
+  decided: music whose mood follows the fight (calm, a boss's rage, the hearts nearly gone)
+  without changing piece. The pack's music has no separate instruments to fade in and out,
+  so it would be the one piece shaped as it plays (darker, brighter, faster), or music with
+  separate parts found under a free licence.
   How loud music and effects play is saved on the phone under `lyd`. An iPhone's silent
   switch silences it all.
 

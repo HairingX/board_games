@@ -15,7 +15,8 @@ import { answerFight, fullHealth, startFight, type Fight as FightState } from '.
 import { clearing, clearingSheets, coinDrop, puff, sweep, type Staging } from './clearing';
 import type { PlayerSettings } from './players';
 import { monsterLives } from './swords';
-import { jingleLength, music, sounds, type Mixed } from './sounds';
+import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
+import { pick } from './sums';
 import { TaskAnswers } from './TaskAnswers';
 import { judge, makeTask, type Task } from './tasks';
 import { text } from './text';
@@ -23,7 +24,7 @@ import type { Value } from './values';
 import './regnespil.css';
 
 /** The music a fight reads into memory before it is needed, so it plays without the internet. */
-export const fightMusic = [music.fight.url, music.goodTime.url];
+export const fightMusic = [music.fight.url, music.victory.url];
 
 /** How long after the growl the monster's bump lands, in seconds. */
 const growlLead = 0.35;
@@ -136,21 +137,27 @@ export function Fight({
   // The sounds are made ready when the fight opens, so the first one plays at once, and the
   // music fades out when it is left.
   useEffect(() => {
-    void sound.prepareEffects(
-      [sounds.slash, sounds.hit, sounds.clang, sounds.bump, sounds.fanfare].map(({ url }) => url),
-    );
+    void sound.prepareEffects([...Object.values(sounds), ...hits].map(({ url }) => url));
     void sound.prepareMusic(fightMusic);
     return () => {
+      sound.focusMusic(false);
       sound.stopMusic();
     };
   }, [sound]);
+
+  // The music steps back while a sum waits for its answer, so it never wears on the mind, and
+  // comes forward again as the answer strikes or is struck.
+  const thinking = chosen === undefined && fight.outcome === 'fighting';
+  useEffect(() => {
+    sound.focusMusic(thinking);
+  }, [sound, thinking]);
 
   // A won fight's jingle gives way to the victory's music, until a new fight begins.
   useEffect(() => {
     if (fight.outcome !== 'won') return;
     const timer = setTimeout(() => {
-      play(music.goodTime);
-    }, jingleLength.fanfare * 1000);
+      play(music.victory);
+    }, victoryLength * 1000);
     return () => {
       clearTimeout(timer);
     };
@@ -214,14 +221,14 @@ export function Fight({
     sound.chime(chimes[verdict]);
     if (next.last === 'struck') {
       effect(sounds.slash);
-      effect(sounds.hit);
+      effect(pick(random, hits));
       if (next.outcome === 'won') {
         sound.stopMusic();
-        effect(sounds.fanfare);
+        effect(sounds.victory);
         sound.babble(voices.hero, 6);
       }
     } else if (next.last === 'bumped') {
-      sound.babble(voices.growl, 2);
+      sound.babble(voices.slime, 3);
     } else {
       effect(sounds.clang);
     }

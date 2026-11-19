@@ -1,9 +1,6 @@
-import fanfare from '../../../assets/ninja-adventure/Audio/Jingles/Success4.m4a';
-import levelUp from '../../../assets/ninja-adventure/Audio/Jingles/LevelUp2.m4a';
-import secret from '../../../assets/ninja-adventure/Audio/Jingles/Secret1.m4a';
+import victoryJingle from '../../../assets/ninja-adventure/Audio/Jingles/LevelUp2.m4a';
 import fightMusic from '../../../assets/ninja-adventure/Audio/Musics/17 - Fight.m4a';
 import goodTime from '../../../assets/ninja-adventure/Audio/Musics/20 - Good Time.m4a';
-import sunny from '../../../assets/ninja-adventure/Audio/Musics/31 - Sunny.m4a';
 import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.m4a';
 import thud from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit2.m4a';
 import thump from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit8.m4a';
@@ -28,9 +25,10 @@ export interface Mixed {
 /**
  * How loud each part plays, in dB below full scale: the answers' chimes lead (about −15 dB,
  * set in `src/lib/sound/chimes.ts`), what happens in the fight a little under them, a victory
- * above, and the music well under everything, about 12 dB, as games mix it.
+ * above, and the music far under everything, as the owner found the pack's chiptune music hard
+ * on the ears over many sums; it steps back further while a sum is thought over.
  */
-export const loudness = { action: -18, celebration: -14, music: -32 } as const;
+export const loudness = { action: -18, celebration: -14, music: -38 } as const;
 
 function mixed(url: string, measured: number, target: number): Mixed {
   return { url, gain: 10 ** ((target - measured) / 20) };
@@ -38,22 +36,27 @@ function mixed(url: string, measured: number, target: number): Mixed {
 
 export const sounds = {
   slash: mixed(slash, -19.9, loudness.action),
-  hit: mixed(hit, -16.1, loudness.action),
-  thud: mixed(thud, -14.9, loudness.action),
-  thump: mixed(thump, -16.8, loudness.action),
-  knock: mixed(knock, -14.2, loudness.action),
   clang: mixed(clang, -10.6, loudness.action),
   bump: mixed(bump, -12.3, loudness.action),
-  fanfare: mixed(fanfare, -18.5, loudness.celebration),
-  levelUp: mixed(levelUp, -17.2, loudness.celebration),
-  secret: mixed(secret, -17.3, loudness.celebration),
+  victory: mixed(victoryJingle, -17.2, loudness.celebration),
 } as const;
+
+/**
+ * A stroke's hit, one of these each time, so the same sound is not heard over and over; the
+ * owner liked them all. Later each weapon and monster may have its own.
+ */
+export const hits: readonly Mixed[] = [
+  mixed(hit, -16.1, loudness.action),
+  mixed(thud, -14.9, loudness.action),
+  mixed(thump, -16.8, loudness.action),
+  mixed(knock, -14.2, loudness.action),
+];
 
 export const music = {
   fight: mixed(fightMusic, -21.7, loudness.music),
-  goodTime: mixed(goodTime, -20, loudness.music),
-  sunny: mixed(sunny, -15, loudness.music),
+  /** After a victory: happy, after the victory's jingle. */
+  victory: mixed(goodTime, -20, loudness.music),
 } as const;
 
-/** How long each victory jingle lasts, in seconds, before the victory's music takes over. */
-export const jingleLength = { fanfare: 1.2, levelUp: 1.6, secret: 2 } as const;
+/** How long the victory's jingle lasts, in seconds, before the victory's music takes over. */
+export const victoryLength = 1.6;
