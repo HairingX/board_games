@@ -1,5 +1,5 @@
 import type { Profile } from '../../family/family';
-import { fullHealth, rageAt, type Fight } from './battle';
+import { fullHealth, powerAfter, rageAt, type Fight } from './battle';
 import type { Task } from './tasks';
 
 /*
@@ -28,11 +28,12 @@ export function fightSaveKey(saveKey: string, players: readonly Profile[]): stri
 }
 
 /** What a fight came to hold after it was first saved. */
-type Added = 'round' | 'threat' | 'rageAt' | 'enraged';
+type Added = 'round' | 'threat' | 'rageAt' | 'enraged' | 'combo';
 
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
 const blows: readonly (string | undefined)[] = [
   'struck',
+  'smashed',
   'parried',
   'nicked',
   'bumped',
@@ -51,7 +52,7 @@ const isCount = (value: unknown, most: number): value is number =>
  * The fight as saved, or null when none is, or what is saved is not a fight this game knows. A
  * fight saved before turns to defend came is upgraded: its turns counted from none, and no
  * blow announced; one saved before monsters grew enraged is not yet enraged, and grows so at
- * half its lives.
+ * half its lives; one saved before combos has none.
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
@@ -68,6 +69,7 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (fight.threat === undefined || typeof fight.threat === 'boolean') &&
     (fight.rageAt === undefined || isCount(fight.rageAt, lives)) &&
     (fight.enraged === undefined || typeof fight.enraged === 'boolean') &&
+    (fight.combo === undefined || isCount(fight.combo, powerAfter)) &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&
@@ -89,6 +91,7 @@ export function reviveFight(saved: unknown): SavedFight | null {
       threat: kept.fight.threat ?? false,
       rageAt: kept.fight.rageAt ?? rageAt(kept.lives),
       enraged: kept.fight.enraged ?? false,
+      combo: kept.fight.combo ?? 0,
     },
   };
 }

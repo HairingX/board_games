@@ -352,6 +352,97 @@
   background-position: calc(var(--heart) * -4) 0;
 }
 
+/* A hero hurt, or a power stroke, shakes the scene a little. */
+.rs-stage[data-shake='true'] {
+  animation: rs-shake var(--duration-shake) ease-out;
+}
+
+@keyframes rs-shake {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(-3px, 1px);
+  }
+
+  50% {
+    transform: translate(3px, -1px);
+  }
+
+  75% {
+    transform: translate(-1px, 0);
+  }
+}
+
+/* Right answers in a row: the player's weapon, lit one by one; at the third, a power stroke. */
+.rs-combo {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: flex;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--pixel-plate);
+  border-radius: var(--radius-sm);
+}
+
+.rs-combo[data-full='true'] {
+  animation: rs-ready var(--duration-ready) ease-in-out infinite alternate;
+}
+
+@keyframes rs-ready {
+  to {
+    transform: scale(1.12);
+  }
+}
+
+.rs-combo-pip {
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+  image-rendering: pixelated;
+}
+
+.rs-combo-pip[data-lit='false'] {
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+/* The lives a stroke took, floating up over the monster and fading. */
+.rs-damage {
+  position: absolute;
+  font-family: var(--font-body);
+  font-size: calc(var(--px) * 9);
+  font-weight: 800;
+  color: var(--pixel-text);
+  text-shadow:
+    0 2px 0 var(--pixel-ink),
+    2px 0 0 var(--pixel-ink),
+    -2px 0 0 var(--pixel-ink),
+    0 -2px 0 var(--pixel-ink);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: rs-damage var(--duration-damage) ease-out forwards;
+}
+
+@keyframes rs-damage {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.6);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -20%) scale(1.15);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -160%) scale(1);
+  }
+}
+
 /* Whose turn it is: a plate with the player's picture over their hero's head. */
 .rs-nameplate {
   position: absolute;

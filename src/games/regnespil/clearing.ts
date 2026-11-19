@@ -10,6 +10,7 @@ import heart from '../../../assets/ninja-adventure/Ui/Emote/emote27.png';
 import star from '../../../assets/ninja-adventure/Ui/Emote/emote29.png';
 import coin from '../../../assets/ninja-adventure/Items/Treasure/Coin2.png';
 import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetBlue.png';
+import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.png';
 import type { Act, Effect, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
 
@@ -31,6 +32,7 @@ export const clearingSheets = {
   heart,
   coin,
   shield,
+  cross,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -55,6 +57,16 @@ export const sweep = (at: number): Effect => ({
   height: 32,
   frames: 5,
   x: slimeAt.x - 5,
+  y: slimeAt.y - 10,
+  at,
+});
+/** A power stroke: two cuts crossing over the slime; frames side by side. */
+export const smash = (at: number): Effect => ({
+  sheet: 'cross',
+  width: 32,
+  height: 32,
+  frames: 4,
+  x: slimeAt.x - 8,
   y: slimeAt.y - 10,
   at,
 });

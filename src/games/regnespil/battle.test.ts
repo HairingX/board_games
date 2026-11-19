@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { answerFight, fullHealth, startFight, strikeBackEvery, type Fight } from './battle';
+import {
+  answerFight,
+  fullHealth,
+  powerAfter,
+  powerStroke,
+  startFight,
+  strikeBackEvery,
+  type Fight,
+} from './battle';
 import { monsterLives } from './swords';
 import type { Verdict } from './tasks';
 
@@ -18,6 +26,7 @@ describe('a fight', () => {
       threat: false,
       rageAt: 1,
       enraged: false,
+      combo: 0,
     });
     expect(monsterLives(['træ'])).toBe(2);
     expect(monsterLives(['flamme', 'træ'])).toBe(4);
@@ -55,10 +64,27 @@ describe('a fight', () => {
     const raging = after(struck, ['right']);
     expect(raging).toMatchObject({ lives: 2, enraged: true, threat: true });
     expect(after(raging, ['right'])).toMatchObject({ enraged: true, threat: false });
-    expect(after(raging, ['right', 'right'])).toMatchObject({ lives: 1, threat: true });
-    expect(after(raging, ['right', 'right', 'right', 'right'])).toMatchObject({
+    expect(after(raging, ['right', 'far'])).toMatchObject({ lives: 2, threat: true });
+    expect(after(raging, ['right', 'right'])).toMatchObject({ outcome: 'won', enraged: false });
+  });
+
+  it('strikes a power stroke at the third right in a row, which only an answer far off breaks', () => {
+    const fight = startFight(9);
+    expect(after(fight, ['right', 'close'])).toMatchObject({ combo: 1, lives: 8 });
+    expect(after(fight, ['right', 'far'])).toMatchObject({ combo: 0 });
+    // Right, right, a dodge, and the next stroke is a power stroke.
+    const charged = after(fight, ['right', 'right', 'right']);
+    expect(charged).toMatchObject({ combo: powerAfter, lives: 7, last: 'dodged' });
+    expect(answerFight(charged, 'right', 'jern')).toMatchObject({
+      last: 'smashed',
+      lives: 7 - powerStroke,
+      combo: 0,
+    });
+    const third = after({ ...fight, combo: 2 }, ['right']);
+    expect(third).toMatchObject({ last: 'smashed', lives: 9 - powerStroke });
+    expect(after({ ...startFight(1), combo: 2 }, ['right'])).toMatchObject({
+      lives: 0,
       outcome: 'won',
-      enraged: false,
     });
   });
 

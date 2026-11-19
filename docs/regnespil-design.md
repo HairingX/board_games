@@ -262,8 +262,8 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
   come and how much is left of the stretch, for the satisfaction of progress.
 - **Decided (owner).** The party: each player chooses a hero among figures the story will not
   use; the heroes stand together; the team shares its hearts.
-- **Idea (owner).** A livelier fight: a "−1" over the monster, a slight shake when a hero is hit,
-  a power stroke after three right in a row.
+- **Decided and built.** A livelier fight: a "−1" over the monster, a slight shake when a hero
+  is hit, a power stroke at three right in a row, which only an answer far off breaks.
 
 ## 8. Sound and music
 
@@ -297,8 +297,7 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 3. A typeface for children's reading (section 9).
 4. Mood-following music (section 8).
 5. The story (`docs/regnespil-story.md`).
-6. How gentle the combo is: the research warns against streaks that can be lost; a power
-   stroke after three right that a close answer does not break, and a red only halves.
+6. Built: the combo; a close answer keeps it, one far off breaks it. To tune once played.
 7. Coins and the shop: within a run only, never real money, and no random loot.
 8. When the game suggests a higher math level to a child, and how it says so kindly.
 

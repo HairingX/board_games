@@ -182,9 +182,13 @@ game builds on them, and everything must stay smooth on a phone.
   shares its hearts, each player's sword still deciding what their own mistakes cost, and a
   monster has the lives of every player's sword added together, so each gets about as many
   strokes however many play.
-- Agreed next, in order: a livelier fight (a "−1" over the monster, a slight shake when the
-  hero is hit, a combo of three right for a power stroke, which only red breaks), then the
-  monster walking towards the hero while a sum is thought over, at the child's own pace and
+- A livelier fight, as agreed: the lives a stroke took float up over the monster ("−1"), the
+  scene shakes a little when a hero is hurt or a power stroke lands, and right answers in a
+  row light the player's weapon on a plate in the scene's corner (`powerAfter`, three): the
+  third is a power stroke, two crossing cuts that take two lives (`powerStroke`), or, if the
+  third was a dodge, the next stroke is. A close answer keeps the combo; only one far off
+  breaks it, as the research warns against streaks that are easily lost.
+- Agreed next, in order: the monster walking towards the hero while a sum is thought over, at the child's own pace and
   at least 15 seconds, roaring and stepping back with the wooden and iron swords and striking
   only with the flame sword, so time stays off unless chosen; then bosses that fight back
   with the flame sword (a shield only a power stroke breaks, a warned attack, rage at half

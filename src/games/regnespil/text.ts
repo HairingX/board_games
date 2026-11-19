@@ -64,6 +64,8 @@ const da = {
   hearts: (left: number, of: number) =>
     `Heltens hjerter: ${formatNumber('da', left)} af ${formatNumber('da', of)}`,
   lives: (count: number) => `Slimets liv: ${formatNumber('da', count)}`,
+  combo: (count: number, of: number) =>
+    `Rigtige i træk: ${formatNumber('da', count)} af ${formatNumber('da', of)}`,
   won: 'Slimet er besejret!',
   lost: 'Helten er træt og hviler sig.',
   again: 'Ny kamp',
@@ -129,6 +131,8 @@ export const text: Translations<typeof da> = {
     hearts: (left, of) =>
       `The hero’s hearts: ${formatNumber('en', left)} of ${formatNumber('en', of)}`,
     lives: (count) => `The slime’s lives: ${formatNumber('en', count)}`,
+    combo: (count, of) =>
+      `Right in a row: ${formatNumber('en', count)} of ${formatNumber('en', of)}`,
     won: 'The slime is beaten!',
     lost: 'The hero is tired and rests.',
     again: 'New fight',

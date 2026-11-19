@@ -238,6 +238,7 @@ describe('Fight', () => {
         threat: false,
         rageAt: 1,
         enraged: true,
+        combo: 1,
       },
       lives: 3,
       activeId: 'mille',
@@ -264,6 +265,32 @@ describe('Fight', () => {
     });
   });
 
+  it('lights the weapon for each right answer in a row, and strikes a power stroke at the third', async () => {
+    const { container, played } = open([{ level: 1, sword: 'flamme' }]);
+    const combo = (count: number) =>
+      screen.getByRole('img', { name: `Rigtige i træk: ${String(count)} af 3` });
+    const stage = () => container.querySelector('.rs-stage');
+    expect(combo(0)).toHaveAttribute('data-full', 'false');
+    await choose('2');
+    const damage = () => container.querySelector('.rs-damage');
+    expect(damage()).toHaveTextContent('−1');
+    await pause(right);
+    await choose('2');
+    expect(combo(2)).toHaveAttribute('data-full', 'true');
+    await pause(right);
+    // Enraged, it strikes back: dodged, the combo is full, and the next stroke is a power stroke.
+    await choose('2');
+    expect(combo(3)).toBeInTheDocument();
+    await pause(right);
+    click('2');
+    expect(stage()).toHaveAttribute('data-shake', 'false');
+    await pause(reveal);
+    expect(damage()).toHaveTextContent('−2');
+    expect(stage()).toHaveAttribute('data-shake', 'true');
+    expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
+    expect(played().filter(([url]) => hits.some((hit) => hit.url === url))).toHaveLength(4);
+  });
+
   it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {
     const { onSave, babbled } = open([{ level: 1, sword: 'flamme' }]);
     expect(screen.getByText('Angreb')).toBeInTheDocument();
@@ -285,7 +312,7 @@ describe('Fight', () => {
   });
 
   it('lets the slime’s blow land when the answer to defend is wrong, its life bar left behind', async () => {
-    open([{ level: 1, sword: 'jern' }]);
+    const { container } = open([{ level: 1, sword: 'jern' }]);
     await choose('2');
     await pause(right);
     await choose('2');
@@ -296,6 +323,7 @@ describe('Fight', () => {
     expect(lives(1)).toHaveStyle({ '--away': '1.05s' });
     await pause(reveal);
     expect(hearts('4')).toBeInTheDocument();
+    expect(container.querySelector('.rs-stage')).toHaveAttribute('data-shake', 'true');
   });
 
   it('uses the page’s clock and the app’s sound when none are given', async () => {

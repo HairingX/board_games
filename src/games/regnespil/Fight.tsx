@@ -11,7 +11,14 @@ import { voices } from '../../lib/sound/voices';
 import { nextTurn } from '../../lib/turns';
 import { motionTokens } from '../../ui/motion';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
-import { answerFight, fullHealth, startFight, type Fight as FightState } from './battle';
+import {
+  answerFight,
+  fullHealth,
+  powerAfter,
+  startFight,
+  type Blow,
+  type Fight as FightState,
+} from './battle';
 import { faces, hud, swordPictures, topFrames } from './art';
 import {
   clearing,
@@ -22,6 +29,7 @@ import {
   reach,
   shieldUp,
   slimeAt,
+  smash,
   sweep,
   type Staging,
 } from './clearing';
@@ -39,6 +47,12 @@ import './regnespil.css';
 /** The music a fight reads into memory before it is needed, so it plays without the internet. */
 export const fightMusic = [music.fight.url, music.victory.url];
 
+/** Whether the blow was a stroke at the monster, a power stroke or not. */
+const isStroke = (blow: Blow | undefined) => blow === 'struck' || blow === 'smashed';
+
+/** Whether the blow hurt the hero, so the scene shakes. */
+const isHurt = (blow: Blow | undefined) => blow === 'bumped' || blow === 'hit' || blow === 'nicked';
+
 /** How wide the life bar under the monster is, in the stage's pixels. */
 const lifeWidth = 24;
 
@@ -51,9 +65,17 @@ const reveal = motionTokens.act.charge.out;
 /**
  * When things happen around the answer showing, in seconds from it: the slime squeals at a
  * stroke; it hops into a hero whose answer was far off just before it shows; the hero jumps
- * clear of a blow dodged just before it lands; an enraged slime roars a moment after.
+ * clear of a blow dodged just before it lands; an enraged slime roars a moment after; a power
+ * stroke's second hit follows its first.
  */
-const moments = { squeal: 0.15, hop: 0.1, dodge: 0.1, ouch: 0.15, rage: 0.5 } as const;
+const moments = {
+  squeal: 0.15,
+  hop: 0.1,
+  dodge: 0.1,
+  ouch: 0.15,
+  rage: 0.5,
+  second: 0.12,
+} as const;
 
 /**
  * When the victory's moments come after the last stroke, in seconds, and how far to the side
@@ -135,7 +157,8 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
     { kind: 'attack', at: shown, reach: reach.hero },
     { kind: 'return', at: home, reach: reach.hero },
   ] as const;
-  if (fight.last !== 'struck') {
+  const cuts = fight.last === 'smashed' ? [sweep(shown), smash(shown)] : [sweep(shown)];
+  if (!isStroke(fight.last)) {
     return {
       hero: {
         acts: [
@@ -159,7 +182,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
       },
       slime: { acts: [{ kind: 'vanish', at: shown + victory.vanish }] },
       effects: [
-        sweep(shown),
+        ...cuts,
         puff(shown + victory.puff),
         ...victory.coins.map((coin) => coinDrop(shown + coin.at, coin.aside)),
       ],
@@ -172,7 +195,7 @@ function stage(fight: FightState, before: FightState, at: number): Staging {
       acts: [{ kind: 'hurt', at: shown + victory.vanish }],
       ...(rage ? { sign: { sheet: 'angry', at: shown + moments.rage } as const } : {}),
     },
-    effects: [sweep(shown)],
+    effects: cuts,
   };
 }
 
@@ -237,6 +260,8 @@ export function Fight({
   const [chosen, setChosen] = useState<Value>();
   /** Whether how the answer chosen went shows yet. */
   const [revealed, setRevealed] = useState(false);
+  /** How many lives the last stroke took. */
+  const [damage, setDamage] = useState(0);
   const [staging, setStaging] = useState<Staging>({});
 
   function keep(next: SavedFight): void {
@@ -310,7 +335,7 @@ export function Fight({
           sound.babble(voices.slime, 2);
         }
       },
-      (fight.last === 'struck' || fight.last === 'dodged' ? right : wrong) * 1000,
+      (isStroke(fight.last) || fight.last === 'dodged' ? right : wrong) * 1000,
     );
     return () => {
       clearTimeout(timer);
@@ -343,6 +368,7 @@ export function Fight({
       recent,
     });
     setChosen(choice);
+    setDamage(fight.lives - next.lives);
     setStaging(stage(next, fight, now()));
     setAnswers(answers + 1);
     effect(sounds.choose);
@@ -355,9 +381,11 @@ export function Fight({
       // The hero shouts as they run at the slime.
       sound.babble(voices.hero, 2);
     }
-    if (next.last === 'struck') {
+    if (isStroke(next.last)) {
       effect(sounds.slash, reveal);
       effect(pick(random, hits), reveal);
+      // A power stroke lands twice.
+      if (next.last === 'smashed') effect(pick(random, hits), reveal + moments.second);
       // The slime squeals at the blow, cross at being struck.
       sound.babble(voices.slime, 3, undefined, reveal + moments.squeal);
       if (next.outcome === 'won') {
@@ -405,6 +433,33 @@ export function Fight({
           />
         ))}
       </span>
+      <span
+        className="rs-combo"
+        role="img"
+        aria-label={t.combo(shown.combo, powerAfter)}
+        data-full={shown.combo >= powerAfter - 1}
+      >
+        {Array.from({ length: powerAfter }, (_, index) => (
+          <img
+            key={index}
+            src={swordPictures[sword]}
+            alt=""
+            className="rs-combo-pip"
+            data-lit={index < shown.combo}
+          />
+        ))}
+      </span>
+      {revealed && isStroke(fight.last) && (
+        <span
+          // Drawn anew at every stroke, so it floats up again.
+          key={`damage-${String(answers)}`}
+          className="rs-damage"
+          aria-hidden="true"
+          style={{ left: px(slimeAt.x + 8), top: px(slimeAt.y - 6) }}
+        >
+          −{formatNumber(locale, damage)}
+        </span>
+      )}
       {shown.lives > 0 && (
         <span
           // Drawn anew at every answer, so its fading plays out again.
@@ -459,6 +514,8 @@ export function Fight({
       </header>
       <div
         className="rs-stage"
+        // A hero hurt, or a power stroke, shakes the scene a little.
+        data-shake={revealed && (isHurt(fight.last) || fight.last === 'smashed')}
         style={{ aspectRatio: `${String(scene.columns)} / ${String(scene.rows)}` }}
       >
         <SceneCanvas

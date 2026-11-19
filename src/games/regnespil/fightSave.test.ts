@@ -46,6 +46,7 @@ describe('reviveFight', () => {
     ['a threat that is no yes or no', { ...saved, fight: { ...saved.fight, threat: 'ja' } }],
     ['rage beyond its lives', { ...saved, fight: { ...saved.fight, rageAt: 4 } }],
     ['a rage that is no yes or no', { ...saved, fight: { ...saved.fight, enraged: 1 } }],
+    ['a combo beyond a power stroke', { ...saved, fight: { ...saved.fight, combo: 4 } }],
     ['no player', { ...saved, activeId: 3 }],
     ['no task', { ...saved, task: null }],
     ['a task without its sum', { ...saved, task: { ...saved.task, sum: 'x' } }],

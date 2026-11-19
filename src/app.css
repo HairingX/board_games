@@ -96,6 +96,12 @@
   --duration-press: 220ms;
   /* How long a monster's life bar shakes when it is struck. */
   --duration-struck: 450ms;
+  /* How long the scene shakes when a hero is hurt, or a power stroke lands. */
+  --duration-shake: 300ms;
+  /* How long the lives a stroke took float up over the monster. */
+  --duration-damage: 1000ms;
+  /* How long one beat of the combo's pulse lasts, when the next stroke is a power stroke. */
+  --duration-ready: 700ms;
   --press-scale: 0.96;
 
   /* The phone's notch and home indicator */
@@ -194,6 +200,7 @@ a {
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
