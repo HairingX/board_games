@@ -1,10 +1,4 @@
-import { useEffect, useState } from 'react';
-import fanfare from '../../../assets/ninja-adventure/Audio/Jingles/Success4.m4a';
-import fightMusic from '../../../assets/ninja-adventure/Audio/Musics/17 - Fight.m4a';
-import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.m4a';
-import clang from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact.m4a';
-import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Bounce2.m4a';
-import slashSound from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
+import { useEffect, useState, type ReactNode } from 'react';
 import heart from '../../../assets/ninja-adventure/Ui/Receptacle/Heart.png';
 import type { Profile } from '../../family/family';
 import { useMessages } from '../../i18n/I18n';
@@ -21,21 +15,18 @@ import { answerFight, fullHealth, startFight, type Fight as FightState } from '.
 import { clearing, clearingSheets, coinDrop, puff, sweep, type Staging } from './clearing';
 import type { PlayerSettings } from './players';
 import { monsterLives } from './swords';
+import { jingleLength, music, sounds, type Mixed } from './sounds';
 import { TaskAnswers } from './TaskAnswers';
 import { judge, makeTask, type Task } from './tasks';
 import { text } from './text';
 import type { Value } from './values';
 import './regnespil.css';
 
-/** The fight's music, which every screen of the fight reads into memory first. */
-export { fightMusic };
+/** The music a fight reads into memory before it is needed, so it plays without the internet. */
+export const fightMusic = [music.fight.url, music.goodTime.url];
 
-/**
- * How loud the fight's sounds play. They tell what happens, softer under the answer's chime,
- * which tells how it went; the clang, loud in itself, softest. The bump is a low thud that
- * falls, as a rising "boing" sounded like good news.
- */
-const fightVolume = { stroke: 0.6, clang: 0.35, bump: 0.6 } as const;
+/** How long after the growl the monster's bump lands, in seconds. */
+const growlLead = 0.35;
 
 /**
  * When the victory's moments come after the last stroke, in seconds, and where each coin lands
@@ -58,6 +49,8 @@ interface Props {
   settings: readonly PlayerSettings[];
   /** Back to choosing levels and swords. */
   onBack: () => void;
+  /** Shown at the right of the header: the sound's levels. */
+  aside?: ReactNode;
   random?: Random;
   sound?: SoundEngine;
   /** The page's clock in seconds; the tests give their own. */
@@ -125,6 +118,7 @@ export function Fight({
   players,
   settings,
   onBack,
+  aside,
   random = Math.random,
   sound = defaultSound,
   now = pageClock,
@@ -142,12 +136,44 @@ export function Fight({
   // The sounds are made ready when the fight opens, so the first one plays at once, and the
   // music fades out when it is left.
   useEffect(() => {
-    void sound.prepareEffects([slashSound, hit, clang, bump, fanfare]);
-    void sound.prepareMusic([fightMusic]);
+    void sound.prepareEffects(
+      [sounds.slash, sounds.hit, sounds.clang, sounds.bump, sounds.fanfare].map(({ url }) => url),
+    );
+    void sound.prepareMusic(fightMusic);
     return () => {
       sound.stopMusic();
     };
   }, [sound]);
+
+  // A won fight's jingle gives way to the victory's music, until a new fight begins.
+  useEffect(() => {
+    if (fight.outcome !== 'won') return;
+    const timer = setTimeout(() => {
+      play(music.goodTime);
+    }, jingleLength.fanfare * 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  });
+
+  // The monster's bump lands just after its growl.
+  useEffect(() => {
+    if (chosen === undefined || fight.last !== 'bumped') return;
+    const timer = setTimeout(() => {
+      effect(sounds.bump);
+    }, growlLead * 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  });
+
+  function play({ url, gain }: Mixed): void {
+    sound.music(url, gain);
+  }
+
+  function effect({ url, gain }: Mixed): void {
+    void sound.effect(url, gain);
+  }
 
   // After an answer the fight pauses, so the stroke and the right answer can be seen, then the
   // turn passes and the next sum comes by itself.
@@ -169,7 +195,7 @@ export function Fight({
   }, [chosen, fight, active, players.length, settings, random]);
 
   function restart(): void {
-    sound.music(fightMusic);
+    play(music.fight);
     setActive(0);
     setTask(makeTask(own(0).level, random));
     setChosen(undefined);
@@ -179,7 +205,7 @@ export function Fight({
 
   function answer(choice: Value): void {
     // The music starts from a tap, as browsers ask; it goes on if it already plays.
-    sound.music(fightMusic);
+    play(music.fight);
     const verdict = judge(choice, task.answer, task.near);
     const next = answerFight(fight, verdict, own(active).sword);
     setChosen(choice);
@@ -187,17 +213,17 @@ export function Fight({
     setStaging(stage(next, now()));
     sound.chime(chimes[verdict]);
     if (next.last === 'struck') {
-      void sound.effect(slashSound, fightVolume.stroke);
-      void sound.effect(hit, fightVolume.stroke);
+      effect(sounds.slash);
+      effect(sounds.hit);
       if (next.outcome === 'won') {
         sound.stopMusic();
-        void sound.effect(fanfare);
+        effect(sounds.fanfare);
         sound.babble(voices.hero, 6);
       }
     } else if (next.last === 'bumped') {
-      void sound.effect(bump, fightVolume.bump);
+      sound.babble(voices.growl, 2);
     } else {
-      void sound.effect(clang, fightVolume.clang);
+      effect(sounds.clang);
     }
   }
 
@@ -205,7 +231,7 @@ export function Fight({
 
   return (
     <section className="rs-fight">
-      <GameHeader title={t.clearing} onBack={onBack} />
+      <GameHeader title={t.clearing} onBack={onBack} aside={aside} />
       <div className="fight-bars">
         <span
           className="fight-hearts"

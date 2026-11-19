@@ -3,16 +3,14 @@ import { reviveBeta } from '../beta';
 import { reviveSoundSettings } from './settings';
 
 describe('reviveSoundSettings', () => {
-  it('keeps what was saved, and has music and effects on when nothing was', () => {
-    expect(reviveSoundSettings({ music: false, effects: true })).toEqual({
-      music: false,
-      effects: true,
-    });
-    expect(reviveSoundSettings(undefined)).toEqual({ music: true, effects: true });
-    expect(reviveSoundSettings({ music: 'no', effects: 0 })).toEqual({
-      music: true,
-      effects: true,
-    });
+  it('keeps the levels saved, and has music and effects as mixed when nothing was', () => {
+    expect(reviveSoundSettings({ music: 0.25, effects: 0 })).toEqual({ music: 0.25, effects: 0 });
+    expect(reviveSoundSettings(undefined)).toEqual({ music: 1, effects: 1 });
+    expect(reviveSoundSettings({ music: 'no', effects: 2 })).toEqual({ music: 1, effects: 1 });
+  });
+
+  it('turns what an earlier version kept on or off into a level', () => {
+    expect(reviveSoundSettings({ music: false, effects: true })).toEqual({ music: 0, effects: 1 });
   });
 });
 

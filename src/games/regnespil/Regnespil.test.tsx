@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { far, mille } from '../../../tests/family';
 import { saves } from '../../lib/saves';
 import { sound } from '../../lib/sound/engine';
-import Regnespil, { fightPlace } from './Regnespil';
+import { soundSaveKey } from '../../lib/sound/settings';
+import Regnespil, { fightPlace, listeningPlace } from './Regnespil';
 
 beforeEach(() => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -72,6 +73,30 @@ describe('Regnespil', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Til kamp!' }));
     expect(music).toHaveBeenCalledOnce();
     expect(go).toHaveBeenCalledWith([fightPlace]);
+  });
+
+  it('sets how loud music and effects play, and keeps it on the phone', async () => {
+    const levels = vi.spyOn(sound, 'setSettings');
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Lyd' }));
+    fireEvent.change(screen.getByRole('slider', { name: /Musik/ }), { target: { value: '40' } });
+    expect(levels).toHaveBeenLastCalledWith({ music: 0.4, effects: 1 });
+    await waitFor(async () => {
+      expect(await saves.read(soundSaveKey)).toEqual({ music: 0.4, effects: 1 });
+    });
+  });
+
+  it('opens the listening test from the setup, and goes back', async () => {
+    const { go } = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Lyttetest' }));
+    expect(go).toHaveBeenCalledWith([listeningPlace]);
+  });
+
+  it('shows the listening test in its place', async () => {
+    const { go } = open([listeningPlace]);
+    expect(await screen.findByRole('heading', { name: /Lyttetest/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
+    expect(go).toHaveBeenCalledWith([]);
   });
 
   it('fights in the clearing, and goes back to the setup', async () => {

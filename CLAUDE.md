@@ -151,8 +151,19 @@ game builds on them, and everything must stay smooth on a phone.
   strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
   tries again. The players take turns (`src/lib/turns.ts`, `src/ui/TurnBanner.tsx`: "Nu er
   det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
-  has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins and
-  the hero cheering with a heart over his head. A fight is not yet saved while it is on.
+  has its music (the pack's "17 - Fight"); the slime growls in a low tone voice before it
+  bumps the hero; victory is a fanfare, a puff of smoke, coins and the hero cheering with a
+  heart over his head, and then happy music. A fight is not yet saved while it is on.
+- Agreed next, after the sounds: the party. Each player chooses a hero, suggested from the
+  face on their profile, among figures the story will not use (not `Boy`, `Princess`,
+  `Cavegirl`, `Villager3`, `EggBoy`, `EggGirl`, `Woman`, `Child`, `Hunter`, `MaskRacoon`,
+  `Master`, `OldMan3`, `OldWoman`, `NinjaMageOrange` or `NinjaMageBlack`, all named in
+  `docs/regnespil-story.md`). The heroes stand together on a full-width, taller stage; whose
+  turn it is shows in the scene, the hero stepping forward with the player's name small over
+  their head, and the hearts are part of the scene, not lines of text around it. The team
+  shares its hearts, each player's sword still deciding what their own mistakes cost, and a
+  monster has the lives of every player's sword added together, so each gets about as many
+  strokes however many play.
 - Agreed next, in order: a livelier fight (a "−1" over the monster, a slight shake when the
   hero is hit, a combo of three right for a power stroke, which only red breaks), then the
   monster walking towards the hero while a sum is thought over, at the child's own pace and
@@ -265,12 +276,22 @@ game builds on them, and everything must stay smooth on a phone.
   pace, made from tones in the phone: the owner heard both and chose tones over the pack's
   recorded voice clips. Sound starts only from a tap.
   An answer is told by a chime of tones (`src/lib/sound/chimes.ts`), the same on every page and
-  a shade higher or lower each time: up and landing for right, up without landing for close,
-  and soft and low, falling a little, for far off, never a buzzer; right the loudest. The
-  owner left the choice to an analysis of the pack's sounds, whose fight sounds told what
-  happened but not how it went. A fight's own sounds play softer beneath the chime.
-  Whether music and effects play is saved on the phone under `lyd`. An iPhone's silent switch
-  silences it all. Music is not yet in the offline cache.
+  a shade higher or lower each time, telling how far off it was, as the owner asked: up and
+  landing for right; a small step down for close; three notes falling, the last gliding, for
+  far off; soft in tone, never a buzzer, and all about as loud, so none is missed.
+- The sound is mixed, as the owner found the music drowned the sounds and their levels uneven:
+  the pack's files were recorded at very different levels, so each plays at a gain from its
+  measured loudness (`src/games/regnespil/sounds.ts`): the chimes lead, the fight's own sounds
+  a little under, a victory above, and the music about 12 dB under it all. The music dips
+  under every chime (`ducking` in the engine). Music and effects each have a level from 0 to
+  1, set on two sliders behind the speaker in a game's header (`src/ui/SoundMenu.tsx`),
+  instead of a slider per sound, as games' accessibility guidelines recommend.
+- While the game's sounds are chosen, the owner compares options on its "Lyttetest" place
+  (`Listening.tsx`, reached from the setup): the stroke, the monster's growl and blow, the
+  victory with its music, and the answers' chimes. What is chosen there replaces "Nu", and
+  the place goes once the choices are made.
+  How loud music and effects play is saved on the phone under `lyd`. An iPhone's silent
+  switch silences it all.
 
 ## Beta
 

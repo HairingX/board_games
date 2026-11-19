@@ -8,6 +8,7 @@ import { sound, SoundEngine } from '../../lib/sound/engine';
 import { motionTokens } from '../../ui/motion';
 import { Fight } from './Fight';
 import type { PlayerSettings } from './players';
+import { jingleLength, sounds } from './sounds';
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
@@ -63,7 +64,7 @@ const { right, wrong } = motionTokens.fightPause;
 describe('Fight', () => {
   it('makes its sounds and music ready when it opens, and fades the music when left', () => {
     const { fetch, unmount, audios, runLater } = open();
-    expect(fetch).toHaveBeenCalledTimes(6);
+    expect(fetch).toHaveBeenCalledTimes(7);
     click('2');
     unmount();
     runLater();
@@ -79,8 +80,8 @@ describe('Fight', () => {
     expect(screen.getByRole('button', { name: '2' })).toBeDisabled();
     expect(chimed()).toEqual([chimes.right]);
     expect(played()).toEqual([
-      [expect.stringContaining('Slash') as string, 0.6],
-      [expect.stringContaining('Hit1') as string, 0.6],
+      [sounds.slash.url, sounds.slash.gain],
+      [sounds.hit.url, sounds.hit.gain],
     ]);
     expect(audios).toHaveLength(1);
     await pause(right);
@@ -96,7 +97,7 @@ describe('Fight', () => {
     expect(hearts('4,5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     expect(chimed()).toEqual([chimes.close]);
-    expect(played()).toEqual([[expect.stringContaining('Impact') as string, 0.35]]);
+    expect(played()).toEqual([[sounds.clang.url, sounds.clang.gain]]);
     await pause(wrong);
     expect(screen.getByRole('button', { name: '1' })).toBeEnabled();
   });
@@ -114,11 +115,13 @@ describe('Fight', () => {
     await pause(right);
     click('2');
     expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
-    expect(played()).toContainEqual([expect.stringContaining('Success4') as string, undefined]);
+    expect(played()).toContainEqual([sounds.fanfare.url, sounds.fanfare.gain]);
     expect(context.all(FakeOscillator).length).toBeGreaterThan(0);
     runLater();
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
-    await pause(right);
+    await pause(jingleLength.fanfare);
+    expect(audios[1]?.src).toMatch(/^blob:/);
+    expect(audios).toHaveLength(2);
     click('Ny kamp');
     expect(lives(2)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
@@ -133,7 +136,7 @@ describe('Fight', () => {
     }
     expect(hearts('0')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
-    expect(played()).toContainEqual([expect.stringContaining('Bounce2') as string, 0.6]);
+    expect(played()).toContainEqual([sounds.bump.url, sounds.bump.gain]);
     expect(chimed()).toContainEqual(chimes.far);
     click('Prøv igen');
     expect(hearts('5')).toBeInTheDocument();

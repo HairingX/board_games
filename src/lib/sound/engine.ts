@@ -2,10 +2,13 @@ import type { Random } from '../random';
 import { babble, shift, type Voice } from './babble';
 import type { Chime } from './chimes';
 
-/** Whether music and sound effects play; voices count as effects. */
+/**
+ * How loud music and sound effects play, each from 0 (off) to 1 (as mixed); voices and chimes
+ * count as effects.
+ */
 export interface SoundSettings {
-  music: boolean;
-  effects: boolean;
+  music: number;
+  effects: number;
 }
 
 /** How long music takes to fade in or out, and to give way to other music, in seconds. */
@@ -28,6 +31,12 @@ const chimeSpread = 0.3;
 
 /** The level a dying note fades to; a fade can never reach nothing itself. */
 const silence = 0.0001;
+
+/**
+ * How the music gives way while an answer's chime plays, as games duck their music under what
+ * matters: down to this share of its level (about 8 dB lower), quickly, held, and back gently.
+ */
+export const ducking = { level: 0.4, down: 0.04, hold: 0.5, back: 0.6 } as const;
 
 /** What the engine needs from the browser; the tests give their own. */
 export interface SoundBrowser {
@@ -58,7 +67,9 @@ interface Playing {
 
 interface Buses {
   context: AudioContext;
+  /** The music's level as set; its ducking follows it, on its own level. */
   music: GainNode;
+  ducked: GainNode;
   effects: GainNode;
 }
 
@@ -69,7 +80,7 @@ interface Buses {
  */
 export class SoundEngine {
   private buses?: Buses;
-  private settings: SoundSettings = { music: true, effects: true };
+  private settings: SoundSettings = { music: 1, effects: 1 };
   private playing: Playing | undefined;
   private readonly sounds = new Map<string, Promise<AudioBuffer>>();
   /** Music read into memory, by its address, so it plays without the internet. */
@@ -93,12 +104,14 @@ export class SoundEngine {
     if (!this.buses) {
       const context = this.browser.makeContext();
       const music = context.createGain();
+      const ducked = context.createGain();
       const effects = context.createGain();
-      music.gain.value = Number(this.settings.music);
-      effects.gain.value = Number(this.settings.effects);
-      music.connect(context.destination);
+      music.gain.value = this.settings.music;
+      effects.gain.value = this.settings.effects;
+      music.connect(ducked);
+      ducked.connect(context.destination);
       effects.connect(context.destination);
-      this.buses = { context, music, effects };
+      this.buses = { context, music, ducked, effects };
     }
     return this.buses;
   }
@@ -121,19 +134,22 @@ export class SoundEngine {
     );
   }
 
-  /** Turns music and effects on or off, gently, and remembers it for what plays next. */
+  /** Sets how loud music and effects play, gently, and remembers it for what plays next. */
   setSettings(settings: SoundSettings): void {
     this.settings = settings;
     if (!this.buses) return;
     const { context, music, effects } = this.buses;
-    glide(music.gain, Number(settings.music), context.currentTime, switchFade);
-    glide(effects.gain, Number(settings.effects), context.currentTime, switchFade);
+    glide(music.gain, settings.music, context.currentTime, switchFade);
+    glide(effects.gain, settings.effects, context.currentTime, switchFade);
   }
 
-  /** Plays a short sound once, at its full volume or softer, from 0 to 1. */
+  /**
+   * Plays a short sound once, at `volume`: the gain that evens its loudness out with the
+   * other sounds' (measured once for each file), before the effects' own level.
+   */
   async effect(url: string, volume = 1): Promise<void> {
     const { context, effects } = this.unlock();
-    if (!this.settings.effects) return;
+    if (this.settings.effects === 0) return;
     const source = context.createBufferSource();
     source.buffer = await this.load(url);
     const level = context.createGain();
@@ -148,8 +164,9 @@ export class SoundEngine {
    * higher or lower, so it never grows tiresome.
    */
   chime(chime: Chime, random: Random = Math.random): void {
-    const { context, effects } = this.unlock();
-    if (!this.settings.effects) return;
+    const { context, effects, ducked } = this.unlock();
+    if (this.settings.effects === 0) return;
+    duck(ducked.gain, context.currentTime);
     const start = context.currentTime + syllableEdge;
     const shade = (random() * 2 - 1) * chimeSpread;
     for (const note of chime.notes) {
@@ -161,7 +178,12 @@ export class SoundEngine {
       envelope.connect(effects);
       const tone = context.createOscillator();
       tone.type = chime.wave;
-      tone.frequency.value = shift(chime.pitch, note.step + shade);
+      const pitch = shift(chime.pitch, note.step + shade);
+      tone.frequency.value = pitch;
+      if (note.slide !== undefined) {
+        tone.frequency.setValueAtTime(pitch, at);
+        tone.frequency.exponentialRampToValueAtTime(shift(pitch, note.slide), at + note.length);
+      }
       tone.connect(envelope);
       tone.start(at);
       tone.stop(at + note.length);
@@ -192,20 +214,23 @@ export class SoundEngine {
     );
   }
 
-  /** Fades the music over to this piece, played over and over; the same piece goes on. */
-  music(url: string): void {
+  /**
+   * Fades the music over to this piece, played over and over, at `volume`: the gain that sets
+   * the piece's loudness in the mix. The same piece goes on.
+   */
+  music(url: string, volume = 1): void {
     const { context, music } = this.unlock();
     if (this.playing?.url === url) return;
     this.stopMusic();
     const element = this.browser.makeAudio(this.prepared.get(url) ?? url);
     element.loop = true;
-    const volume = context.createGain();
-    volume.gain.value = 0;
-    context.createMediaElementSource(element).connect(volume);
-    volume.connect(music);
-    glide(volume.gain, 1, context.currentTime, musicFade);
+    const gain = context.createGain();
+    gain.gain.value = 0;
+    context.createMediaElementSource(element).connect(gain);
+    gain.connect(music);
+    glide(gain.gain, volume, context.currentTime, musicFade);
     void element.play().catch(() => undefined);
-    this.playing = { url, context, element, volume };
+    this.playing = { url, context, element, volume: gain };
   }
 
   /** Fades the music out. */
@@ -222,7 +247,7 @@ export class SoundEngine {
   /** Says something without words, in the voice: a few syllables at its pitch and pace. */
   babble(voice: Voice, syllables: number, random?: Random): void {
     const { context, effects } = this.unlock();
-    if (!this.settings.effects) return;
+    if (this.settings.effects === 0) return;
     const start = context.currentTime + syllableEdge;
     for (const syllable of babble(voice, syllables, random)) {
       const at = start + syllable.at;
@@ -260,6 +285,15 @@ export class SoundEngine {
     this.sounds.set(url, loading);
     return loading;
   }
+}
+
+/** Dips the music under a chime: quickly down, held, and gently back. */
+function duck(level: AudioParam, now: number): void {
+  level.cancelScheduledValues(now);
+  level.setValueAtTime(level.value, now);
+  level.linearRampToValueAtTime(ducking.level, now + ducking.down);
+  level.setValueAtTime(ducking.level, now + ducking.down + ducking.hold);
+  level.linearRampToValueAtTime(1, now + ducking.down + ducking.hold + ducking.back);
 }
 
 /** Moves a level smoothly from where it is now to the value, over the seconds. */

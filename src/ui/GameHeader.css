@@ -6,7 +6,8 @@
   min-height: 56px;
 }
 
-.game-header-back {
+.game-header-back,
+.game-header-button {
   display: grid;
   place-items: center;
   width: var(--touch);
@@ -21,7 +22,8 @@
   transition: transform var(--duration-press) var(--ease-spring);
 }
 
-.game-header-back:active {
+.game-header-back:active,
+.game-header-button:active {
   transform: scale(var(--press-scale));
 }
 

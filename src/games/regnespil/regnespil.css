@@ -267,3 +267,19 @@
   font-weight: 600;
   text-align: center;
 }
+
+/* The sounds to compare: a heading for each, and its options side by side. */
+.rs-listening h2 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: 1.3rem;
+}
+
+.rs-listen-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.rs-listen {
+  margin-top: var(--space-3);
+}
