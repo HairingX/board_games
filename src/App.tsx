@@ -18,6 +18,7 @@ import { Home } from './routes/Home';
 import { Settings } from './routes/Settings';
 import { Start } from './routes/Start';
 import { appText } from './routes/text';
+import type { UpdateOffer } from './routes/UpdateToast';
 import { common } from './ui/text';
 
 /**
@@ -85,6 +86,8 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   /** Whether the app opened on someone remembered, who stays on the address it opened on. */
   const resumed = useRef(current !== undefined);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
+  /** Whether the waiting version was put off, until the app is next opened. */
+  const [updateLater, setUpdateLater] = useState(false);
   const {
     needRefresh: [updateWaiting],
     updateServiceWorker,
@@ -121,18 +124,24 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     if (current && window.location.hash !== '') notePlace(window.location.hash);
   }, [current, route, notePlace]);
 
-  const update = updateWaiting
-    ? () => {
-        loadNewVersion(
-          navigator.serviceWorker,
-          updateServiceWorker,
-          window.location.reload.bind(window.location),
-        );
-      }
-    : undefined;
+  const update: UpdateOffer | undefined =
+    updateWaiting && !updateLater
+      ? {
+          load: () => {
+            loadNewVersion(
+              navigator.serviceWorker,
+              updateServiceWorker,
+              window.location.reload.bind(window.location),
+            );
+          },
+          later: () => {
+            setUpdateLater(true);
+          },
+        }
+      : undefined;
 
   if (!current || route.name === 'start') {
-    return <Start games={shown} {...(update ? { onUpdate: update } : {})} />;
+    return <Start games={shown} {...(update ? { update } : {})} />;
   }
 
   const playable = shown.filter((candidate) => mayPlay(current.role, candidate.audience));
@@ -150,7 +159,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
           onSettings={() => {
             navigate({ name: 'settings', page: { name: 'main' } });
           }}
-          {...(update ? { onUpdate: update } : {})}
+          {...(update ? { update } : {})}
         />
       );
     case 'settings':

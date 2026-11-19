@@ -15,8 +15,9 @@ const da = {
   beta: 'Beta',
   betaNote: 'Vis spil, der stadig bygges, så familien kan prøve dem.',
   inDevelopment: 'Under udvikling',
-  newVersion: 'En ny version er klar.',
+  newVersion: 'Ny version klar.',
   update: 'Opdatér',
+  later: 'Senere',
   about: (app: string) => `Om ${app}`,
   offline: {
     ready: '✓ Alle spil er hentet og virker uden internet.',
@@ -65,8 +66,9 @@ export const appText: Translations<typeof da> = {
     beta: 'Beta',
     betaNote: 'Show games that are still being built, so the family can try them.',
     inDevelopment: 'In development',
-    newVersion: 'A new version is ready.',
+    newVersion: 'New version ready.',
     update: 'Update',
+    later: 'Later',
     about: (app) => `About ${app}`,
     offline: {
       ready: '✓ Every game is fetched and works offline.',

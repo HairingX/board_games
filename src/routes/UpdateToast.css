@@ -22,6 +22,19 @@
   box-shadow: var(--shadow-card);
 }
 
+.update-toast-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-1);
+}
+
+.update-toast-later {
+  min-height: var(--touch);
+  color: var(--bg);
+  background: transparent;
+  opacity: 0.8;
+}
+
 .update-toast-button {
   min-height: var(--touch);
   color: var(--text);

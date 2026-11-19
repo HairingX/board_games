@@ -21,10 +21,11 @@ const games: GameInfo[] = [
 ];
 
 async function open(onUpdate?: () => void) {
+  const update = onUpdate && { load: onUpdate, later: () => undefined };
   render(
     <I18nProvider>
       <FamilyProvider>
-        <Start games={games} {...(onUpdate ? { onUpdate } : {})} />
+        <Start games={games} {...(update ? { update } : {})} />
       </FamilyProvider>
     </I18nProvider>,
   );
@@ -53,7 +54,7 @@ describe('Start', () => {
   it('offers a new version before anyone is chosen', async () => {
     const onUpdate = vi.fn();
     await open(onUpdate);
-    expect(screen.getByRole('status')).toHaveTextContent('En ny version er klar.');
+    expect(screen.getByRole('status')).toHaveTextContent('Ny version klar.');
     fireEvent.click(screen.getByRole('button', { name: 'Opdatér' }));
     expect(onUpdate).toHaveBeenCalledOnce();
   });

@@ -6,15 +6,15 @@ import { useMessages } from '../i18n/I18n';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { LanguageSelect } from '../ui/LanguageSelect';
 import { appText } from './text';
-import { UpdateToast } from './UpdateToast';
+import { UpdateToast, type UpdateOffer } from './UpdateToast';
 import './Home.css';
 import './Start.css';
 
 interface Props {
   /** Every game, shown as a fan of their cards' backs. */
   games: readonly GameInfo[];
-  /** Loads the new version that is waiting; given only while one is. */
-  onUpdate?: () => void;
+  /** The new version that is waiting; given only while one is and it was not put off. */
+  update?: UpdateOffer;
 }
 
 /**
@@ -22,7 +22,7 @@ interface Props {
  * whoever played last, who continues where they were with one tap or switches player. With no
  * one to continue, "Hvem spiller?" is asked here. A new version can be loaded here too.
  */
-export function Start({ games, onUpdate }: Props) {
+export function Start({ games, update }: Props) {
   const t = useMessages(appText);
   const { current, leave, place } = useFamily();
 
@@ -45,7 +45,7 @@ export function Start({ games, onUpdate }: Props) {
     </>
   );
 
-  const toast = onUpdate && <UpdateToast onUpdate={onUpdate} />;
+  const toast = update && <UpdateToast offer={update} />;
 
   if (!current) {
     return (
