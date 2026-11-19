@@ -10,6 +10,7 @@ import { GameFrameProvider } from './ui/GameFrame';
 import { betaSaveKey, reviveBeta } from './lib/beta';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { useOfflineStatus } from './lib/offline';
+import { usePausedWhenHidden } from './lib/sound/visibility';
 import { moveSave, saves } from './lib/saves';
 import { navigate, useRoute } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
@@ -97,6 +98,7 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     },
   });
   useUpdateChecks(registration);
+  usePausedWhenHidden();
   const offline = useOfflineStatus(registration);
 
   /** Where the player was last noted, read when the player changes. */

@@ -77,6 +77,10 @@ export class FakeContext {
     this.state = 'running';
     return Promise.resolve();
   });
+  readonly suspend = vi.fn(() => {
+    this.state = 'suspended';
+    return Promise.resolve();
+  });
   readonly decodeAudioData = vi.fn((data: ArrayBuffer) =>
     Promise.resolve({ length: data.byteLength } as AudioBuffer),
   );
@@ -110,6 +114,7 @@ export class FakeContext {
 export interface FakeAudio {
   src: string;
   loop: boolean;
+  paused: boolean;
   play: ReturnType<typeof vi.fn<() => Promise<void>>>;
   pause: ReturnType<typeof vi.fn<() => void>>;
 }
@@ -131,8 +136,14 @@ export function fakeSoundBrowser() {
       const audio: FakeAudio = {
         src: url,
         loop: false,
-        play: vi.fn(() => Promise.resolve()),
-        pause: vi.fn(),
+        paused: true,
+        play: vi.fn(() => {
+          audio.paused = false;
+          return Promise.resolve();
+        }),
+        pause: vi.fn(() => {
+          audio.paused = true;
+        }),
       };
       audios.push(audio);
       return audio as unknown as HTMLAudioElement;

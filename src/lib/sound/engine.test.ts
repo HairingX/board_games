@@ -79,6 +79,50 @@ describe('SoundEngine', () => {
     expect(level.gain.value).toBe(0.4);
   });
 
+  it('pauses the sound while the app is away, and plays on where it was when it is back', () => {
+    const { sound, context, audios } = engine();
+    sound.sleep();
+    sound.wake();
+    expect(context.suspend).not.toHaveBeenCalled();
+    sound.music('/forest.m4a');
+    const [forest] = audios;
+    sound.sleep();
+    expect(forest?.pause).toHaveBeenCalledOnce();
+    expect(context.suspend).toHaveBeenCalledOnce();
+    sound.sleep();
+    expect(context.suspend).toHaveBeenCalledOnce();
+    sound.wake();
+    expect(context.resume).toHaveBeenCalledTimes(2);
+    expect(forest?.play).toHaveBeenCalledTimes(2);
+    sound.wake();
+    expect(forest?.play).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts paused music again with the next tap that asks for it', () => {
+    const { sound, audios } = engine();
+    sound.music('/forest.m4a');
+    const [forest] = audios;
+    forest?.pause();
+    sound.music('/forest.m4a');
+    expect(forest?.play).toHaveBeenCalledTimes(2);
+    sound.music('/forest.m4a');
+    expect(forest?.play).toHaveBeenCalledTimes(2);
+    expect(audios).toHaveLength(1);
+  });
+
+  it('waits for a tap when the phone will not start paused music by itself', async () => {
+    const { sound, audios } = engine();
+    sound.music('/forest.m4a');
+    const [forest] = audios;
+    sound.sleep();
+    forest?.play.mockRejectedValueOnce(new Error('not allowed'));
+    sound.wake();
+    forest?.play.mockRejectedValueOnce(new Error('not allowed'));
+    sound.music('/forest.m4a');
+    await Promise.resolve();
+    expect(forest?.play).toHaveBeenCalledTimes(3);
+  });
+
   it('lets the music step back while a player thinks, and come forward again', () => {
     const { sound } = engine();
     sound.focusMusic(true);

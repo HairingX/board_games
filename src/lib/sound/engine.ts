@@ -249,7 +249,11 @@ export class SoundEngine {
    */
   music(url: string, volume = 1): void {
     const { context, music } = this.unlock();
-    if (this.playing?.url === url) return;
+    if (this.playing?.url === url) {
+      // The phone may have kept it paused after the app was away; a tap starts it again.
+      if (this.playing.element.paused) void this.playing.element.play().catch(() => undefined);
+      return;
+    }
     this.stopMusic();
     const element = this.browser.makeAudio(this.prepared.get(url) ?? url);
     element.loop = true;
@@ -260,6 +264,24 @@ export class SoundEngine {
     glide(gain.gain, volume, context.currentTime, musicFade);
     void element.play().catch(() => undefined);
     this.playing = { url, context, element, volume: gain };
+  }
+
+  /**
+   * Pauses all sound while the app is out of sight, rather than letting the music play on
+   * silenced, which keeps the phone showing it as playing and spends its battery.
+   */
+  sleep(): void {
+    this.playing?.element.pause();
+    if (this.buses?.context.state === 'running') void this.buses.context.suspend();
+  }
+
+  /**
+   * Starts the sound again as the app comes back on screen, with the music where it paused.
+   * Should the phone want a tap first, the next sound or piece of music played starts it.
+   */
+  wake(): void {
+    if (this.buses?.context.state === 'suspended') void this.buses.context.resume();
+    if (this.playing?.element.paused) void this.playing.element.play().catch(() => undefined);
   }
 
   /** Fades the music out. */

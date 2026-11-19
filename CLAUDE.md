@@ -300,7 +300,10 @@ game builds on them, and everything must stay smooth on a phone.
   so it would be the one piece shaped as it plays (darker, brighter, faster), or music with
   separate parts found under a free licence.
   How loud music and effects play is saved on the phone under `lyd`. An iPhone's silent
-  switch silences it all.
+  switch silences it all. While the app is out of sight (minimised or behind another), all
+  sound is paused, not silenced (`src/lib/sound/visibility.ts`, `sleep` and `wake`), so the
+  phone shows nothing playing and spends no battery on it; it plays on when the app is back,
+  or with the next tap if the phone asks for one.
 
 ## Beta
 
