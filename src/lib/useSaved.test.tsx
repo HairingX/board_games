@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { Saves } from './saves';
-import { useSaved } from './useSaved';
+import { useSaved, useSavedEach } from './useSaved';
 
 function fakeSaves(stored: unknown, failRead = false): Saves {
   return {
@@ -88,5 +88,105 @@ describe('useSaved', () => {
       await Promise.resolve();
     });
     expect(screen.getByRole('button', { name: '9' })).toBeInTheDocument();
+  });
+});
+
+describe('useSavedEach', () => {
+  /** Each player's score, kept under their own key, with a button to add one to the first. */
+  function Scores({ keys, saves }: { keys: readonly string[]; saves: Saves }) {
+    const [scores, setScore] = useSavedEach(
+      keys,
+      (saved, index) => (typeof saved === 'number' ? saved : index * 100),
+      saves,
+    );
+    if (!scores) return <p>Henter</p>;
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setScore(0, (scores[0] ?? 0) + 1);
+        }}
+      >
+        {scores.join(' ')}
+      </button>
+    );
+  }
+
+  function savesOf(stored: Record<string, unknown>): Saves {
+    return {
+      ...fakeSaves(undefined),
+      read: vi.fn((key: string) =>
+        key === 'broken' ? Promise.reject(new Error('broken')) : Promise.resolve(stored[key]),
+      ),
+      write: vi.fn(() => Promise.resolve()),
+    };
+  }
+
+  it('reads every key, revives each by its place, and saves a change to one', async () => {
+    const saves = savesOf({ a: 4 });
+    render(<Scores keys={['a', 'b', 'broken']} saves={saves} />);
+    expect(screen.getByText('Henter')).toBeInTheDocument();
+    const button = await screen.findByRole('button', { name: '4 100 200' });
+    act(() => {
+      button.click();
+    });
+    expect(screen.getByRole('button', { name: '5 100 200' })).toBeInTheDocument();
+    expect(saves.write).toHaveBeenCalledWith('a', 5);
+  });
+
+  it('reads once for the same keys in a new list, and again for other keys', async () => {
+    const saves = savesOf({ a: 1, c: 3 });
+    const { rerender } = render(<Scores keys={['a']} saves={saves} />);
+    await screen.findByRole('button', { name: '1' });
+    rerender(<Scores keys={['a']} saves={saves} />);
+    expect(saves.read).toHaveBeenCalledOnce();
+    rerender(<Scores keys={['c']} saves={saves} />);
+    expect(screen.getByText('Henter')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '3' })).toBeInTheDocument();
+  });
+
+  it('keeps a change made before the keys were read, and survives a failed write', async () => {
+    let finishRead: (stored: unknown) => void = () => undefined;
+    const saves: Saves = {
+      ...fakeSaves(undefined),
+      read: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            finishRead = resolve;
+          }),
+      ),
+    };
+    function Early() {
+      const [values, setValue] = useSavedEach(['x'], () => 0, saves);
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            setValue(0, 9);
+          }}
+        >
+          {values?.join(' ') ?? 'Henter'}
+        </button>
+      );
+    }
+    const { unmount } = render(<Early />);
+    act(() => {
+      screen.getByRole('button', { name: 'Henter' }).click();
+    });
+    await act(async () => {
+      finishRead(4);
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: '9' })).toBeInTheDocument();
+    expect(saves.write).toHaveBeenCalledWith('x', 9);
+    unmount();
+  });
+
+  it('ignores what is read after the component is gone', async () => {
+    const saves = savesOf({ a: 1 });
+    const { unmount } = render(<Scores keys={['a']} saves={saves} />);
+    unmount();
+    await Promise.resolve();
+    expect(saves.read).toHaveBeenCalledOnce();
   });
 });

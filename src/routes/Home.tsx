@@ -68,11 +68,12 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
               style={{ ...gameTheme(game), '--delay': `${String(index * 60)}ms` } as CSSProperties}
             >
               {game.Screen ? (
-                <a className="tile" href={gameHref(game.id)}>
+                <a className={game.beta ? 'tile tile-flagged' : 'tile'} href={gameHref(game.id)}>
                   <TileContent game={game} />
+                  {game.beta && <span className="tile-pill">{t.inDevelopment}</span>}
                 </a>
               ) : (
-                <div className="tile tile-soon" aria-disabled="true">
+                <div className="tile tile-soon tile-flagged" aria-disabled="true">
                   <TileContent game={game} />
                   <span className="tile-pill">{t.soon}</span>
                 </div>

@@ -1,39 +1,175 @@
 /* Regnespil's own pieces: the level picker, and a task with its answers. */
 
-.level-picker {
+/* Before the adventure: each player with their level and sword. */
+.rs-players {
   display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0;
+  list-style: none;
 }
 
-.level-options {
+.rs-player {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-1);
-  padding: var(--space-1);
+  gap: var(--space-3);
+  padding: var(--space-4);
   background: var(--surface);
   border: 1px solid var(--surface-border);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-md);
 }
 
-.level-options button {
+.rs-player-name {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+/* A level, a step easier or harder at a time. */
+.level-stepper {
+  display: grid;
+  grid-template-columns: var(--touch) 1fr var(--touch);
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.level-stepper button {
   min-height: var(--touch);
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-control);
   cursor: pointer;
 }
 
-.level-options button[aria-checked='true'] {
-  color: var(--bg);
-  background: var(--text);
+.level-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
-.level-grade {
-  margin: var(--space-2) 0 0;
-  font-size: 0.9rem;
-  color: var(--text-muted);
+.level-stepper-value {
+  display: grid;
+  margin: 0;
   text-align: center;
+}
+
+.level-stepper-value strong {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-variant-numeric: lining-nums;
+}
+
+.level-stepper-value span {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Three swords side by side, the one chosen marked with the game's colour and a tick. */
+.sword-picker {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.sword-picker button {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  padding: var(--space-3) var(--space-1);
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: transform var(--duration-press) var(--ease-spring);
+}
+
+.sword-picker button:active {
+  transform: scale(var(--press-scale));
+}
+
+.sword-picker button[aria-checked='true'] {
+  border-color: var(--game-chosen);
+}
+
+.sword-picker button[aria-checked='true']::after {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-2);
+  color: var(--game-chosen);
+  content: '✓';
+}
+
+/* Pixel art at a whole-number scale, three times its own size. */
+.sword-picture {
+  zoom: 3;
+  image-rendering: pixelated;
+}
+
+.sword-stars {
+  color: var(--game-chosen);
+  letter-spacing: 0.1em;
+}
+
+/* The hero's hearts, from the pack, in halves, and the monster's lives, over the stage. */
+.fight-bars {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.fight-hearts,
+.fight-lives {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.fight-heart {
+  width: 32px;
+  height: 32px;
+  background-position: 0 0;
+  background-size: 160px 32px;
+  image-rendering: pixelated;
+}
+
+/* The sheet's frames: empty, a quarter, a half, three quarters and full. */
+.fight-heart[data-fill='1'] {
+  background-position: -64px 0;
+}
+
+.fight-heart[data-fill='2'] {
+  background-position: -128px 0;
+}
+
+.fight-life {
+  width: 14px;
+  height: 14px;
+  background: var(--surface-border);
+  border-radius: 50%;
+}
+
+.fight-life[data-left='true'] {
+  background: var(--game-chosen);
+}
+
+.fight-over {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  text-align: center;
+}
+
+.fight-over p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
 }
 
 /* A fraction stacked, its top over its bottom on a fine line; a power small and high. */

@@ -10,6 +10,7 @@ import { App } from './App';
 import { cards } from './games/parkort/cards';
 import { newDeck } from './games/parkort/deck';
 import type { GameInfo } from './lib/games';
+import { betaSaveKey } from './lib/beta';
 import { saves } from './lib/saves';
 import { about } from '../tests/games';
 
@@ -237,6 +238,13 @@ describe('App', () => {
     expect(screen.getByText('Den side findes ikke.')).toBeInTheDocument();
   });
 
+  it('offers the games still being built only while beta is on', async () => {
+    await startAs('Mille');
+    expect(screen.queryByRole('link', { name: /Regnespil/ })).not.toBeInTheDocument();
+    goTo('#/spil/regnespil');
+    expect(screen.getByText('Det spil findes ikke.')).toBeInTheDocument();
+  });
+
   it('keeps children out of the settings', async () => {
     await startAs('Mille');
     goTo('#/indstillinger');
@@ -293,6 +301,19 @@ describe('App, opened again', () => {
         place: '#/indstillinger/familien',
       });
     });
+  });
+
+  it('opens a game still being built where it was, once beta is known to be on', async () => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    await saves.write(betaSaveKey, true);
+    await reopen(
+      { player: 'mille', locked: false, place: '#/spil/regnespil/mille', at: 0 },
+      '#/spil/regnespil/mille',
+    );
+    expect(await screen.findByRole('heading', { name: /Klar til eventyret/ })).toBeInTheDocument();
+    goTo('#/');
+    const tile = screen.getByRole('link', { name: /Regnespil/ });
+    expect(tile).toHaveTextContent('Under udvikling');
   });
 
   it('asks a grown-up behind the lock for the code once the app has lain unused', async () => {

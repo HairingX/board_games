@@ -4,7 +4,9 @@ import slash from '../../../assets/ninja-adventure/FX/Slash/SpriteSheetSlash01.p
 import dizzy from '../../../assets/ninja-adventure/Ui/Emote/emote3.png';
 import alert from '../../../assets/ninja-adventure/Ui/Emote/emote22.png';
 import sleepy from '../../../assets/ninja-adventure/Ui/Emote/emote28.png';
+import heart from '../../../assets/ninja-adventure/Ui/Emote/emote27.png';
 import star from '../../../assets/ninja-adventure/Ui/Emote/emote29.png';
+import coin from '../../../assets/ninja-adventure/Items/Treasure/Coin2.png';
 import type { Act, Effect, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
 
@@ -18,9 +20,11 @@ export const clearingSheets = {
   dizzy,
   sleepy,
   star,
+  heart,
+  coin,
 } as const;
 
-export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star';
+export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart';
 
 /** Where the hero and the slime stand, facing each other, in the forest's clearing. */
 export const heroAt = { x: 48, y: 52 };
@@ -43,6 +47,17 @@ export const puff = (at: number): Effect => ({
   frames: 6,
   x: slimeAt.x - 8,
   y: slimeAt.y - 12,
+  at,
+});
+
+/** A coin spinning where the slime was, a little to the side, as the slime leaves it. */
+export const coinDrop = (at: number, aside: number): Effect => ({
+  sheet: 'coin',
+  width: 10,
+  height: 10,
+  frames: 4,
+  x: slimeAt.x + 3 + aside,
+  y: slimeAt.y + 6,
   at,
 });
 

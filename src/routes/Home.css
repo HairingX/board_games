@@ -191,7 +191,7 @@ a.tile:active {
   border-radius: var(--radius-pill);
 }
 
-.tile-soon .tile-text {
+.tile-flagged .tile-text {
   padding-top: var(--space-6);
 }
 

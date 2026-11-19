@@ -1,5 +1,6 @@
-import { formatNumber } from '../../i18n/format';
+import { formatNumber, genitive } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
+import type { Sword } from './swords';
 import type { Operator } from './tasks';
 
 /** Regnespil's words. Sums are shown with the signs each language writes. */
@@ -41,9 +42,25 @@ const da = {
   right: 'Rigtigt!',
   close: (answer: string) => `Tæt på. Det rigtige svar er ${answer}.`,
   far: (answer: string) => `Det rigtige svar er ${answer}.`,
-  next: 'Næste',
-  tally: (right: number, total: number) =>
-    `${formatNumber('da', right)} af ${formatNumber('da', total)} rigtige`,
+  easier: 'Lettere',
+  harder: 'Sværere',
+  levelOf: (name: string) => `${genitive('da', name)} niveau`,
+  swordOf: (name: string) => `${genitive('da', name)} sværd`,
+  /** The swords by how hard a fight they make. */
+  swords: { træ: 'Let', jern: 'Mellem', flamme: 'Svær' } satisfies Record<Sword, string>,
+  setupTitle: 'Klar til eventyret',
+  setupIntro:
+    'Hver spiller har sit eget niveau til regnestykkerne og sit eget sværd til kampen: jo sværere sværd, jo stærkere monstre.',
+  toFight: 'Til kamp!',
+  clearing: 'Lysningen',
+  fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
+  hearts: (left: number, of: number) =>
+    `Heltens hjerter: ${formatNumber('da', left)} af ${formatNumber('da', of)}`,
+  lives: (count: number) => `Slimets liv: ${formatNumber('da', count)}`,
+  won: 'Slimet er besejret!',
+  lost: 'Helten er træt og hviler sig.',
+  again: 'Ny kamp',
+  tryAgain: 'Prøv igen',
 };
 
 export const text: Translations<typeof da> = {
@@ -74,7 +91,23 @@ export const text: Translations<typeof da> = {
     right: 'Right!',
     close: (answer) => `Close. The right answer is ${answer}.`,
     far: (answer) => `The right answer is ${answer}.`,
-    next: 'Next',
-    tally: (right, total) => `${formatNumber('en', right)} of ${formatNumber('en', total)} right`,
+    easier: 'Easier',
+    harder: 'Harder',
+    levelOf: (name) => `${genitive('en', name)} level`,
+    swordOf: (name) => `${genitive('en', name)} sword`,
+    swords: { træ: 'Easy', jern: 'Medium', flamme: 'Hard' },
+    setupTitle: 'Ready for the adventure',
+    setupIntro:
+      'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',
+    toFight: 'To battle!',
+    clearing: 'The clearing',
+    fightLabel: 'The hero faces a blue slime in the forest clearing.',
+    hearts: (left, of) =>
+      `The hero’s hearts: ${formatNumber('en', left)} of ${formatNumber('en', of)}`,
+    lives: (count) => `The slime’s lives: ${formatNumber('en', count)}`,
+    won: 'The slime is beaten!',
+    lost: 'The hero is tired and rests.',
+    again: 'New fight',
+    tryAgain: 'Try again',
   },
 };

@@ -20,7 +20,10 @@ function InApp(props: {
   offline: OfflineStatus;
 }) {
   const [page, setPage] = useState<SettingsPage>({ name: 'main' });
-  return <Settings {...props} current={far} page={page} go={setPage} />;
+  const [beta, setBeta] = useState(false);
+  return (
+    <Settings {...props} current={far} page={page} go={setPage} beta={beta} onBeta={setBeta} />
+  );
 }
 
 async function open(family: Family, offline: OfflineStatus = 'ready') {
@@ -66,27 +69,14 @@ describe('Settings', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('shows the test pages only while beta is on, and keeps it', async () => {
+  it('turns beta on and off', async () => {
     await open({ profiles: [far], lock: null });
-    expect(screen.getByRole('switch', { name: /^Beta/ })).not.toBeChecked();
-    expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
-    click(/^Kamp Testside/);
-    expect(await screen.findByRole('heading', { name: 'Kamp' })).toBeInTheDocument();
-    click('Tilbage');
-    click(/^Regnestykker Testside/);
-    expect(await screen.findByRole('heading', { name: 'Regnestykker' })).toBeInTheDocument();
-    click('Tilbage');
-    click(/^Scene Testside/);
-    expect(await screen.findByRole('heading', { name: 'Scene' })).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /lysning i skoven/ })).toBeInTheDocument();
-    click('Tilbage');
-    click(/^Lyd Testside/);
-    expect(await screen.findByRole('heading', { name: 'Lyd' })).toBeInTheDocument();
-    click('Tilbage');
-    expect(screen.getByRole('switch', { name: /^Beta/ })).toBeChecked();
-    fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
-    expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
+    const beta = screen.getByRole('switch', { name: /^Beta/ });
+    expect(beta).not.toBeChecked();
+    fireEvent.click(beta);
+    expect(beta).toBeChecked();
+    fireEvent.click(beta);
+    expect(beta).not.toBeChecked();
   });
 
   it.each<[OfflineStatus, string]>([

@@ -5,7 +5,6 @@ import { about as parkortAbout } from '../games/parkort/about';
 import { text as parkortText } from '../games/parkort/text';
 import { games } from '../lib/games';
 import { text as regnespilText } from '../games/regnespil/text';
-import { labText } from '../routes/beta/text';
 import { appText } from '../routes/text';
 import { common } from '../ui/text';
 import { locales, type Translations } from './locales';
@@ -84,10 +83,13 @@ describe('the messages that are made from values', () => {
     expect(r.grade(0, 1)).toBe('about age 6–8');
     expect(r.close('12')).toBe('Close. The right answer is 12.');
     expect(r.far('12')).toBe('The right answer is 12.');
-    expect(r.tally(3, 4)).toBe('3 of 4 right');
+    expect(r.levelOf('Jonas')).toBe('Jonas’s level');
+    expect(r.swordOf('Mille')).toBe('Mille’s sword');
+    expect(r.hearts(4.5, 5)).toBe('The hero’s hearts: 4.5 of 5');
+    expect(r.lives(1)).toBe('The slime’s lives: 1');
+    expect(regnespilText.da.levelOf('Jonas')).toBe('Jonas’ niveau');
+    expect(regnespilText.da.hearts(4.5, 5)).toBe('Heltens hjerter: 4,5 af 5');
     expect(regnespilText.da.grade(4, 4)).toBe('ca. 4. klasse');
-    expect(labText.en.hearts(2)).toBe('The hero’s hearts: 2');
-    expect(labText.en.lives(1)).toBe('The slime’s lives: 1');
     expect(t.about('Småspil')).toBe('About Småspil');
     expect(t.offline.unknown('Småspil')).toBe(
       'Småspil works offline once the app has been opened.',

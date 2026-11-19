@@ -47,8 +47,11 @@ game builds on them, and everything must stay smooth on a phone.
    - A level decides what the tasks hold (operations, number ranges, and for the higher levels
      mixed operations, parentheses, fractions and powers); "Tilpas" turns parts on or off for
      one child, such as no powers or parentheses.
-   - Each child's level and adjustments are saved on their profile, and they continue there next
-     time. Children playing together each get tasks at their own level on their turn.
+   - Each player's level, sword and adjustments are saved on their profile (per player, not
+     per game), and they continue there next time. Players together each get tasks at their
+     own level, and their own sword's costs, on their turn. Grown-ups play too, decided by the
+     owner: they start hard (level 13, the flame sword), children gently, so the children see
+     the grown-ups struggle.
    - Tasks are generated, never stored, and come in short rounds; each answer shows at once
      whether it was right. Every task has three answers to choose from, the wrong ones made from
      typical mistakes.
@@ -132,17 +135,35 @@ game builds on them, and everything must stay smooth on a phone.
   number after an operator in brackets, a true minus sign, and lining figures, which children
   read more easily than the serif's old-style ones; and read in words to screen readers
   (`SumView.tsx`, `ValueView.tsx`).
-- A fight (`battle.ts`): a right answer is a stroke that takes one of the monster's lives; a
-  close answer is parried, nothing lost either way, as yellow means "nearly"; an answer far
-  off lets the monster bump the hero, who loses a heart. No death: out of hearts, the hero
-  rests and tries again. The next sum comes by itself after a short pause (`fightPause`).
-  The first fight is three hearts against a slime with three lives; swords, crystals and
-  upgrades are to change these numbers later.
+- The game is built straight into the real game, in beta (owner's decision), stage by stage:
+  `Regnespil.tsx` opens on the setup (`Setup.tsx`), where each player has their own level
+  (`LevelStepper.tsx`) and sword (`SwordPicker.tsx`), suggested the first time from their age
+  (`players.ts`: a child at the first level that suits their school grade, the wooden sword
+  until the third grade and iron after, level 1 without a birthday; a grown-up level 13 and
+  the flame sword), and "Til kamp!" leads to the first stage (`Fight.tsx`, place `kamp`).
+- Difficulty is a sword, apart from the level, so a child who cannot read sees it: wooden
+  (Let, one star), iron (Mellem) and flame (Svær), the pack's club, sword and red sword
+  (`swords.ts`). It sets what a wrong answer costs and how tough monsters are.
+- A fight (`battle.ts`): the hero has five hearts, counted in halves. A right answer is a
+  stroke that takes one of the monster's lives; a close answer is parried and costs half a
+  heart (nothing with the wooden sword); an answer far off lets the monster bump the hero for
+  a heart (half with the wooden sword), so guessing never pays. The slime takes 2, 3 or 4
+  strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
+  tries again. The players take turns (`src/lib/turns.ts`, `src/ui/TurnBanner.tsx`: "Nu er
+  det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
+  has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins and
+  the hero cheering with a heart over his head. A fight is not yet saved while it is on.
+- Agreed next, in order: a livelier fight (a "−1" over the monster, a slight shake when the
+  hero is hit, a combo of three right for a power stroke, which only red breaks), then the
+  monster walking towards the hero while a sum is thought over, at the child's own pace and
+  at least 15 seconds, roaring and stepping back with the wooden and iron swords and striking
+  only with the flame sword, so time stays off unless chosen; then bosses that fight back
+  with the flame sword (a shield only a power stroke breaks, a warned attack, rage at half
+  life), and monsters with more lives further on.
 - The story is not decided: `docs/regnespil-story.md` is a researched proposal (building on
   H.C. Andersen's _Fyrtøjet_, public domain) for the owner to decide on. Only public-domain
   tales may give plot, names or characters; modern franchises only lessons in how to tell.
-- Beta: `src/routes/beta/TaskLab.tsx` tries the tasks level by level, and `BattleLab.tsx` the
-  first fight, in the forest clearing (`clearing.ts`).
+- The stage is the forest clearing (`forest.ts`, `clearing.ts`).
 
 ## Languages
 
@@ -186,7 +207,9 @@ game builds on them, and everything must stay smooth on a phone.
   initial, one of 30 faces from the Ninja Adventure pack (`src/family/faces.ts`, saved by
   id), or a photo from the phone, cut to a small square (`src/family/photo.ts`) and kept only
   on the phone. Profiles have no codes, and anyone may choose anyone. The owner decided this:
-  codes per person were a nuisance.
+  codes per person were a nuisance. A profile may have a birthday, the full day as the owner
+  chose (`src/family/age.ts`, kept only on the phone), from which every game may suggest where
+  a player starts; it is always changed by hand.
 - People are shown by name only, never with "Hej" in front: a greeting every time grows tiresome.
   At the top of the home screen the picture and name are the button that switches player.
 - The grown-ups' lock (`src/family/AdultLock.tsx`) is off until a grown-up turns it on in the
@@ -251,12 +274,11 @@ game builds on them, and everything must stay smooth on a phone.
 
 ## Beta
 
-- Parts still being built are tried by grown-ups on test pages, never by children: "Beta" in the
-  settings (`src/lib/beta.ts`, saved on the phone under `beta`) is off until turned on, and then
-  lists the test pages (`src/routes/beta/`). The owner wants to see each step this way.
-- `src/routes/beta/SoundLab.tsx`: music, effects, and the characters' babbling voices.
-- `src/routes/beta/SceneLab.tsx`: the puppet theatre's first scene, a forest clearing with the
-  hero breathing (`forest.ts`).
+- Games still being built are built straight into the app and tried there, as the owner
+  decided, rather than on test pages: a game with `beta: true` in `src/lib/games.tsx` is
+  offered only while "Beta" is on in the settings (`src/lib/beta.ts`, saved on the phone under
+  `beta`, off until a grown-up turns it on), marked "Under udvikling" on its tile. Then the
+  whole family may play it, children too. Regnespil is in beta.
 
 ## The puppet theatre
 

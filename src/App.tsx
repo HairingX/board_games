@@ -7,11 +7,13 @@ import { FamilyProvider, useFamily } from './family/FamilyContext';
 import { I18nProvider, useMessages } from './i18n/I18n';
 import { ErrorBoundary } from './ui/ErrorBoundary';
 import { GameFrameProvider } from './ui/GameFrame';
+import { betaSaveKey, reviveBeta } from './lib/beta';
 import { gameSaveKey, games as allGames, gameTheme, type GameInfo } from './lib/games';
 import { useOfflineStatus } from './lib/offline';
 import { moveSave, saves } from './lib/saves';
 import { navigate, useRoute } from './lib/router';
 import { loadNewVersion, useUpdateChecks } from './lib/updates';
+import { useSaved } from './lib/useSaved';
 import { Home } from './routes/Home';
 import { Settings } from './routes/Settings';
 import { Start } from './routes/Start';
@@ -77,6 +79,9 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   const t = useMessages(appText);
   const { family, current, save, leave, place, notePlace } = useFamily();
   const route = useRoute();
+  const [beta, setBeta] = useSaved(betaSaveKey, reviveBeta);
+  /** The games offered: those still being built only while beta is on. */
+  const shown = games.filter((game) => game.beta !== true || beta === true);
   /** Whether the app opened on someone remembered, who stays on the address it opened on. */
   const resumed = useRef(current !== undefined);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration>();
@@ -127,10 +132,10 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
     : undefined;
 
   if (!current || route.name === 'start') {
-    return <Start games={games} {...(update ? { onUpdate: update } : {})} />;
+    return <Start games={shown} {...(update ? { onUpdate: update } : {})} />;
   }
 
-  const playable = games.filter((candidate) => mayPlay(current.role, candidate.audience));
+  const playable = shown.filter((candidate) => mayPlay(current.role, candidate.audience));
   const home = () => {
     navigate({ name: 'home' });
   };
@@ -160,11 +165,17 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
           }}
           onBack={home}
           offline={offline}
+          beta={beta === true}
+          onBeta={setBeta}
         />
       ) : (
         <Message text={t.noSuchPage} />
       );
     case 'game': {
+      // A game still being built waits until it is known whether beta is on.
+      if (beta === undefined && games.some((game) => game.beta === true && game.id === route.id)) {
+        return null;
+      }
       const game = playable.find((candidate) => candidate.id === route.id);
       if (!game?.Screen) return <Message text={t.noSuchGame} />;
       const players = playersFor(game, route.players, family);

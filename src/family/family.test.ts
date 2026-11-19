@@ -144,4 +144,14 @@ describe('reviveFamily', () => {
       expect(reviveFamily({ profiles: [{ ...far, picture }] }).profiles).toEqual([far]);
     }
   });
+
+  it('keeps a birthday that is a real day, and leaves out any other', () => {
+    const saved = {
+      profiles: [
+        { ...mille, born: '2018-04-23' },
+        { ...far, born: '1985-02-30' },
+      ],
+    };
+    expect(reviveFamily(saved).profiles).toEqual([{ ...mille, born: '2018-04-23' }, far]);
+  });
 });

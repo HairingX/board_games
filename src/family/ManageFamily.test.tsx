@@ -114,6 +114,21 @@ describe('ManageFamily', () => {
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
   });
 
+  it('keeps a birthday, given or changed, and leaves it out when cleared', () => {
+    const { changed } = renderWith([far, { ...mille, born: '2018-04-23' }]);
+    open('Mille');
+    const born = screen.getByLabelText('Fødselsdag');
+    expect(born).toHaveValue('2018-04-23');
+    expect(born).toHaveAccessibleDescription(/Kan udelades/);
+    fireEvent.change(born, { target: { value: '2019-05-01' } });
+    click('Gem');
+    expect(changed()?.profiles[1]).toEqual({ ...mille, born: '2019-05-01' });
+    open('Mille');
+    fireEvent.change(screen.getByLabelText('Fødselsdag'), { target: { value: '' } });
+    click('Gem');
+    expect(changed()?.profiles[1]).toEqual(mille);
+  });
+
   it('takes someone out once confirmed, but not oneself or the last grown-up', () => {
     const { changed } = renderWith([far, mor, mille]);
     open('Far');

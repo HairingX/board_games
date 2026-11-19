@@ -4,18 +4,11 @@ import type { Family, Profile } from '../family/family';
 import { ManageFamily } from '../family/ManageFamily';
 import { familyText } from '../family/text';
 import { useMessages } from '../i18n/I18n';
-import { betaSaveKey, reviveBeta } from '../lib/beta';
 import type { OfflineStatus } from '../lib/offline';
 import type { SettingsPage } from '../lib/router';
-import { useSaved } from '../lib/useSaved';
 import { GameHeader } from '../ui/GameHeader';
 import { LanguageSelect } from '../ui/LanguageSelect';
 import { Switch } from '../ui/Switch';
-import { BattleLab } from './beta/BattleLab';
-import { SceneLab } from './beta/SceneLab';
-import { SoundLab } from './beta/SoundLab';
-import { TaskLab } from './beta/TaskLab';
-import { labText } from './beta/text';
 import { SavedGames } from './SavedGames';
 import { appText } from './text';
 import '../family/family.css';
@@ -34,18 +27,29 @@ interface Props {
   onBack: () => void;
   /** Whether every game is on the phone, to play without the internet. */
   offline: OfflineStatus;
+  /** Whether the games still being built are shown, and turning it on or off. */
+  beta: boolean;
+  onBeta: (on: boolean) => void;
 }
 
 /**
  * Everything for grown-ups in one place, away from the home screen: the app's language, the
- * family, the grown-ups' lock, how the games are saved, and beta, which shows test pages for
- * the parts still being built.
+ * family, the grown-ups' lock, how the games are saved, and beta, which shows the games still
+ * being built on the home screen.
  */
-export function Settings({ family, current, onChange, page, go, onBack, offline }: Props) {
+export function Settings({
+  family,
+  current,
+  onChange,
+  page,
+  go,
+  onBack,
+  offline,
+  beta,
+  onBeta,
+}: Props) {
   const t = useMessages(appText);
   const f = useMessages(familyText);
-  const lab = useMessages(labText);
-  const [beta, setBeta] = useSaved(betaSaveKey, reviveBeta);
   const toMain = () => {
     go({ name: 'main' });
   };
@@ -59,14 +63,6 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
       );
     case 'lock':
       return <AdultLock family={family} onChange={onChange} onBack={toMain} />;
-    case 'sound':
-      return <SoundLab onBack={toMain} />;
-    case 'scene':
-      return <SceneLab onBack={toMain} />;
-    case 'tasks':
-      return <TaskLab onBack={toMain} />;
-    case 'fight':
-      return <BattleLab onBack={toMain} />;
     case 'main':
       break;
   }
@@ -120,37 +116,7 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
         <p>{t.credits}</p>
       </section>
       <div className="settings-beta">
-        <Switch label={t.beta} note={t.betaNote} on={beta === true} onChange={setBeta} />
-        {beta && (
-          <ul className="family-list">
-            {(['fight', 'tasks', 'sound', 'scene'] as const).map((name) => (
-              <li key={name}>
-                <button
-                  type="button"
-                  className="family-row"
-                  onClick={() => {
-                    go({ name });
-                  }}
-                >
-                  <span className="family-row-name">
-                    {
-                      {
-                        fight: lab.fightTitle,
-                        tasks: lab.tasksTitle,
-                        sound: lab.title,
-                        scene: lab.sceneTitle,
-                      }[name]
-                    }{' '}
-                    <small>{t.testPage}</small>
-                  </span>
-                  <span className="family-row-open" aria-hidden="true">
-                    ›
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <Switch label={t.beta} note={t.betaNote} on={beta} onChange={onBeta} />
       </div>
     </section>
   );

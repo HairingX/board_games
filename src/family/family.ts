@@ -1,3 +1,4 @@
+import { isBirthday } from './age';
 import { faces } from './faces';
 
 /** Whether a profile is a grown-up, who may see every game, or a child, who sees their own. */
@@ -26,6 +27,11 @@ export interface Profile {
   color: ProfileColor;
   /** Shown instead of the initial; the initial when there is none. */
   picture?: Picture;
+  /**
+   * The birthday, as a day such as "2018-04-23", if it was given: the games suggest from it
+   * where to start. Kept only on the phone.
+   */
+  born?: string;
 }
 
 /** What is chosen about a profile in its form. */
@@ -125,15 +131,21 @@ export function reviveFamily(value: unknown): Family {
 
 function reviveProfile(value: unknown): Profile | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
-  const { id, name, role, color, picture } = value as Record<string, unknown>;
+  const { id, name, role, color, picture, born } = value as Record<string, unknown>;
   const valid =
     typeof id === 'string' &&
     typeof name === 'string' &&
     (role === 'voksen' || role === 'barn') &&
     profileColors.includes(color as ProfileColor);
   if (!valid) return undefined;
-  const profile: Profile = { id, name, role, color: color as ProfileColor };
-  return isPicture(picture) ? { ...profile, picture } : profile;
+  return {
+    id,
+    name,
+    role,
+    color: color as ProfileColor,
+    ...(isPicture(picture) ? { picture } : {}),
+    ...(isBirthday(born) ? { born } : {}),
+  };
 }
 
 /** A picture the app can still show: a face it has, or a photo from the phone. */

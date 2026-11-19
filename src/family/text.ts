@@ -49,6 +49,9 @@ const da = {
     slate: 'Skifer',
   } satisfies Record<ProfileColor, string>,
   save: 'Gem',
+  born: 'Fødselsdag',
+  bornNote:
+    'Kan udelades. Spillene foreslår ud fra den, hvor svært det skal være. Den bliver kun på telefonen.',
   picture: 'Billede',
   ownPhoto: 'Vælg dit eget billede',
   yourPhoto: 'Dit eget billede',
@@ -125,6 +128,9 @@ export const familyText: Translations<typeof da> = {
       slate: 'Slate',
     },
     save: 'Save',
+    born: 'Birthday',
+    bornNote:
+      'Can be left out. The games suggest from it how hard to start. It stays on the phone.',
     picture: 'Picture',
     ownPhoto: 'Choose your own picture',
     yourPhoto: 'Your own picture',

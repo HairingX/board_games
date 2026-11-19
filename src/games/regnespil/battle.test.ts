@@ -1,31 +1,37 @@
 import { describe, expect, it } from 'vitest';
-import { answerFight, firstFight, startFight } from './battle';
+import { answerFight, fullHealth, startFight } from './battle';
+import { monsterLives } from './swords';
 
 describe('a fight', () => {
-  it('starts with the hero’s hearts and the monster’s lives', () => {
-    expect(startFight(firstFight)).toEqual({
-      hearts: 3,
+  it('starts with five hearts, and the monster as tough as the hardest sword', () => {
+    expect(startFight(monsterLives(['træ', 'jern']))).toEqual({
+      health: fullHealth,
       lives: 3,
       outcome: 'fighting',
       last: undefined,
     });
+    expect(monsterLives(['træ'])).toBe(2);
+    expect(monsterLives(['flamme', 'træ'])).toBe(4);
   });
 
-  it('strikes on a right answer, parries a close one, and bumps the hero on one far off', () => {
-    let fight = startFight({ hearts: 2, lives: 2 });
-    fight = answerFight(fight, 'right');
-    expect(fight).toMatchObject({ lives: 1, hearts: 2, last: 'struck', outcome: 'fighting' });
-    fight = answerFight(fight, 'close');
-    expect(fight).toMatchObject({ lives: 1, hearts: 2, last: 'parried' });
-    fight = answerFight(fight, 'far');
-    expect(fight).toMatchObject({ lives: 1, hearts: 1, last: 'bumped', outcome: 'fighting' });
+  it('strikes the monster on a right answer, and is won when it has no lives left', () => {
+    const once = answerFight(startFight(2), 'right', 'jern');
+    expect(once).toMatchObject({ lives: 1, last: 'struck', outcome: 'fighting' });
+    expect(answerFight(once, 'right', 'jern')).toMatchObject({ lives: 0, outcome: 'won' });
   });
 
-  it('is won when the monster has no lives left, and lost when the hero has no hearts', () => {
-    const won = answerFight(startFight({ hearts: 1, lives: 1 }), 'right');
-    expect(won.outcome).toBe('won');
-    expect(answerFight(won, 'far')).toBe(won);
-    const lost = answerFight(startFight({ hearts: 1, lives: 1 }), 'far');
-    expect(lost.outcome).toBe('lost');
+  it('costs what the sword says: the wooden sword forgives a close answer', () => {
+    const fight = startFight(3);
+    expect(answerFight(fight, 'close', 'træ')).toMatchObject({ health: 10, last: 'parried' });
+    expect(answerFight(fight, 'far', 'træ')).toMatchObject({ health: 9, last: 'bumped' });
+    expect(answerFight(fight, 'close', 'jern')).toMatchObject({ health: 9, last: 'nicked' });
+    expect(answerFight(fight, 'far', 'flamme')).toMatchObject({ health: 8, last: 'bumped' });
+  });
+
+  it('lets the hero rest when the hearts are gone, and stays over', () => {
+    let fight = { ...startFight(3), health: 1 };
+    fight = answerFight(fight, 'far', 'jern');
+    expect(fight).toMatchObject({ health: 0, outcome: 'lost' });
+    expect(answerFight(fight, 'right', 'jern')).toBe(fight);
   });
 });

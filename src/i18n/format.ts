@@ -29,6 +29,15 @@ export function formatNumber(locale: Locale, value: number): string {
   return numbers(locale).format(value);
 }
 
+/**
+ * A name as the owner of something, as the language writes it: Danish "Idas", but "Jonas’"
+ * after an s, x or z; English "Ida’s".
+ */
+export function genitive(locale: Locale, name: string): string {
+  if (locale === 'en') return `${name}’s`;
+  return /[sxz]$/i.test(name) ? `${name}’` : `${name}s`;
+}
+
 /** A number of percent as the language writes it: 37,5 % in Danish, 37.5% in English. */
 export function formatPercent(locale: Locale, percent: number): string {
   return percents(locale).format(percent / 100);

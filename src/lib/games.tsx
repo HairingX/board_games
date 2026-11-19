@@ -58,6 +58,11 @@ export interface GameInfo {
   players: Players;
   /** Where the game saved before players were chosen; the first group to play takes it over. */
   formerSaveKey?: string;
+  /**
+   * Whether the game is still being built: offered only while beta is on in the settings,
+   * marked as in development, so the family can try it as it grows.
+   */
+  beta?: boolean;
   /** The colour of its cards, and the colour of the fine lines on them. */
   colors: { card: string; accent: string };
   /**
@@ -112,9 +117,11 @@ export const games: readonly GameInfo[] = [
     },
     languages: locales,
     icon: '🧮',
-    audience: 'børn',
+    audience: 'alle',
     players: { min: 1, max: 6, progress: 'hver' },
     colors: { card: '#1f4e5a', accent: '#e9c46a' },
+    beta: true,
+    Screen: lazy(() => import('../games/regnespil/Regnespil')),
   },
   {
     id: 'koretur',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { keepSavesSafe } from './persistence';
 import { saves as defaultSaves, type Saves } from './saves';
 
@@ -46,4 +46,59 @@ export function useSaved<T>(
   );
 
   return [state, save];
+}
+
+/**
+ * Like `useSaved`, for several keys at once, such as each player's own progress in a game:
+ * undefined until every one has been read. `revive` makes each from what was saved under its
+ * key, given its place in `keys`; it may change between renders. A change made to one before
+ * they have been read wins over what is read for it.
+ */
+export function useSavedEach<T>(
+  keys: readonly string[],
+  revive: (saved: unknown, index: number) => T,
+  saves: Saves = defaultSaves,
+): [readonly T[] | undefined, (index: number, next: T) => void] {
+  /** The keys as one value, so the same keys read once however often the list is made. */
+  const joined = keys.join('\n');
+  const [state, setState] = useState<{ keys: string; values: readonly T[] }>();
+  /** The values changed since these keys were read, by their place, so the read keeps them. */
+  const changed = useRef(new Map<number, T>());
+  const onRead = useEffectEvent((saved: readonly unknown[]) =>
+    saved.map((value, index) =>
+      changed.current.has(index) ? (changed.current.get(index) as T) : revive(value, index),
+    ),
+  );
+
+  useEffect(() => {
+    let current = true;
+    changed.current = new Map();
+    void Promise.all(joined.split('\n').map((key) => saves.read(key).catch(() => undefined))).then(
+      (saved) => {
+        if (current) setState({ keys: joined, values: onRead(saved) });
+      },
+    );
+    return () => {
+      current = false;
+    };
+  }, [joined, saves]);
+
+  const save = useCallback(
+    (index: number, next: T) => {
+      changed.current.set(index, next);
+      setState((known) =>
+        known?.keys === joined
+          ? { keys: joined, values: known.values.map((value, at) => (at === index ? next : value)) }
+          : known,
+      );
+      const key = joined.split('\n')[index] as string;
+      void saves
+        .write(key, next)
+        .then(() => keepSavesSafe(undefined, saves))
+        .catch(() => undefined);
+    },
+    [joined, saves],
+  );
+
+  return [state?.keys === joined ? state.values : undefined, save];
 }
