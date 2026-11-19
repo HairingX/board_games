@@ -12,17 +12,8 @@ import { nextTurn } from '../../lib/turns';
 import { motionTokens } from '../../ui/motion';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { answerFight, fullHealth, startFight, type Fight as FightState } from './battle';
-import { hud, lifeBarSize, swordPictures } from './art';
-import {
-  clearing,
-  clearingSheets,
-  coinDrop,
-  heroAt,
-  puff,
-  slimeAt,
-  sweep,
-  type Staging,
-} from './clearing';
+import { faces, hud, swordPictures, topFrames } from './art';
+import { clearing, clearingSheets, coinDrop, heroAt, puff, sweep, type Staging } from './clearing';
 import type { PlayerSettings } from './players';
 import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
@@ -252,15 +243,10 @@ export function Fight({
   const cost = swordRules[sword].far;
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
 
+  const scene = clearing(staging);
+
   const overlay = (
     <div className="rs-hud">
-      <div className="rs-hud-top">
-        <button type="button" className="game-header-button" aria-label={c.back} onClick={onBack}>
-          <span aria-hidden="true">‹</span>
-        </button>
-        <p className="rs-place">{t.clearing}</p>
-        {aside}
-      </div>
       <span
         className="rs-hearts"
         role="img"
@@ -275,27 +261,6 @@ export function Fight({
           />
         ))}
       </span>
-      {fight.lives > 0 && (
-        <span
-          className="rs-life"
-          role="img"
-          aria-label={t.lives(fight.lives)}
-          style={{
-            left: px(slimeAt.x - 1),
-            top: px(slimeAt.y + 17),
-            width: px(lifeBarSize.width),
-            height: px(lifeBarSize.height),
-            backgroundImage: `url("${hud.lifeBar}")`,
-          }}
-        >
-          <span
-            style={{
-              width: `${String((fight.lives / lives) * 100)}%`,
-              backgroundImage: `url("${hud.lifeLeft}")`,
-            }}
-          />
-        </span>
-      )}
       {players.length > 1 && fight.outcome === 'fighting' && (
         <p
           className="rs-nameplate"
@@ -312,12 +277,31 @@ export function Fight({
 
   return (
     <section className="rs-fight">
-      <div className="rs-stage">
+      <header className="rs-topbar" style={{ borderImageSource: `url("${topFrames.forest}")` }}>
+        <button type="button" className="game-header-button" aria-label={c.back} onClick={onBack}>
+          <span aria-hidden="true">‹</span>
+        </button>
+        <div className="rs-foe" role="img" aria-label={t.lives(fight.lives)}>
+          <img src={faces.slime} alt="" className="rs-foe-face" />
+          {/* Drawn anew at every stroke, so it shakes and a piece breaks off. */}
+          <span key={fight.lives} className="rs-foe-life" data-hit={fight.lives < lives}>
+            {Array.from({ length: lives }, (_, index) => (
+              <span key={index} className="rs-foe-piece" data-left={index < fight.lives} />
+            ))}
+          </span>
+        </div>
+        {aside}
+      </header>
+      <div
+        className="rs-stage"
+        style={{ aspectRatio: `${String(scene.columns)} / ${String(scene.rows)}` }}
+      >
         <SceneCanvas
-          scene={clearing(staging)}
+          scene={scene}
           sheets={clearingSheets}
           label={t.fightLabel}
           overlay={overlay}
+          fit="box"
           {...(load ? { load } : {})}
         />
       </div>

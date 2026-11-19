@@ -44,23 +44,35 @@ export function paint(
 
 /**
  * How many of the phone's own pixels each pixel of the stage is drawn as: the largest whole
- * number that fits the box's width, at least 1. Counted in the phone's pixels, not the page's,
- * so the stage fills the width closely and every pixel stays sharp.
+ * number that fits the box's width, and with `fit` "box" its height too, at least 1. Counted
+ * in the phone's pixels, not the page's, so the stage fills the box closely and every pixel
+ * stays sharp.
  */
-function useDeviceScale(box: HTMLElement | null, width: number, density: number): number {
+function useDeviceScale(
+  box: HTMLElement | null,
+  size: { width: number; height: number },
+  density: number,
+  fit: Fit,
+): number {
   const [scale, setScale] = useState(density);
+  const { width, height } = size;
   useEffect(() => {
     if (!box) return;
     const observer = new ResizeObserver(() => {
-      setScale(Math.max(1, Math.floor((box.clientWidth * density) / width)));
+      const across = (box.clientWidth * density) / width;
+      const down = fit === 'box' ? (box.clientHeight * density) / height : across;
+      setScale(Math.max(1, Math.floor(Math.min(across, down))));
     });
     observer.observe(box);
     return () => {
       observer.disconnect();
     };
-  }, [box, width, density]);
+  }, [box, width, height, density, fit]);
   return scale;
 }
+
+/** Whether the stage fills the box's width, or fits inside the box both ways. */
+type Fit = 'width' | 'box';
 
 /** The scene's pictures, by name, once every one has loaded. */
 function usePictures(
@@ -96,6 +108,12 @@ interface Props {
    * own pixels with the custom property `--px`, the size of one of them on the page.
    */
   overlay?: ReactNode;
+  /**
+   * "width" (the default) to fill the box's width, the box as tall as the stage then is;
+   * "box" to fit inside a box whose height is set from outside, as a screen with little
+   * height makes it, smaller on a low phone.
+   */
+  fit?: Fit;
 }
 
 /**
@@ -104,12 +122,19 @@ interface Props {
  * changes, so it costs the battery little. Its clock is the page's (`performance.now()`, in seconds), so a
  * screen can start an act at the moment it happens. With reduced motion on, nothing moves.
  */
-export function SceneCanvas({ scene, sheets, label, load = loadPicture, overlay }: Props) {
+export function SceneCanvas({
+  scene,
+  sheets,
+  label,
+  load = loadPicture,
+  overlay,
+  fit = 'width',
+}: Props) {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const size = stageSize(scene);
   const density = Math.max(1, Math.round(window.devicePixelRatio));
-  const scale = useDeviceScale(box, size.width, density);
+  const scale = useDeviceScale(box, size, density, fit);
   const pictures = usePictures(sheets, load);
   const still = useReducedMotionConfig() === true;
   /** One of the stage's pixels on the page. */
@@ -140,7 +165,7 @@ export function SceneCanvas({ scene, sheets, label, load = loadPicture, overlay 
   }, [canvas, scene, pictures, scale, still]);
 
   return (
-    <div ref={setBox} className="scene">
+    <div ref={setBox} className="scene" data-fit={fit}>
       <div
         className="scene-frame"
         style={

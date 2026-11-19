@@ -3,8 +3,8 @@ import flame from '../../../assets/ninja-adventure/Items/Weapons/Sword/Sprite.pn
 import iron from '../../../assets/ninja-adventure/Items/Weapons/Sword2/Sprite.png';
 import heart from '../../../assets/ninja-adventure/Ui/Receptacle/Heart.png';
 import heartIcon from '../../../assets/ninja-adventure/Ui/Receptacle/IconHeart.png';
-import lifeLeft from '../../../assets/ninja-adventure/Ui/Receptacle/LifeBarMiniProgress.png';
-import lifeBar from '../../../assets/ninja-adventure/Ui/Receptacle/LifeBarMiniUnder.png';
+import slimeFace from '../../../assets/ninja-adventure/Actor/Monster/Slime/Faceset.png';
+import woodFrame from '../../../assets/ninja-adventure/Ui/Theme/Wip/ThemeWood2/nine_path_panel.png';
 import type { Sword } from './swords';
 
 /** The game's interface art from the Ninja Adventure pack, drawn pixelated. */
@@ -16,8 +16,14 @@ export const swordPictures: Readonly<Record<Sword, string>> = {
   flamme: flame,
 };
 
-/** A heart in five frames, empty to full; a small heart; a monster's small life bar. */
-export const hud = { heart, heartIcon, lifeBar, lifeLeft } as const;
+/** A heart in five frames, empty to full, and a small heart. */
+export const hud = { heart, heartIcon } as const;
 
-/** The small life bar's size in the stage's pixels. */
-export const lifeBarSize = { width: 18, height: 4 } as const;
+/** The monsters' portraits, shown at the top of a fight. */
+export const faces = { slime: slimeFace } as const;
+
+/**
+ * The frame of a fight's top bar, in the look of where the fight is: wood in the forest. A
+ * 16-pixel square of the pack's, cut into nine for a border image, its edge 5 pixels wide.
+ */
+export const topFrames = { forest: woodFrame } as const;

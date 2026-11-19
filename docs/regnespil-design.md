@@ -212,10 +212,14 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 
 - **Decided (owner).** The scene fills the full width and more of the height; the hearts, the
   monster's life and whose turn it is are part of the scene, not lines of text around it.
-- **Decided and built**, as in the mock-up the owner liked: the back button, the place's sign,
-  the speaker and the hearts lie in the scene; the active hero has a name plate with the
-  player's picture; the monster's life is the pack's small life bar under it; the battle panel
-  below in the pack's style with the "Angreb" tab, the stakes as pictures, and chunky buttons.
+- **Decided and built**, as in the mock-up the owner liked, then changed on the owner's word:
+  a top bar outside the scene, framed in the biome's look (wood in the forest), with the way
+  back, the speaker, and what the heroes fight: its portrait and a big life bar in pieces that
+  shake and break off at each stroke. No place's name: a child does not care what an area is
+  called in a fight. The hearts and the active hero's name plate lie in the scene; the battle
+  panel below, the answers low for the thumbs. On a low phone the scene gets smaller.
+- **Idea (owner).** On the road between fights, the top bar can show how far the heroes have
+  come and how much is left of the stretch, for the satisfaction of progress.
 - **Decided (owner).** The party: each player chooses a hero among figures the story will not
   use; the heroes stand together; the team shares its hearts.
 - **Idea (owner).** A livelier fight: a "−1" over the monster, a slight shake when a hero is hit,

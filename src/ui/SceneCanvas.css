@@ -5,6 +5,11 @@
   width: 100%;
 }
 
+.scene[data-fit='box'] {
+  align-items: center;
+  height: 100%;
+}
+
 /* The canvas and what lies over it, placed in the stage's pixels (`--px`). */
 .scene-frame {
   position: relative;

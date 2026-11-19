@@ -98,6 +98,16 @@ describe('SceneCanvas', () => {
     vi.unstubAllGlobals();
   });
 
+  it('fits inside a low box both ways when asked', () => {
+    drawWith(null);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(40);
+    render(<SceneCanvas scene={scene} sheets={sheets} label="En skov" load={loadAll} fit="box" />);
+    const canvas = screen.getByRole('img', { name: 'En skov' });
+    // 100 wide would give 3, but only 40 high: 40 / 16 gives 2.
+    expect(canvas).toHaveAttribute('width', String(32 * 2));
+  });
+
   it('draws again only when the picture changes, as the figure breathes', async () => {
     const context = fakeContext();
     drawWith(context);

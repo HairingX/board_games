@@ -302,10 +302,16 @@
   color-scheme: dark;
 }
 
+/*
+ * The stage takes what height the top bar and the panel leave: as tall as its width allows on a
+ * tall phone, smaller on a low one, so the answers never fall below the screen.
+ */
 .rs-stage {
+  flex: 0 1 auto;
   width: 100%;
   max-width: var(--content-width);
-  margin: 0 auto;
+  min-height: 0;
+  margin: var(--space-1) auto 0;
 }
 
 .rs-stage .scene canvas {
@@ -318,34 +324,9 @@
   inset: 0;
 }
 
-.rs-hud-top {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  left: var(--space-2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.rs-hud .game-header-button {
-  font-size: 1.6rem;
-  color: var(--pixel-text);
-  background: var(--pixel-plate);
-  border: 0;
-}
-
-.rs-place {
-  margin: 0;
-  padding: var(--space-1) var(--space-3);
-  font-weight: 700;
-  background: var(--pixel-plate);
-  border-radius: var(--radius-sm);
-}
-
 .rs-hearts {
   position: absolute;
-  top: calc(var(--touch) + var(--space-3));
+  top: var(--space-2);
   left: var(--space-2);
   display: flex;
   gap: 2px;
@@ -354,32 +335,21 @@
   border-radius: var(--radius-sm);
 }
 
+/* The hearts grow and shrink with the stage, as the pack's 16-pixel art, a little smaller. */
 .rs-hearts .fight-heart {
-  width: 28px;
-  height: 28px;
-  background-size: 140px 28px;
+  --heart: calc(var(--px) * 11);
+
+  width: var(--heart);
+  height: var(--heart);
+  background-size: calc(var(--heart) * 5) var(--heart);
 }
 
 .rs-hearts .fight-heart[data-fill='1'] {
-  background-position: -56px 0;
+  background-position: calc(var(--heart) * -2) 0;
 }
 
 .rs-hearts .fight-heart[data-fill='2'] {
-  background-position: -112px 0;
-}
-
-/* The monster's small life bar over its head, in the stage's pixels. */
-.rs-life {
-  position: absolute;
-  background-size: 100% 100%;
-  image-rendering: pixelated;
-}
-
-.rs-life > span {
-  display: block;
-  height: 100%;
-  background-size: calc(var(--px) * 18) 100%;
-  image-rendering: pixelated;
+  background-position: calc(var(--heart) * -4) 0;
 }
 
 /* Whose turn it is: a plate with the player's picture over their hero's head. */
@@ -398,10 +368,105 @@
   transform: translate(-50%, -100%);
 }
 
+/*
+ * The top bar, outside the scene, in the look of where the fight is (a frame of the pack's):
+ * the way back, what the heroes fight, with its portrait and its life in pieces that break off
+ * as it is struck, and the sound.
+ */
+.rs-topbar {
+  display: grid;
+  grid-template-columns: var(--touch) 1fr var(--touch);
+  gap: var(--space-3);
+  align-items: center;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-1);
+  border: 15px solid transparent;
+  border-image-slice: 5 fill;
+  border-image-width: 15px;
+  border-image-repeat: stretch;
+  image-rendering: pixelated;
+}
+
+.rs-topbar .game-header-button {
+  font-size: 1.6rem;
+  color: var(--pixel-text);
+  background: var(--pixel-plate);
+  border: 0;
+}
+
+.rs-foe {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.rs-foe-face {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  border: 2px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+}
+
+.rs-foe-life {
+  display: flex;
+  flex: 1;
+  gap: 3px;
+  height: 22px;
+  padding: 3px;
+  background: var(--pixel-ink);
+  border-radius: var(--radius-sm);
+}
+
+.rs-foe-piece {
+  flex: 1;
+  background: var(--pixel-life);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 25%),
+    inset 0 3px 0 rgb(255 255 255 / 30%);
+  transition: opacity var(--duration-press) ease;
+}
+
+.rs-foe-piece[data-left='false'] {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* A stroke shakes the bar, as if the blow went through it. */
+.rs-foe-life[data-hit='true'] {
+  animation: rs-struck var(--duration-struck) ease-out;
+}
+
+@keyframes rs-struck {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-5px) rotate(-1deg);
+  }
+
+  45% {
+    transform: translateX(4px) rotate(1deg);
+  }
+
+  70% {
+    transform: translateX(-2px);
+  }
+}
+
 /* The battle panel: what the player does now, what is at stake, the sum and its answers. */
 .rs-panel {
   position: relative;
-  flex: 1;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
   width: 100%;
   max-width: var(--content-width);
   margin: var(--space-6) auto 0;
@@ -471,7 +536,11 @@
   image-rendering: pixelated;
 }
 
+/* The sum in the middle of the room there is, the answers low, where the thumbs are. */
 .rs-panel .task {
+  flex: 1;
+  grid-template-rows: 1fr auto auto;
+  align-items: center;
   margin-top: var(--space-4);
 }
 
