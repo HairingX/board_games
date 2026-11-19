@@ -27,8 +27,8 @@ export const clearingSheets = {
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart';
 
 /** Where the hero and the slime stand, facing each other, in the forest's clearing. */
-export const heroAt = { x: 48, y: 52 };
-export const slimeAt = { x: 96, y: 52 };
+export const heroAt = { x: 44, y: 76 };
+export const slimeAt = { x: 100, y: 76 };
 
 /** A sword's sweep over the slime, and the puff it vanishes in; frames side by side. */
 export const sweep = (at: number): Effect => ({

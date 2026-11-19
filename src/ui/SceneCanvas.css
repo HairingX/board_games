@@ -1,12 +1,20 @@
-/* The stage, as wide as it may be; the canvas inside is a whole number of times its pixels. */
+/* The stage, as wide as it may be; each of its pixels is a whole number of the phone's own. */
 .scene {
   display: grid;
   justify-items: center;
   width: 100%;
 }
 
-.scene canvas {
+/* The canvas and what lies over it, placed in the stage's pixels (`--px`). */
+.scene-frame {
+  position: relative;
   max-width: 100%;
+}
+
+.scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-sm);
   image-rendering: pixelated;
   box-shadow: var(--shadow-card);

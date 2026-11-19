@@ -154,8 +154,9 @@ game builds on them, and everything must stay smooth on a phone.
   heart (nothing with the wooden sword); an answer far off lets the monster bump the hero for
   a heart (half with the wooden sword), so guessing never pays. The slime takes 2, 3 or 4
   strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
-  tries again. The players take turns (`src/lib/turns.ts`, `src/ui/TurnBanner.tsx`: "Nu er
-  det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
+  tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as a name
+  plate with the player's picture over the hero, said in full to screen readers ("Nu er det
+  Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
   has its music (the pack's "17 - Fight"); the slime speaks in its own light voice before it
   bumps the hero; victory is a fanfare, a puff of smoke, coins and the hero cheering with a
   heart over his head, and then happy music. A fight is not yet saved while it is on.
@@ -179,7 +180,15 @@ game builds on them, and everything must stay smooth on a phone.
 - The story is not decided: `docs/regnespil-story.md` is a researched proposal (building on
   H.C. Andersen's _Fyrtøjet_, public domain) for the owner to decide on. Only public-domain
   tales may give plot, names or characters; modern franchises only lessons in how to tell.
-- The stage is the forest clearing (`forest.ts`, `clearing.ts`).
+- The stage is the forest clearing (`forest.ts`, `clearing.ts`), ten tiles by nine.
+- The fight looks like a game, as the owner chose from a mock-up (`Fight.tsx`): always dark,
+  in the pack's colours (the `--pixel-*` tokens), the stage across the whole width, with the
+  back button, the place's sign, the speaker and the hearts lying in the scene, the monster's
+  small life bar under it and the name plate over the active hero; below it the battle panel
+  to the bottom of the screen, with a tab saying what the player does ("Angreb", with their own
+  weapon), the stakes as pictures (✓ the weapon hitting the monster, ✗ the hearts it costs),
+  the sum, and the answers as the pack's chunky buttons. "Forsvar", when a monster announces
+  an attack, comes next (`docs/regnespil-design.md`).
 
 ## Languages
 
@@ -324,8 +333,10 @@ game builds on them, and everything must stay smooth on a phone.
   a tileset, things such as trees standing on it, and figures from the pack's sprite sheets
   (four columns: down, up, left, right). `drawScene` works out what to draw at a moment, the
   ground first and then what stands, from the back to the front by where each stands.
-- `src/ui/SceneCanvas.tsx` draws it on a canvas, enlarged by the largest whole number that
-  fits the width, at the phone's own pixel density, so every pixel is sharp; it draws again
+- `src/ui/SceneCanvas.tsx` draws it on a canvas, each of the stage's pixels the largest whole
+  number of the phone's own pixels that fits the width, so it fills the width closely and every
+  pixel is sharp; what lies over the scene (`overlay`) is placed in the stage's pixels with
+  `--px`; it draws again
   only when the picture changes, to spare the battery, and stands still with reduced motion.
 - The pack has no standing animation, so a standing figure breathes by rising one pixel for
   part of each breath (`breath` in `src/ui/motion.ts`). A slime bounces through its sheet's
@@ -419,6 +430,8 @@ gradients, glow or glass.
 - Every screen of a game shows the game's icon in its header, and the players' pictures small
   and overlapping beside it (`src/ui/GameFrame.tsx`, given by the app around the game), so it
   is always clear which game is open and whose it is, even when the phone is picked up later.
+  The adventure's own screens, such as the fight, are the exception: they are drawn as a game,
+  with the players shown in the scene.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
 
 ## Conventions

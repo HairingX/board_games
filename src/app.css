@@ -102,6 +102,22 @@
 
   --content-width: 600px;
 
+  /*
+   * The adventure's own look, in pixel art: the same in both themes, as a game's screen is,
+   * the way printed cards stay paper. Its colours are the Ninja Adventure pack's.
+   */
+  --pixel-backdrop: #16121a;
+  --pixel-ink: #131b1b;
+  --pixel-panel: #34312c;
+  --pixel-plate: rgb(22 18 26 / 72%);
+  --pixel-text: #f4efe6;
+  --pixel-attack: #ef6b33;
+  --pixel-attack-light: #ffa54f;
+  --pixel-attack-dark: #9c4a2e;
+  --pixel-good: #8fdc8f;
+  --pixel-close: #f2c94c;
+  --pixel-bad: #f29a80;
+
   font-family: var(--font-body);
   font-optical-sizing: auto;
   line-height: 1.45;

@@ -1,13 +1,8 @@
-import wood from '../../../assets/ninja-adventure/Items/Weapons/Club/Sprite.png';
-import flame from '../../../assets/ninja-adventure/Items/Weapons/Sword/Sprite.png';
-import iron from '../../../assets/ninja-adventure/Items/Weapons/Sword2/Sprite.png';
 import { useMessages } from '../../i18n/I18n';
+import { swordPictures } from './art';
 import { swordRules, swords, type Sword } from './swords';
 import { text } from './text';
 import './regnespil.css';
-
-/** Each sword's picture from the pack: a wooden club, an iron sword, and a red flame sword. */
-const pictures: Readonly<Record<Sword, string>> = { træ: wood, jern: iron, flamme: flame };
 
 /** How hard a player's fights are, chosen as one of three swords with one to three stars. */
 export function SwordPicker({
@@ -33,7 +28,7 @@ export function SwordPicker({
             onChange(option);
           }}
         >
-          <img src={pictures[option]} alt="" className="sword-picture" />
+          <img src={swordPictures[option]} alt="" className="sword-picture" />
           <span className="sword-stars" aria-hidden="true">
             {'★'.repeat(swordRules[option].stars)}
           </span>

@@ -69,12 +69,33 @@ describe('SceneCanvas', () => {
     render(<SceneCanvas scene={scene} sheets={sheets} label="En skov" load={loadAll} />);
     const canvas = screen.getByRole('img', { name: 'En skov' });
     expect(canvas).toHaveAttribute('width', String(32 * 3));
-    expect(canvas).toHaveStyle({ width: `${String(32 * 3)}px` });
+    expect(canvas.parentElement).toHaveStyle({ width: `${String(32 * 3)}px` });
     await waitFor(() => {
       expect(context.drawImage.mock.calls.length).toBeGreaterThanOrEqual(3);
     });
     expect(context.setTransform).toHaveBeenCalledWith(3, 0, 0, 3, 0, 0);
     expect(context.imageSmoothingEnabled).toBe(false);
+  });
+
+  it('counts the scale in the phone’s own pixels, and lays the overlay in the stage’s', () => {
+    drawWith(null);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(100);
+    vi.stubGlobal('devicePixelRatio', 3);
+    render(
+      <SceneCanvas
+        scene={scene}
+        sheets={sheets}
+        label="En skov"
+        load={loadAll}
+        overlay={<span>Hjerter</span>}
+      />,
+    );
+    const canvas = screen.getByRole('img', { name: 'En skov' });
+    // 100 page pixels are 300 of the phone's; 300 / 32 gives 9 for each of the stage's pixels.
+    expect(canvas).toHaveAttribute('width', String(32 * 9));
+    expect(canvas.parentElement).toHaveStyle({ width: '96px', '--px': '3px' });
+    expect(screen.getByText('Hjerter').parentElement).toBe(canvas.parentElement);
+    vi.unstubAllGlobals();
   });
 
   it('draws again only when the picture changes, as the figure breathes', async () => {

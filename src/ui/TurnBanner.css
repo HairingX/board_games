@@ -1,9 +1,0 @@
-/* Whose turn it is: a light line with the player's picture, never a cover. */
-.turn-banner {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
-  justify-content: center;
-  margin: var(--space-3) 0 0;
-  font-weight: 600;
-}

@@ -1,20 +1,30 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import heart from '../../../assets/ninja-adventure/Ui/Receptacle/Heart.png';
 import type { Profile } from '../../family/family';
-import { useMessages } from '../../i18n/I18n';
+import { Avatar } from '../../family/Avatar';
+import { formatNumber } from '../../i18n/format';
+import { useLocale, useMessages } from '../../i18n/I18n';
+import { common } from '../../ui/text';
 import type { Random } from '../../lib/random';
 import { chimes } from '../../lib/sound/chimes';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
 import { nextTurn } from '../../lib/turns';
-import { GameHeader } from '../../ui/GameHeader';
 import { motionTokens } from '../../ui/motion';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
-import { TurnBanner } from '../../ui/TurnBanner';
 import { answerFight, fullHealth, startFight, type Fight as FightState } from './battle';
-import { clearing, clearingSheets, coinDrop, puff, sweep, type Staging } from './clearing';
+import { hud, lifeBarSize, swordPictures } from './art';
+import {
+  clearing,
+  clearingSheets,
+  coinDrop,
+  heroAt,
+  puff,
+  slimeAt,
+  sweep,
+  type Staging,
+} from './clearing';
 import type { PlayerSettings } from './players';
-import { monsterLives } from './swords';
+import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
 import { pick } from './sums';
 import { TaskAnswers } from './TaskAnswers';
@@ -126,6 +136,8 @@ export function Fight({
   load,
 }: Props) {
   const t = useMessages(text);
+  const c = useMessages(common);
+  const locale = useLocale();
   const lives = monsterLives(settings.map((own) => own.sword));
   const [active, setActive] = useState(0);
   const own = (index: number) => settings[index] as PlayerSettings;
@@ -235,50 +247,116 @@ export function Fight({
   }
 
   const player = players[active] as Profile;
+  const sword = own(active).sword;
+  /** What a wrong answer costs the active player, in half hearts, at its worst. */
+  const cost = swordRules[sword].far;
+  const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
+
+  const overlay = (
+    <div className="rs-hud">
+      <div className="rs-hud-top">
+        <button type="button" className="game-header-button" aria-label={c.back} onClick={onBack}>
+          <span aria-hidden="true">‹</span>
+        </button>
+        <p className="rs-place">{t.clearing}</p>
+        {aside}
+      </div>
+      <span
+        className="rs-hearts"
+        role="img"
+        aria-label={t.hearts(fight.health / 2, fullHealth / 2)}
+      >
+        {Array.from({ length: fullHealth / 2 }, (_, index) => (
+          <span
+            key={index}
+            className="fight-heart"
+            data-fill={Math.min(2, Math.max(0, fight.health - index * 2))}
+            style={{ backgroundImage: `url("${hud.heart}")` }}
+          />
+        ))}
+      </span>
+      {fight.lives > 0 && (
+        <span
+          className="rs-life"
+          role="img"
+          aria-label={t.lives(fight.lives)}
+          style={{
+            left: px(slimeAt.x - 1),
+            top: px(slimeAt.y + 17),
+            width: px(lifeBarSize.width),
+            height: px(lifeBarSize.height),
+            backgroundImage: `url("${hud.lifeBar}")`,
+          }}
+        >
+          <span
+            style={{
+              width: `${String((fight.lives / lives) * 100)}%`,
+              backgroundImage: `url("${hud.lifeLeft}")`,
+            }}
+          />
+        </span>
+      )}
+      {players.length > 1 && fight.outcome === 'fighting' && (
+        <p
+          className="rs-nameplate"
+          role="status"
+          style={{ left: px(heroAt.x + 8), top: px(heroAt.y - 1) }}
+        >
+          <Avatar profile={player} size="tiny" />
+          <span aria-hidden="true">{player.name}</span>
+          <span className="visually-hidden">{c.turn(player.name)}</span>
+        </p>
+      )}
+    </div>
+  );
 
   return (
     <section className="rs-fight">
-      <GameHeader title={t.clearing} onBack={onBack} aside={aside} />
-      <div className="fight-bars">
-        <span
-          className="fight-hearts"
-          role="img"
-          aria-label={t.hearts(fight.health / 2, fullHealth / 2)}
-        >
-          {Array.from({ length: fullHealth / 2 }, (_, index) => (
-            <span
-              key={index}
-              className="fight-heart"
-              data-fill={Math.min(2, Math.max(0, fight.health - index * 2))}
-              style={{ backgroundImage: `url("${heart}")` }}
-            />
-          ))}
-        </span>
-        <span className="fight-lives" role="img" aria-label={t.lives(fight.lives)}>
-          {Array.from({ length: lives }, (_, index) => (
-            <span key={index} className="fight-life" data-left={index < fight.lives} />
-          ))}
-        </span>
+      <div className="rs-stage">
+        <SceneCanvas
+          scene={clearing(staging)}
+          sheets={clearingSheets}
+          label={t.fightLabel}
+          overlay={overlay}
+          {...(load ? { load } : {})}
+        />
       </div>
-      <SceneCanvas
-        scene={clearing(staging)}
-        sheets={clearingSheets}
-        label={t.fightLabel}
-        {...(load ? { load } : {})}
-      />
-      {fight.outcome === 'fighting' ? (
-        <>
-          {players.length > 1 && <TurnBanner player={player} />}
-          <TaskAnswers task={task} chosen={chosen} onChoose={answer} />
-        </>
-      ) : (
-        <div className="fight-over">
-          <p role="status">{fight.outcome === 'won' ? t.won : t.lost}</p>
-          <button type="button" className="btn btn-primary btn-block" onClick={restart}>
-            {fight.outcome === 'won' ? t.again : t.tryAgain}
-          </button>
-        </div>
-      )}
+      <div className="rs-panel">
+        {fight.outcome === 'fighting' ? (
+          <>
+            <p className="rs-tab">
+              <img src={swordPictures[sword]} alt="" className="rs-tab-weapon" />
+              {t.attack}
+            </p>
+            <p className="rs-stakes">
+              <span className="rs-stake" data-good="true" aria-label={t.stakeRight}>
+                <span aria-hidden="true">✓</span>
+                <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
+                <span aria-hidden="true">→</span>
+                <span
+                  className="rs-stake-slime"
+                  style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
+                />
+              </span>
+              <span className="rs-stake" data-good="false" aria-label={t.stakeWrong(cost / 2)}>
+                <span aria-hidden="true">✗</span>
+                <img src={hud.heartIcon} alt="" className="rs-stake-heart" />
+                <span aria-hidden="true">
+                  {cost === 1 ? '−½' : `−${formatNumber(locale, cost / 2)}`}
+                </span>
+              </span>
+            </p>
+            <TaskAnswers task={task} chosen={chosen} onChoose={answer} />
+          </>
+        ) : (
+          <div className="fight-over">
+            <p role="status">{fight.outcome === 'won' ? t.won : t.lost}</p>
+            <button type="button" className="rs-button" onClick={restart}>
+              {fight.outcome === 'won' ? t.again : t.tryAgain}
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

@@ -101,7 +101,7 @@ describe('Regnespil', () => {
 
   it('fights in the clearing, and goes back to the setup', async () => {
     const { go } = open([fightPlace]);
-    expect(await screen.findByRole('heading', { name: /Lysningen/ })).toBeInTheDocument();
+    expect(await screen.findByText('Lysningen')).toBeInTheDocument();
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
     expect(go).toHaveBeenCalledWith([]);

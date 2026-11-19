@@ -1,5 +1,5 @@
 import { useReducedMotionConfig } from 'motion/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { drawScene, stageSize, type Draw, type Scene } from '../lib/scene/scene';
 import './SceneCanvas.css';
 
@@ -42,19 +42,23 @@ export function paint(
   }
 }
 
-/** The largest whole number the stage can be enlarged by to fit the box's width, at least 1. */
-function useWholeScale(box: HTMLElement | null, width: number): number {
-  const [scale, setScale] = useState(1);
+/**
+ * How many of the phone's own pixels each pixel of the stage is drawn as: the largest whole
+ * number that fits the box's width, at least 1. Counted in the phone's pixels, not the page's,
+ * so the stage fills the width closely and every pixel stays sharp.
+ */
+function useDeviceScale(box: HTMLElement | null, width: number, density: number): number {
+  const [scale, setScale] = useState(density);
   useEffect(() => {
     if (!box) return;
     const observer = new ResizeObserver(() => {
-      setScale(Math.max(1, Math.floor(box.clientWidth / width)));
+      setScale(Math.max(1, Math.floor((box.clientWidth * density) / width)));
     });
     observer.observe(box);
     return () => {
       observer.disconnect();
     };
-  }, [box, width]);
+  }, [box, width, density]);
   return scale;
 }
 
@@ -87,22 +91,29 @@ interface Props {
   /** What the scene shows, said to those who cannot see it. */
   label: string;
   load?: LoadPicture;
+  /**
+   * What lies over the scene, such as a game's hearts and name plates, placed in the stage's
+   * own pixels with the custom property `--px`, the size of one of them on the page.
+   */
+  overlay?: ReactNode;
 }
 
 /**
- * A scene of the puppet theatre, drawn on a canvas: enlarged by a whole number to fill the
- * width, at the phone's own pixel density, and drawn again only when the picture changes, so
- * it costs the battery little. Its clock is the page's (`performance.now()`, in seconds), so a
+ * A scene of the puppet theatre, drawn on a canvas: each of its pixels a whole number of the
+ * phone's own pixels, as many as fill the width, and drawn again only when the picture
+ * changes, so it costs the battery little. Its clock is the page's (`performance.now()`, in seconds), so a
  * screen can start an act at the moment it happens. With reduced motion on, nothing moves.
  */
-export function SceneCanvas({ scene, sheets, label, load = loadPicture }: Props) {
+export function SceneCanvas({ scene, sheets, label, load = loadPicture, overlay }: Props) {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
   const size = stageSize(scene);
-  const scale = useWholeScale(box, size.width);
+  const density = Math.max(1, Math.round(window.devicePixelRatio));
+  const scale = useDeviceScale(box, size.width, density);
   const pictures = usePictures(sheets, load);
   const still = useReducedMotionConfig() === true;
-  const density = Math.max(1, Math.round(window.devicePixelRatio));
+  /** One of the stage's pixels on the page. */
+  const pixel = scale / density;
 
   useEffect(() => {
     if (!canvas || !pictures) return;
@@ -118,7 +129,7 @@ export function SceneCanvas({ scene, sheets, label, load = loadPicture }: Props)
       const picture = JSON.stringify(draws);
       if (picture !== drawn) {
         drawn = picture;
-        paint(pen, draws, loaded, stage, scale * density);
+        paint(pen, draws, loaded, stage, scale);
       }
       frame = requestAnimationFrame(tick);
     }
@@ -126,18 +137,29 @@ export function SceneCanvas({ scene, sheets, label, load = loadPicture }: Props)
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [canvas, scene, pictures, scale, density, still]);
+  }, [canvas, scene, pictures, scale, still]);
 
   return (
     <div ref={setBox} className="scene">
-      <canvas
-        ref={setCanvas}
-        role="img"
-        aria-label={label}
-        width={size.width * scale * density}
-        height={size.height * scale * density}
-        style={{ width: size.width * scale, height: size.height * scale }}
-      />
+      <div
+        className="scene-frame"
+        style={
+          {
+            width: size.width * pixel,
+            height: size.height * pixel,
+            '--px': `${String(pixel)}px`,
+          } as CSSProperties
+        }
+      >
+        <canvas
+          ref={setCanvas}
+          role="img"
+          aria-label={label}
+          width={size.width * scale}
+          height={size.height * scale}
+        />
+        {overlay}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { formatNumber, genitive } from '../../i18n/format';
+import { formatNumber, genitive, plural } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
 import type { Sword } from './swords';
 import type { Operator } from './tasks';
@@ -53,6 +53,10 @@ const da = {
     'Hver spiller har sit eget niveau til regnestykkerne og sit eget sværd til kampen: jo sværere sværd, jo stærkere monstre.',
   toFight: 'Til kamp!',
   clearing: 'Lysningen',
+  attack: 'Angreb',
+  stakeRight: 'Rigtigt: dit slag rammer slimet',
+  stakeWrong: (hearts: number) =>
+    `Forkert: ${formatNumber('da', hearts)} ${plural('da', hearts, { one: 'hjerte', other: 'hjerter' })} mindre`,
   fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
   hearts: (left: number, of: number) =>
     `Heltens hjerter: ${formatNumber('da', left)} af ${formatNumber('da', of)}`,
@@ -112,6 +116,10 @@ export const text: Translations<typeof da> = {
       'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',
     toFight: 'To battle!',
     clearing: 'The clearing',
+    attack: 'Attack',
+    stakeRight: 'Right: your stroke hits the slime',
+    stakeWrong: (hearts) =>
+      `Wrong: ${formatNumber('en', hearts)} ${plural('en', hearts, { one: 'heart', other: 'hearts' })} less`,
     fightLabel: 'The hero faces a blue slime in the forest clearing.',
     hearts: (left, of) =>
       `The hero’s hearts: ${formatNumber('en', left)} of ${formatNumber('en', of)}`,

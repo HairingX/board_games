@@ -30,9 +30,10 @@ The owner's observation, and the rule that follows from it:
 - When a sum appears, their eyes go to the sum. Nothing there may pull at their attention
   (no animation, no moving numbers), but it must say **why** this sum matters right now: what
   happens if it is right, and what if it is wrong.
-- **Proposed.** The sum sits in a battle panel whose tab says what the player is doing:
-  "Angreb" (orange, a sword) when it is their turn to strike, "Forsvar" (blue, a shield) when
-  the monster has announced an attack. Under the tab, the stakes as pictures: ✓ the player's
+- **Decided and built** (the owner chose it from a mock-up). The sum sits in a battle panel
+  whose tab says what the player is doing: "Angreb" (orange, the player's own weapon) when it
+  is their turn to strike. **Proposed:** "Forsvar" (blue, a shield) when the monster has
+  announced an attack. Under the tab, the stakes as pictures: ✓ the player's
   own weapon hitting the monster, ✗ a heart with "−½" or "−1". A mock-up was shown to the owner;
   the music steps back while a sum waits (decided, built).
 
@@ -211,10 +212,10 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 
 - **Decided (owner).** The scene fills the full width and more of the height; the hearts, the
   monster's life and whose turn it is are part of the scene, not lines of text around it.
-- **Proposed.** As in the mock-up: only the back button and the speaker float over the scene; the
-  place's name is a small sign; the active hero has a name plate with the player's picture; the
-  monster's life is the pack's small life bar over its head; the battle panel below in the pack's
-  style with the "Angreb" or "Forsvar" tab, the stakes as pictures, and the pack's buttons.
+- **Decided and built**, as in the mock-up the owner liked: the back button, the place's sign,
+  the speaker and the hearts lie in the scene; the active hero has a name plate with the
+  player's picture; the monster's life is the pack's small life bar under it; the battle panel
+  below in the pack's style with the "Angreb" tab, the stakes as pictures, and chunky buttons.
 - **Decided (owner).** The party: each player chooses a hero among figures the story will not
   use; the heroes stand together; the team shares its hearts.
 - **Idea (owner).** A livelier fight: a "−1" over the monster, a slight shake when a hero is hit,
@@ -246,7 +247,7 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 
 ## 10. Open decisions
 
-1. The new fight screen and the rhythm of attack and defence (mock-up shown).
+1. The rhythm of attack and defence (the fight screen itself is decided and built).
 2. The order of work: overlays (sheets and dialogs), the design review, the party, the fight
    screen, the monster engine.
 3. A typeface for children's reading (section 9).

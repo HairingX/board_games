@@ -283,3 +283,249 @@
 .rs-listen {
   margin-top: var(--space-3);
 }
+
+/*
+ * The fight, as a game's screen: the stage across the whole width, with the hearts, the
+ * monster's life and whose turn it is lying in it, and the battle panel under it to the
+ * bottom. Always dark, as a game is, whatever the phone's theme.
+ */
+.rs-fight {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  color: var(--pixel-text);
+  background: var(--pixel-backdrop);
+  color-scheme: dark;
+}
+
+.rs-stage {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+.rs-stage .scene canvas {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.rs-hud {
+  position: absolute;
+  inset: 0;
+}
+
+.rs-hud-top {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  left: var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rs-hud .game-header-button {
+  font-size: 1.6rem;
+  color: var(--pixel-text);
+  background: var(--pixel-plate);
+  border: 0;
+}
+
+.rs-place {
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  font-weight: 700;
+  background: var(--pixel-plate);
+  border-radius: var(--radius-sm);
+}
+
+.rs-hearts {
+  position: absolute;
+  top: calc(var(--touch) + var(--space-3));
+  left: var(--space-2);
+  display: flex;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--pixel-plate);
+  border-radius: var(--radius-sm);
+}
+
+.rs-hearts .fight-heart {
+  width: 28px;
+  height: 28px;
+  background-size: 140px 28px;
+}
+
+.rs-hearts .fight-heart[data-fill='1'] {
+  background-position: -56px 0;
+}
+
+.rs-hearts .fight-heart[data-fill='2'] {
+  background-position: -112px 0;
+}
+
+/* The monster's small life bar over its head, in the stage's pixels. */
+.rs-life {
+  position: absolute;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+}
+
+.rs-life > span {
+  display: block;
+  height: 100%;
+  background-size: calc(var(--px) * 18) 100%;
+  image-rendering: pixelated;
+}
+
+/* Whose turn it is: a plate with the player's picture over their hero's head. */
+.rs-nameplate {
+  position: absolute;
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  margin: 0;
+  padding: 2px var(--space-3) 2px 2px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--pixel-ink);
+  border: 2px solid var(--game-accent);
+  border-radius: var(--radius-pill);
+  transform: translate(-50%, -100%);
+}
+
+/* The battle panel: what the player does now, what is at stake, the sum and its answers. */
+.rs-panel {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: var(--space-6) auto 0;
+  padding: var(--space-8) var(--space-4) var(--space-5);
+  background: var(--pixel-panel);
+  border: 3px solid var(--pixel-ink);
+  border-bottom: 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.rs-tab {
+  position: absolute;
+  top: -24px;
+  left: var(--space-4);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin: 0;
+  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-2);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--pixel-text);
+  text-shadow: 0 2px 0 var(--pixel-attack-dark);
+  background: var(--pixel-attack);
+  border: 3px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 -4px 0 var(--pixel-attack-dark),
+    inset 0 3px 0 var(--pixel-attack-light);
+}
+
+.rs-tab-weapon,
+.rs-stake-weapon,
+.rs-stake-heart {
+  zoom: 2;
+  image-rendering: pixelated;
+}
+
+.rs-stakes {
+  display: flex;
+  gap: var(--space-6);
+  justify-content: center;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.rs-stake {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.rs-stake[data-good='true'] {
+  color: var(--pixel-good);
+}
+
+.rs-stake[data-good='false'] {
+  color: var(--pixel-bad);
+}
+
+/* The slime's first frame, from its sheet of 16-pixel frames, twice its size. */
+.rs-stake-slime {
+  width: 32px;
+  height: 32px;
+  background-size: 128px 128px;
+  image-rendering: pixelated;
+}
+
+.rs-panel .task {
+  margin-top: var(--space-4);
+}
+
+.rs-panel .sum {
+  color: var(--pixel-text);
+}
+
+/* The answers, and the fight's buttons, as the pack's chunky buttons. */
+.rs-panel .task-choice,
+.rs-button {
+  min-height: 84px;
+  font-size: 2.2rem;
+  color: var(--pixel-text);
+  text-shadow: 0 2px 0 var(--pixel-attack-dark);
+  background: var(--pixel-attack);
+  border: 3px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+  box-shadow:
+    inset 0 -6px 0 var(--pixel-attack-dark),
+    inset 0 4px 0 var(--pixel-attack-light);
+}
+
+.rs-button {
+  width: 100%;
+  min-height: var(--touch-lg);
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.rs-panel .task-choice[data-state='right'],
+.rs-panel .task-choice[data-state='close'],
+.rs-panel .task-choice[data-state='far'] {
+  color: var(--pixel-ink);
+  text-shadow: none;
+  box-shadow:
+    inset 0 -6px 0 rgb(0 0 0 / 25%),
+    inset 0 4px 0 rgb(255 255 255 / 25%);
+}
+
+.rs-panel .task-choice[data-state='right'] {
+  background: var(--pixel-good);
+}
+
+.rs-panel .task-choice[data-state='close'] {
+  background: var(--pixel-close);
+}
+
+.rs-panel .task-choice[data-state='far'] {
+  background: var(--pixel-bad);
+}
+
+.rs-panel .task-verdict,
+.rs-panel .fight-over p {
+  color: var(--pixel-text);
+}

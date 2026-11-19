@@ -86,6 +86,10 @@ describe('the messages that are made from values', () => {
     expect(r.swordOf('Mille')).toBe('Mille’s sword');
     expect(r.hearts(4.5, 5)).toBe('The hero’s hearts: 4.5 of 5');
     expect(r.lives(1)).toBe('The slime’s lives: 1');
+    expect(r.stakeWrong(1)).toBe('Wrong: 1 heart less');
+    expect(regnespilText.da.stakeWrong(0.5)).toBe('Forkert: 0,5 hjerte mindre');
+    expect(common.en.turn('Jonas')).toBe('It’s Jonas’s turn');
+    expect(common.da.turn('Max')).toBe('Nu er det Max’ tur');
     expect(regnespilText.da.levelOf('Jonas')).toBe('Jonas’ niveau');
     expect(regnespilText.da.hearts(4.5, 5)).toBe('Heltens hjerter: 4,5 af 5');
     expect(regnespilText.da.grade(4, 4)).toBe('ca. 4. klasse');
