@@ -129,6 +129,14 @@ describe('SoundEngine', () => {
     expect(fetch).toHaveBeenCalledTimes(3);
   });
 
+  it('never fails to make sounds ready, even in a browser without sound', async () => {
+    const { sound, browser } = engine();
+    vi.mocked(browser.makeContext).mockImplementation(() => {
+      throw new ReferenceError('AudioContext is not defined');
+    });
+    await expect(sound.prepareEffects(['/hit.m4a'])).resolves.toBeUndefined();
+  });
+
   it('plays music read into memory beforehand, reading each piece once', async () => {
     const { sound, audios, fetch } = engine();
     const first = sound.prepareMusic(['/forest.m4a']);

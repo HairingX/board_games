@@ -1,15 +1,16 @@
-import { formatNumber } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
 import { SumView } from './SumView';
 import { judge, type Task } from './tasks';
 import { text } from './text';
+import { formatValue, ValueView } from './ValueView';
+import { same, valueKey, type Value } from './values';
 import './regnespil.css';
 
 interface Props {
   task: Task;
   /** The answer chosen, once one is; then the answers show how it went. */
-  chosen: number | undefined;
-  onChoose: (choice: number) => void;
+  chosen: Value | undefined;
+  onChoose: (choice: Value) => void;
 }
 
 /**
@@ -19,8 +20,8 @@ interface Props {
 export function TaskAnswers({ task, chosen, onChoose }: Props) {
   const t = useMessages(text);
   const locale = useLocale();
-  const verdict = chosen === undefined ? undefined : judge(chosen, task.answer);
-  const answer = formatNumber(locale, task.answer);
+  const verdict = chosen === undefined ? undefined : judge(chosen, task.answer, task.near);
+  const answer = formatValue(locale, task.answer);
 
   return (
     <div className="task">
@@ -28,15 +29,15 @@ export function TaskAnswers({ task, chosen, onChoose }: Props) {
       <div className="task-choices">
         {task.choices.map((choice) => (
           <button
-            key={choice}
+            key={valueKey(choice)}
             type="button"
             className="task-choice"
             data-state={
               chosen === undefined
                 ? undefined
-                : choice === task.answer
+                : same(choice, task.answer)
                   ? 'right'
-                  : choice === chosen
+                  : same(choice, chosen)
                     ? verdict
                     : 'other'
             }
@@ -45,7 +46,7 @@ export function TaskAnswers({ task, chosen, onChoose }: Props) {
               onChoose(choice);
             }}
           >
-            {formatNumber(locale, choice)}
+            <ValueView value={choice} />
           </button>
         ))}
       </div>

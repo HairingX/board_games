@@ -115,15 +115,23 @@ game builds on them, and everything must stay smooth on a phone.
 - Time is optional and off by default. Answers show at once as right (green), close (yellow)
   or far off (red), always with the right answer. Siblings play together, not against each
   other.
-- Levels 1–8 are built (`src/games/regnespil/levels.ts`, from the table in
-  `docs/regnespil-research.md`); 9–12, with fractions, decimals, negatives and powers, come
-  later. `tasks.ts` makes each task from its level's kinds of sums, mixed, with two wrong
-  answers from typical mistakes (off by one or ten, the smaller digit taken from the larger,
-  a neighbour in the table, the wrong operation, left to right instead of the order of
-  operations, brackets forgotten). `judge` calls a wrong answer close within 2 or a tenth.
-- Sums are written as each language does (`text.ts`: `·` and `:` in Danish, `×` and `÷` in
-  English), with lining figures, which children read more easily than the serif's old-style
-  ones, and read in words to screen readers (`SumView.tsx`).
+- Fifteen levels (`src/games/regnespil/levels.ts`), as the owner asked the game to grow hard
+  even for grown-ups: 1–8 from the table in `docs/regnespil-research.md` (`basic.ts`); 9–12
+  through the school years with decimals, fractions, negative numbers, percent, powers and
+  roots; 13 at upper-secondary level, 14 for grown-ups and 15 for masters (`harder.ts`).
+  1–12 say roughly which grade, 13–15 whom they suit. Each task is made from its level's kinds
+  of sums, mixed, with two wrong answers from typical mistakes (off by one or ten, the smaller
+  digit taken from the larger, a neighbour in the table, the wrong operation, left to right
+  instead of the order of operations, brackets forgotten, digits lined up wrong, tops and
+  bottoms added alike, the sign, a power taken as times, a root as half). Answers below zero
+  are offered only where negative numbers are taught. Fractions are exact (`values.ts`), so
+  2/4 and 1/2 are one answer. `judge` calls a wrong answer close within a level's nearness:
+  2 or a tenth of the answer, and for decimals and fractions 0.1 or a tenth.
+- Sums are written as each language does (`text.ts`: `·`, `:` and "af" in Danish, `×`, `÷`
+  and "of" in English, percent by Intl), with fractions stacked, powers raised, a negative
+  number after an operator in brackets, a true minus sign, and lining figures, which children
+  read more easily than the serif's old-style ones; and read in words to screen readers
+  (`SumView.tsx`, `ValueView.tsx`).
 - A fight (`battle.ts`): a right answer is a stroke that takes one of the monster's lives; a
   close answer is parried, nothing lost either way, as yellow means "nearly"; an answer far
   off lets the monster bump the hero, who loses a heart. No death: out of hearts, the hero

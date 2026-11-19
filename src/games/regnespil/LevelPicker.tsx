@@ -1,10 +1,10 @@
 import { formatNumber } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
-import { grades, levels, type Level } from './levels';
+import { guides, levels, type Level } from './levels';
 import { text } from './text';
 import './regnespil.css';
 
-/** The levels side by side, the one chosen marked, and which grade it roughly suits. */
+/** The levels side by side, the one chosen marked, and whom it roughly suits. */
 export function LevelPicker({
   level,
   onChange,
@@ -14,7 +14,7 @@ export function LevelPicker({
 }) {
   const t = useMessages(text);
   const locale = useLocale();
-  const [from, to] = grades[level];
+  const guide = guides[level];
   return (
     <div className="level-picker">
       <div className="level-options" role="radiogroup" aria-label={t.level}>
@@ -33,7 +33,8 @@ export function LevelPicker({
         ))}
       </div>
       <p className="level-grade">
-        {t.level} {formatNumber(locale, level)} · {t.grade(from, to)}
+        {t.level} {formatNumber(locale, level)} ·{' '}
+        {typeof guide === 'string' ? t.beyond[guide] : t.grade(...guide)}
       </p>
     </div>
   );

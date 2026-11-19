@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeSoundBrowser, FakeOscillator } from '../../../tests/audio';
-import { SoundEngine } from '../../lib/sound/engine';
+import { sound, SoundEngine } from '../../lib/sound/engine';
 import { motionTokens } from '../../ui/motion';
 import { BattleLab } from './BattleLab';
 
@@ -95,7 +95,7 @@ describe('BattleLab', () => {
   it('loses a heart on an answer far off, and rests once none are left', async () => {
     const { played } = open();
     fireEvent.click(screen.getByRole('radio', { name: '7' }));
-    expect(screen.getByText('12 · 2 = ?')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '12 gange 2' })).toHaveTextContent('12 · 2 = ?');
     for (let bump = 0; bump < 3; bump++) {
       click('12');
       await pause(wrong);
@@ -108,10 +108,16 @@ describe('BattleLab', () => {
   });
 
   it('uses the page’s clock and the app’s sound when none are given', () => {
+    // The app's own sound needs the browser's Web Audio, which the tests have not.
+    const prepare = vi.spyOn(sound, 'prepareEffects').mockResolvedValue(undefined);
+    const effect = vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
+    vi.spyOn(sound, 'babble').mockReturnValue(undefined);
     const { container } = render(<BattleLab onBack={() => undefined} />);
     expect(screen.getByRole('img', { name: /lysning/ })).toBeInTheDocument();
     const choice = container.querySelector('.task-choice');
     if (choice) fireEvent.click(choice);
     expect(screen.getByRole('status')).not.toBeEmptyDOMElement();
+    expect(prepare).toHaveBeenCalledOnce();
+    expect(effect).toHaveBeenCalled();
   });
 });

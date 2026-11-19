@@ -96,10 +96,19 @@ export class SoundEngine {
   /**
    * Fetches and decodes sounds before they are needed, so the first time one plays it does so
    * at once, not after the moment it takes to fetch and decode it. Call it when a screen with
-   * sounds opens; a sound that fails is tried again when it plays.
+   * sounds opens; it never fails: a sound that fails, or a browser without sound, is tried again
+   * when it plays.
    */
   async prepareEffects(urls: readonly string[]): Promise<void> {
-    await Promise.all(urls.map((url) => this.load(url).catch(() => undefined)));
+    await Promise.all(
+      urls.map(async (url) => {
+        try {
+          await this.load(url);
+        } catch {
+          // Tried again when the sound plays.
+        }
+      }),
+    );
   }
 
   /** Turns music and effects on or off, gently, and remembers it for what plays next. */

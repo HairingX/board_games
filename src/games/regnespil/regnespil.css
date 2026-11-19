@@ -6,7 +6,7 @@
 
 .level-options {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-1);
   padding: var(--space-1);
   background: var(--surface);
@@ -34,6 +34,27 @@
   font-size: 0.9rem;
   color: var(--text-muted);
   text-align: center;
+}
+
+/* A fraction stacked, its top over its bottom on a fine line; a power small and high. */
+.fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0 0.08em;
+  font-size: 0.6em;
+  line-height: 1.15;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.fraction > span + span {
+  border-top: 0.08em solid currentcolor;
+}
+
+.power {
+  font-size: 0.55em;
+  line-height: 0;
 }
 
 /* A task: the sum large, three answers to tap, and how it went. */

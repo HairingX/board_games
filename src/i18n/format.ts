@@ -17,6 +17,9 @@ function cached<Made>(make: (locale: Locale) => Made): (locale: Locale) => Made 
 }
 
 const numbers = cached((locale) => new Intl.NumberFormat(locale));
+const percents = cached(
+  (locale) => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 }),
+);
 const pluralRules = cached((locale) => new Intl.PluralRules(locale));
 const longDates = cached((locale) => new Intl.DateTimeFormat(locale, { dateStyle: 'long' }));
 const relativeTimes = cached((locale) => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }));
@@ -24,6 +27,11 @@ const relativeTimes = cached((locale) => new Intl.RelativeTimeFormat(locale, { n
 /** A number as the language writes it: 1.234 in Danish, 1,234 in English. */
 export function formatNumber(locale: Locale, value: number): string {
   return numbers(locale).format(value);
+}
+
+/** A number of percent as the language writes it: 37,5 % in Danish, 37.5% in English. */
+export function formatPercent(locale: Locale, percent: number): string {
+  return percents(locale).format(percent / 100);
 }
 
 /**

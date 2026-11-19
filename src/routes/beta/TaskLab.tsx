@@ -5,6 +5,7 @@ import { type Level } from '../../games/regnespil/levels';
 import { TaskAnswers } from '../../games/regnespil/TaskAnswers';
 import { makeTask, type Task } from '../../games/regnespil/tasks';
 import { text } from '../../games/regnespil/text';
+import { same, type Value } from '../../games/regnespil/values';
 import { useMessages } from '../../i18n/I18n';
 import type { Random } from '../../lib/random';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
@@ -32,7 +33,7 @@ export function TaskLab({ onBack, random = Math.random, sound = defaultSound }: 
   const t = useMessages(text);
   const [level, setLevel] = useState<Level>(1);
   const [task, setTask] = useState<Task>(() => makeTask(1, random));
-  const [chosen, setChosen] = useState<number>();
+  const [chosen, setChosen] = useState<Value>();
   const [tally, setTally] = useState({ right: 0, total: 0 });
 
   return (
@@ -53,7 +54,7 @@ export function TaskLab({ onBack, random = Math.random, sound = defaultSound }: 
         chosen={chosen}
         onChoose={(choice) => {
           setChosen(choice);
-          const right = choice === task.answer;
+          const right = same(choice, task.answer);
           setTally({ right: tally.right + Number(right), total: tally.total + 1 });
           if (right) void sound.effect(coin);
         }}

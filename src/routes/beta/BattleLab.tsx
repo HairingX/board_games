@@ -10,6 +10,7 @@ import { LevelPicker } from '../../games/regnespil/LevelPicker';
 import type { Level } from '../../games/regnespil/levels';
 import { TaskAnswers } from '../../games/regnespil/TaskAnswers';
 import { judge, makeTask, type Task } from '../../games/regnespil/tasks';
+import type { Value } from '../../games/regnespil/values';
 import { useMessages } from '../../i18n/I18n';
 import type { Random } from '../../lib/random';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
@@ -81,7 +82,7 @@ export function BattleLab({
   }, [sound]);
   const [level, setLevel] = useState<Level>(1);
   const [task, setTask] = useState<Task>(() => makeTask(1, random));
-  const [chosen, setChosen] = useState<number>();
+  const [chosen, setChosen] = useState<Value>();
   const [fight, setFight] = useState(() => startFight(firstFight));
   const [staging, setStaging] = useState<Staging>({});
 
@@ -110,8 +111,8 @@ export function BattleLab({
     };
   }, [chosen, fight, level, random]);
 
-  function answer(choice: number): void {
-    const next = answerFight(fight, judge(choice, task.answer));
+  function answer(choice: Value): void {
+    const next = answerFight(fight, judge(choice, task.answer, task.near));
     setChosen(choice);
     setFight(next);
     setStaging(stage(next, now()));

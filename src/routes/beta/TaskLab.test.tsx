@@ -24,7 +24,7 @@ describe('TaskLab', () => {
     expect(screen.getByRole('radio', { name: '1' })).toBeChecked();
     expect(screen.getByText('Niveau 1 · ca. 0.–1. klasse')).toBeInTheDocument();
     expect(sum()).toBe('1 plus 1');
-    expect(screen.getByText('1 + 1 = ?')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '1 plus 1' })).toHaveTextContent('1 + 1 = ?');
     click('2');
     expect(screen.getByRole('status')).toHaveTextContent('Rigtigt!');
     expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-state', 'right');
@@ -57,6 +57,8 @@ describe('TaskLab', () => {
   it('asks the order of operations at level 8', () => {
     open(() => 0);
     fireEvent.click(screen.getByRole('radio', { name: '8' }));
-    expect(screen.getByText('2 + 2 · 2 = ?')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '2 plus 2 gange 2' })).toHaveTextContent(
+      '2 + 2 · 2 = ?',
+    );
   });
 });
