@@ -48,6 +48,14 @@
   /* Texture, laid over paper and card colours with soft light, which suits both themes. */
   --grain: url('./assets/grain.png');
   --grain-strength: 0.14;
+  /*
+   * The page's own grain: grain.png already brought towards mid-grey by --grain-strength, so it
+   * can lie in the page's background, blended with its colour there, with no layer over the
+   * page. A layer over the page shows its grain raw where a phone's browser draws its bars over
+   * nothing. Made again from grain.png if either changes, as CSS cannot fade one background
+   * image of several.
+   */
+  --grain-page: url('./assets/grain-page.png');
 
   /* Depth: soft, warm and layered. */
   --shadow-near: light-dark(rgb(60 40 20 / 8%), rgb(0 0 0 / 40%));
@@ -116,24 +124,10 @@ body {
 
 body {
   min-height: 100dvh;
+  background-image: var(--grain-page);
+  background-blend-mode: soft-light;
   padding: calc(var(--safe-top) + var(--space-3)) var(--space-5)
     calc(var(--safe-bottom) + var(--space-6));
-}
-
-/*
- * The grain lies still over the screen. It is as tall as the screen at its largest, when the
- * browser's bars have slid away, so no strip at the bottom is left without it while scrolling.
- */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0 0 auto;
-  height: 100lvh;
-  z-index: -1;
-  pointer-events: none;
-  background: var(--grain);
-  opacity: var(--grain-strength);
-  mix-blend-mode: soft-light;
 }
 
 h1,

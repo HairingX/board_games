@@ -262,9 +262,11 @@ gradients, glow or glass.
   tarot cards: an aubergine back with a brass double frame, rays and a medallion with the
   emblem of two linked rings, the same either way up; a paper face with a double frame, the
   category in small caps, the question in EB Garamond, and the card's number and level.
-- The grain is one small tiling image (`src/assets/grain.png`) laid over with soft light. It
-  lies still, as tall as the largest viewport (`100lvh`), so no strip is left without it at
-  the bottom when a phone's browser bars slide away.
+- The grain is one small tiling image (`src/assets/grain.png`) blended with soft light: inside
+  cards and tiles as a faint layer, and on the page itself in the body's own background, from
+  `src/assets/grain-page.png`, the same grain already faded by `--grain-strength`. Never as a
+  layer over the whole page: where an iPhone's browser draws its bars, such a layer has nothing
+  to blend with and shows as a grainy band.
 - Motion is springy and quick, and anything tapped gives way under the finger. Motion's
   settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
