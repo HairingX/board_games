@@ -54,4 +54,39 @@ describe('useSaved', () => {
     await Promise.resolve();
     expect(saves.read).toHaveBeenCalledOnce();
   });
+
+  it('keeps a change made before the save was read, rather than what is read later', async () => {
+    let finishRead: (stored: unknown) => void = () => undefined;
+    const saves: Saves = {
+      ...fakeSaves(undefined),
+      read: vi.fn(
+        () =>
+          new Promise((resolve) => {
+            finishRead = resolve;
+          }),
+      ),
+    };
+    function Setter() {
+      const [value, setValue] = useSaved('tæller', revive, saves);
+      return (
+        <button
+          type="button"
+          onClick={() => {
+            setValue(9);
+          }}
+        >
+          {value ?? 'Henter'}
+        </button>
+      );
+    }
+    render(<Setter />);
+    act(() => {
+      screen.getByRole('button', { name: 'Henter' }).click();
+    });
+    await act(async () => {
+      finishRead(4);
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: '9' })).toBeInTheDocument();
+  });
 });

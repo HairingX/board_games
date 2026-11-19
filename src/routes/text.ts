@@ -9,6 +9,9 @@ const da = {
 
   switchPlayer: 'Skift spiller',
   settings: 'Indstillinger',
+  beta: 'Beta',
+  betaNote: 'Prøv dele af spillene, der stadig bygges.',
+  testPage: 'Testside',
   newVersion: (app: string) => `Der er en ny version af ${app}.`,
   update: 'Opdatér',
   offline: 'Virker uden internet',
@@ -46,6 +49,9 @@ export const appText: Translations<typeof da> = {
 
     switchPlayer: 'Switch player',
     settings: 'Settings',
+    beta: 'Beta',
+    betaNote: 'Try parts of the games that are still being built.',
+    testPage: 'Test page',
     newVersion: (app) => `There is a new version of ${app}.`,
     update: 'Update',
     offline: 'Works offline',

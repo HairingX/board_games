@@ -1,0 +1,60 @@
+.switch {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  width: 100%;
+  min-height: var(--touch-lg);
+  padding: var(--space-2) var(--space-4);
+  text-align: start;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.switch-text {
+  display: grid;
+  flex: 1;
+  font-weight: 600;
+}
+
+.switch-text small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* The track and knob, the size of a phone's own switch. */
+.switch-track {
+  --switch-width: 51px;
+  --switch-height: 31px;
+  --switch-inset: 2px;
+
+  position: relative;
+  flex: none;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  background: var(--surface-border);
+  border-radius: var(--radius-pill);
+  transition: background var(--duration-press) ease;
+}
+
+.switch-knob {
+  position: absolute;
+  top: var(--switch-inset);
+  left: var(--switch-inset);
+  width: calc(var(--switch-height) - 2 * var(--switch-inset));
+  height: calc(var(--switch-height) - 2 * var(--switch-inset));
+  background: var(--paper);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  transition: transform var(--duration-press) var(--ease-spring);
+}
+
+.switch[aria-checked='true'] .switch-track {
+  background: var(--success);
+}
+
+.switch[aria-checked='true'] .switch-knob {
+  transform: translateX(calc(var(--switch-width) - var(--switch-height)));
+}

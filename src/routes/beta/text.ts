@@ -1,0 +1,53 @@
+import type { Translations } from '../../i18n/locales';
+
+/** The sound test, one of the beta pages where grown-ups try the parts still being built. */
+const da = {
+  title: 'Lyd',
+  intro:
+    'Prøv den lyd, eventyret skal have. Hører du intet på en iPhone, så tjek lydløs-knappen på siden.',
+  music: 'Musik',
+  stopMusic: 'Stop musikken',
+  effects: 'Lydeffekter',
+  voices: 'Stemmer uden ord',
+  voicesNote:
+    'Figurerne pludrer i stedet for at tale. Hør de to måder at lave stemmerne på, og vælg den, der lyder bedst.',
+  madeFromTones: 'Lavet af toner i telefonen',
+  madeFromClips: 'Lavet af korte optagelser',
+  tracks: { adventure: 'Eventyret begynder', forest: 'Den mørke skov', tension: 'Spænding' },
+  sounds: {
+    coin: 'Mønt',
+    sword: 'Sværd',
+    hit: 'Slag',
+    magic: 'Magi',
+    power: 'Kraft',
+    success: 'Sejr',
+  },
+  characters: { hero: 'Helten', troll: 'Trolden', fairy: 'Feen' },
+};
+
+export const labText: Translations<typeof da> = {
+  da,
+  en: {
+    title: 'Sound',
+    intro:
+      'Try the sound the adventure will have. If you hear nothing on an iPhone, check the silent switch on its side.',
+    music: 'Music',
+    stopMusic: 'Stop the music',
+    effects: 'Sound effects',
+    voices: 'Voices without words',
+    voicesNote:
+      'The characters babble instead of speaking. Hear the two ways of making the voices, and pick the one that sounds best.',
+    madeFromTones: 'Made from tones in the phone',
+    madeFromClips: 'Made from short recordings',
+    tracks: { adventure: 'The adventure begins', forest: 'The dark forest', tension: 'Tension' },
+    sounds: {
+      coin: 'Coin',
+      sword: 'Sword',
+      hit: 'Hit',
+      magic: 'Magic',
+      power: 'Power',
+      success: 'Victory',
+    },
+    characters: { hero: 'The hero', troll: 'The troll', fairy: 'The fairy' },
+  },
+};

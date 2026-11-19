@@ -5,6 +5,8 @@ import { MotionGlobalConfig } from 'motion/react';
 import { afterEach, vi } from 'vitest';
 import { familySaveKey } from '../src/family/FamilyContext';
 import { localeSaveKey } from '../src/i18n/I18n';
+import { betaSaveKey } from '../src/lib/beta';
+import { soundSaveKey } from '../src/lib/sound/settings';
 import { saves } from '../src/lib/saves';
 
 MotionGlobalConfig.skipAnimations = true;
@@ -26,6 +28,8 @@ afterEach(async () => {
   window.location.hash = '';
   await saves.remove(familySaveKey);
   await saves.remove(localeSaveKey);
+  await saves.remove(betaSaveKey);
+  await saves.remove(soundSaveKey);
 });
 
 // The service worker is registered only in a built app; in tests no update is ever waiting.

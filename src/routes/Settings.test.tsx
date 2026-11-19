@@ -51,4 +51,17 @@ describe('Settings', () => {
     fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'xx' } });
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
   });
+
+  it('shows the test pages only while beta is on, and keeps it', async () => {
+    await open({ profiles: [far], lock: null });
+    expect(screen.getByRole('switch', { name: /^Beta/ })).not.toBeChecked();
+    expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
+    click(/^Lyd Testside/);
+    expect(await screen.findByRole('heading', { name: 'Lyd' })).toBeInTheDocument();
+    click('Tilbage');
+    expect(screen.getByRole('switch', { name: /^Beta/ })).toBeChecked();
+    fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
+    expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
+  });
 });

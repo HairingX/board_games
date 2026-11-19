@@ -164,18 +164,36 @@ game builds on them, and everything must stay smooth on a phone.
   sheets of 16-pixel frames with walk, idle and attack animations, items, weapons, effects,
   tiles and interface, plus 42 minutes of music and 150 sounds converted to AAC (`.m4a`).
   Pixel art is drawn with `image-rendering: pixelated` at whole-number scales.
-- Reading aloud does not use the phone's own voices: the owner heard them and found the Danish
-  ones unnatural. Speech is made ahead of time with a natural AI voice and kept as audio files;
-  generated sums are put together from recorded numbers and words. Which provider, and how its
-  key is given, is decided with the owner. (An iPhone's silent switch also silences speech and
-  sound in the browser.)
+- No speech at all, decided by the owner: the phone's voices were unnatural, and good AI voices
+  are not free. The adventure tells its story with pictures and sound, so it works for a child
+  who cannot read and in every language: characters babble in their own voices without words
+  and show signs over their heads (!, ?, hearts, tears), speech bubbles hold pictures, music and
+  effects set the mood, and whatever can be tapped shows itself (it glows or bounces, and a hand
+  points the first time). Text is an extra layer: an "Aa" button in the game, which the child
+  taps, shows the bubbles' text and is remembered for that child; a "?" always opens the rules
+  in text and pictures. Text is otherwise kept to rules and short labels beside icons. Older
+  children get depth from the play (bosses, routes, upgrades, the lightning mode), not text.
+- The sound engine (`src/lib/sound/engine.ts`, one `sound` for the app) is Web Audio: music
+  fades from one piece to the next, effects are fetched and decoded once, and babbling voices
+  (`src/lib/sound/babble.ts`, voices in `voices.ts`) are syllables at a character's pitch and
+  pace, made from tones or from the pack's short voice clips. Sound starts only from a tap.
+  Whether music and effects play is saved on the phone under `lyd`. An iPhone's silent switch
+  silences it all. Music is not yet in the offline cache.
+
+## Beta
+
+- Parts still being built are tried by grown-ups on test pages, never by children: "Beta" in the
+  settings (`src/lib/beta.ts`, saved on the phone under `beta`) is off until turned on, and then
+  lists the test pages (`src/routes/beta/`). The owner wants to see each step this way.
+- `src/routes/beta/SoundLab.tsx`: music, effects, and the two ways of making the voices.
 
 ## Saving
 
 - Every game saves through `useSaved` (`src/lib/useSaved.ts`) into IndexedDB
   (`src/lib/saves.ts`, with `idb`), writing with strict durability on every change; never
   localStorage, which is slower, smaller and no safer. A game's saved shape is checked when it
-  is read, and an older shape is upgraded rather than thrown away.
+  is read, and an older shape is upgraded rather than thrown away. A change made before the
+  save has been read wins over what is read.
 - After each save, made from a tap, the app asks the browser to keep its saves
   (`src/lib/persistence.ts`): a browser tab asks only once ever, an installed app until granted.
   It is a request, never a promise, on every platform.
