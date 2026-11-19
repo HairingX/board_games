@@ -24,4 +24,9 @@ export const motionTokens = {
   swipe: { distance: 120, velocityWeight: 0.2, elastic: 0.8 },
   /** How much something gives way under the finger. */
   press: { scale: 0.97 },
+  /**
+   * A pixel figure breathing while it stands: lifted one pixel for part of each breath, as the
+   * pack has no standing animation. In seconds.
+   */
+  breath: { every: 1.4, lifted: 0.5 },
 } as const;

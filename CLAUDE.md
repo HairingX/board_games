@@ -208,6 +208,20 @@ game builds on them, and everything must stay smooth on a phone.
   settings (`src/lib/beta.ts`, saved on the phone under `beta`) is off until turned on, and then
   lists the test pages (`src/routes/beta/`). The owner wants to see each step this way.
 - `src/routes/beta/SoundLab.tsx`: music, effects, and the characters' babbling voices.
+- `src/routes/beta/SceneLab.tsx`: the puppet theatre's first scene, a forest clearing with the
+  hero breathing (`forest.ts`).
+
+## The puppet theatre
+
+- A scene is data (`src/lib/scene/scene.ts`): a stage of 16-pixel tiles, ground tiles cut from
+  a tileset, things such as trees standing on it, and figures from the pack's sprite sheets
+  (four columns: down, up, left, right). `drawScene` works out what to draw at a moment, the
+  ground first and then what stands, from the back to the front by where each stands.
+- `src/ui/SceneCanvas.tsx` draws it on a canvas, enlarged by the largest whole number that
+  fits the width, at the phone's own pixel density, so every pixel is sharp; it draws again
+  only when the picture changes, to spare the battery, and stands still with reduced motion.
+- The pack has no standing animation, so a standing figure breathes by rising one pixel for
+  part of each breath (`breath` in `src/ui/motion.ts`).
 
 ## Saving
 

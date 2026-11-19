@@ -1,0 +1,13 @@
+/* The stage, as wide as it may be; the canvas inside is a whole number of times its pixels. */
+.scene {
+  display: grid;
+  justify-items: center;
+  width: 100%;
+}
+
+.scene canvas {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  image-rendering: pixelated;
+  box-shadow: var(--shadow-card);
+}

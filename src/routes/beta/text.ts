@@ -20,6 +20,11 @@ const da = {
     success: 'Sejr',
   },
   characters: { hero: 'Helten', troll: 'Trolden', fairy: 'Feen' },
+
+  sceneTitle: 'Scene',
+  sceneIntro:
+    'Dukketeatrets første scene: en lysning i skoven med helten, der står og trækker vejret. Tegningerne er forstørret med et helt tal, så hver pixel står skarpt.',
+  sceneLabel: 'En lysning i skoven, hvor en lille helt står og trækker vejret.',
 };
 
 export const labText: Translations<typeof da> = {
@@ -43,5 +48,10 @@ export const labText: Translations<typeof da> = {
       success: 'Victory',
     },
     characters: { hero: 'The hero', troll: 'The troll', fairy: 'The fairy' },
+
+    sceneTitle: 'Scene',
+    sceneIntro:
+      'The puppet theatre’s first scene: a forest clearing with the hero standing and breathing. The drawings are enlarged by a whole number, so every pixel stays sharp.',
+    sceneLabel: 'A forest clearing, where a small hero stands breathing.',
   },
 };

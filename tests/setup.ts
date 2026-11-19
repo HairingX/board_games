@@ -23,6 +23,13 @@ window.matchMedia = (query: string) =>
 // jsdom's phone speaks American English; the tests are written for a Danish one.
 Object.defineProperty(navigator, 'languages', { value: ['da-DK', 'da'], configurable: true });
 
+// jsdom has no ResizeObserver; every browser the app runs in does. Here nothing is ever resized.
+globalThis.ResizeObserver = class {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+};
+
 afterEach(async () => {
   cleanup();
   localStorage.clear();

@@ -13,7 +13,8 @@ export type SettingsPage =
   | { name: 'family-new' }
   | { name: 'person'; id: string }
   | { name: 'lock' }
-  | { name: 'sound' };
+  | { name: 'sound' }
+  | { name: 'scene' };
 
 /** Where in the app a screen is. */
 export type Route =
@@ -40,6 +41,7 @@ const settingsPages: Readonly<Record<string, SettingsPage>> = {
   'familien/ny': { name: 'family-new' },
   voksenlaas: { name: 'lock' },
   'beta/lyd': { name: 'sound' },
+  'beta/scene': { name: 'scene' },
 };
 
 /** The screen a location hash names: no hash is the start screen, `#/` the home screen. */
@@ -102,6 +104,8 @@ function settingsHref(page: SettingsPage): string {
       return '/voksenlaas';
     case 'sound':
       return '/beta/lyd';
+    case 'scene':
+      return '/beta/scene';
   }
 }
 

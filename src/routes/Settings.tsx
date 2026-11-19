@@ -11,6 +11,7 @@ import { useSaved } from '../lib/useSaved';
 import { GameHeader } from '../ui/GameHeader';
 import { LanguageSelect } from '../ui/LanguageSelect';
 import { Switch } from '../ui/Switch';
+import { SceneLab } from './beta/SceneLab';
 import { SoundLab } from './beta/SoundLab';
 import { labText } from './beta/text';
 import { SavedGames } from './SavedGames';
@@ -58,6 +59,8 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
       return <AdultLock family={family} onChange={onChange} onBack={toMain} />;
     case 'sound':
       return <SoundLab onBack={toMain} />;
+    case 'scene':
+      return <SceneLab onBack={toMain} />;
     case 'main':
       break;
   }
@@ -114,22 +117,24 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
         <Switch label={t.beta} note={t.betaNote} on={beta === true} onChange={setBeta} />
         {beta && (
           <ul className="family-list">
-            <li>
-              <button
-                type="button"
-                className="family-row"
-                onClick={() => {
-                  go({ name: 'sound' });
-                }}
-              >
-                <span className="family-row-name">
-                  {lab.title} <small>{t.testPage}</small>
-                </span>
-                <span className="family-row-open" aria-hidden="true">
-                  ›
-                </span>
-              </button>
-            </li>
+            {(['sound', 'scene'] as const).map((name) => (
+              <li key={name}>
+                <button
+                  type="button"
+                  className="family-row"
+                  onClick={() => {
+                    go({ name });
+                  }}
+                >
+                  <span className="family-row-name">
+                    {name === 'sound' ? lab.title : lab.sceneTitle} <small>{t.testPage}</small>
+                  </span>
+                  <span className="family-row-open" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
         )}
       </div>
