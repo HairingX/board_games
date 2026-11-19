@@ -29,4 +29,22 @@ export const motionTokens = {
    * pack has no standing animation. In seconds.
    */
   breath: { every: 1.4, lifted: 0.5 },
+  /** A figure that bounces, as a slime does: frames a second through its four frames. */
+  bounce: { framesPerSecond: 6 },
+  /**
+   * What a figure does once, in seconds and pixels: a sword stroke lunging forward, being hit
+   * (blinking), a cheering jump, and vanishing.
+   */
+  act: {
+    attack: { seconds: 0.35, lunge: 5 },
+    hurt: { seconds: 0.6, blink: 0.08 },
+    cheer: { seconds: 0.7, height: 6 },
+    vanish: { seconds: 0.5 },
+  },
+  /** How long a sign over a figure's head shows, in seconds. */
+  sign: { seconds: 1.6 },
+  /** An effect's frames a second, such as a sword's sweep or a puff of smoke. */
+  effect: { framesPerSecond: 14 },
+  /** How long a fight waits after an answer before the next sum: shorter when it was right. */
+  fightPause: { right: 0.9, wrong: 1.8 },
 } as const;

@@ -124,7 +124,17 @@ game builds on them, and everything must stay smooth on a phone.
 - Sums are written as each language does (`text.ts`: `·` and `:` in Danish, `×` and `÷` in
   English), with lining figures, which children read more easily than the serif's old-style
   ones, and read in words to screen readers (`SumView.tsx`).
-- Beta: `src/routes/beta/TaskLab.tsx` tries the tasks level by level.
+- A fight (`battle.ts`): a right answer is a stroke that takes one of the monster's lives; a
+  close answer is parried, nothing lost either way, as yellow means "nearly"; an answer far
+  off lets the monster bump the hero, who loses a heart. No death: out of hearts, the hero
+  rests and tries again. The next sum comes by itself after a short pause (`fightPause`).
+  The first fight is three hearts against a slime with three lives; swords, crystals and
+  upgrades are to change these numbers later.
+- The story is not decided: `docs/regnespil-story.md` is a researched proposal (building on
+  H.C. Andersen's _Fyrtøjet_, public domain) for the owner to decide on. Only public-domain
+  tales may give plot, names or characters; modern franchises only lessons in how to tell.
+- Beta: `src/routes/beta/TaskLab.tsx` tries the tasks level by level, and `BattleLab.tsx` the
+  first fight, in the forest clearing (`clearing.ts`).
 
 ## Languages
 
@@ -245,7 +255,12 @@ game builds on them, and everything must stay smooth on a phone.
   fits the width, at the phone's own pixel density, so every pixel is sharp; it draws again
   only when the picture changes, to spare the battery, and stands still with reduced motion.
 - The pack has no standing animation, so a standing figure breathes by rising one pixel for
-  part of each breath (`breath` in `src/ui/motion.ts`).
+  part of each breath (`breath` in `src/ui/motion.ts`). A slime bounces through its sheet's
+  four rows. Figures act one act after another (attack on the sheet's fifth row with a lunge,
+  hurt as a blink, cheer as a jump, vanish), show signs over their heads (the pack's
+  `Ui/Emote` balloons), and effects such as a sword's sweep or a puff play over the stage.
+  Times are on the page's clock, so a screen starts an act the moment it happens; with
+  reduced motion nothing moves, but what vanished stays gone.
 
 ## Saving
 

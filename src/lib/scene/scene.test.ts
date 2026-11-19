@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { motionTokens } from '../../ui/motion';
-import { breathLift, drawScene, stageSize, type Scene } from './scene';
+import { breathLift, drawScene, signSize, stageSize, type Figure, type Scene } from './scene';
 
 const cut = { x: 0, y: 0, width: 16, height: 32 };
 
@@ -66,5 +66,120 @@ describe('drawScene', () => {
 
   it('lifts a standing figure as it breathes in', () => {
     expect(drawScene(scene, 0).find((draw) => draw.sheet === 'hero')?.y).toBe(3);
+  });
+});
+
+describe('figures acting', () => {
+  const { act, bounce, sign } = motionTokens;
+  const at = 100;
+  /** A moment just after, past what adding seconds in binary falls short of. */
+  const eps = 0.001;
+  const one = (figure: Partial<Figure>, seconds: number, still = false) =>
+    drawScene(
+      {
+        ...scene,
+        ground: [],
+        things: [],
+        figures: [{ sheet: 'hero', x: 20, y: 20, facing: 'right', doing: 'standing', ...figure }],
+      },
+      seconds,
+      still,
+    ).find((draw) => draw.sheet === 'hero');
+
+  it('bounces through the sheet’s four rows', () => {
+    const row = (seconds: number) => one({ doing: 'bouncing' }, seconds)?.cut.y;
+    expect(row(0)).toBe(0);
+    expect(row(1 / bounce.framesPerSecond)).toBe(16);
+    expect(row(4 / bounce.framesPerSecond)).toBe(0);
+    expect(one({ doing: 'bouncing' }, 0)?.y).toBe(20);
+  });
+
+  it('lunges toward where it faces with a stroke, on the attack row', () => {
+    const stroke = { acts: [{ kind: 'attack', at }] } as const;
+    expect(one(stroke, at)).toMatchObject({ x: 25, cut: { y: 64 } });
+    expect(one({ ...stroke, facing: 'left' }, at)?.x).toBe(15);
+    expect(one({ ...stroke, facing: 'down' }, at)?.x).toBe(20);
+    expect(one(stroke, at + act.attack.seconds + eps)).toMatchObject({ x: 20, cut: { y: 0 } });
+  });
+
+  it('blinks while hurt, and jumps while cheering', () => {
+    const hurt = { acts: [{ kind: 'hurt', at }] } as const;
+    expect(one(hurt, at)).toBeUndefined();
+    expect(one(hurt, at + act.hurt.blink + eps)).toBeDefined();
+    expect(one(hurt, at + act.hurt.seconds + eps)).toBeDefined();
+    const cheer = { acts: [{ kind: 'cheer', at }] } as const;
+    const middle = at + act.cheer.seconds / 2;
+    expect(one(cheer, middle)?.y).toBe(20 - act.cheer.height - breathLift(middle));
+    const after = at + act.cheer.seconds + eps;
+    expect(one(cheer, after)?.y).toBe(20 - breathLift(after));
+  });
+
+  it('blinks away when it vanishes, and stays gone, also with motion stilled', () => {
+    const gone = { acts: [{ kind: 'vanish', at }] } as const;
+    expect(one(gone, at)).toBeUndefined();
+    expect(one(gone, at + act.hurt.blink + eps)).toBeDefined();
+    expect(one(gone, at + act.vanish.seconds + eps)).toBeUndefined();
+    expect(one(gone, at - 1, true)).toBeUndefined();
+  });
+
+  it('does the latest act begun, and none not yet begun', () => {
+    const acts = [
+      { kind: 'cheer', at: at + 1 },
+      { kind: 'attack', at },
+      { kind: 'hurt', at: at + 5 },
+    ] as const;
+    expect(one({ acts }, at)?.cut.y).toBe(64);
+    expect(one({ acts }, at + 1)?.y).toBe(20 - breathLift(at + 1));
+    expect(one({ acts }, at - 1)?.cut.y).toBe(0);
+  });
+
+  it('keeps still with motion stilled', () => {
+    expect(one({ doing: 'bouncing', acts: [{ kind: 'attack', at }] }, at, true)).toMatchObject({
+      x: 20,
+      y: 20,
+      cut: { x: 48, y: 0 },
+    });
+  });
+
+  it('shows a sign over its head for a while', () => {
+    const signed = (seconds: number) =>
+      drawScene(
+        {
+          ...scene,
+          ground: [],
+          things: [],
+          figures: [
+            {
+              sheet: 'hero',
+              x: 20,
+              y: 20,
+              facing: 'down',
+              doing: 'standing',
+              sign: { sheet: 'star', at },
+            },
+          ],
+        },
+        seconds,
+      ).find((draw) => draw.sheet === 'star');
+    expect(signed(at - 0.1)).toBeUndefined();
+    expect(signed(at)).toEqual({ sheet: 'star', cut: signSize, x: 21, y: 6 });
+    expect(signed(at + sign.seconds + eps)).toBeUndefined();
+  });
+
+  it('plays an effect’s frames over the stage, and none with motion stilled', () => {
+    const withEffect: Scene = {
+      ...scene,
+      ground: [],
+      things: [],
+      figures: [],
+      effects: [{ sheet: 'puff', width: 32, height: 32, frames: 2, x: 4, y: 6, at }],
+    };
+    const fps = motionTokens.effect.framesPerSecond;
+    expect(drawScene(withEffect, at - 0.1)).toEqual([]);
+    expect(drawScene(withEffect, at + 1 / fps + eps)).toEqual([
+      { sheet: 'puff', cut: { x: 32, y: 0, width: 32, height: 32 }, x: 4, y: 6 },
+    ]);
+    expect(drawScene(withEffect, at + 2 / fps + eps)).toEqual([]);
+    expect(drawScene(withEffect, at, true)).toEqual([]);
   });
 });

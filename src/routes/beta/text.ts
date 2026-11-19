@@ -1,3 +1,4 @@
+import { formatNumber } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
 
 /** The sound test, one of the beta pages where grown-ups try the parts still being built. */
@@ -24,6 +25,14 @@ const da = {
   tasksTitle: 'Regnestykker',
   tasksIntro:
     'Regnespillets opgaver, niveau for niveau. De forkerte svar er typiske fejl, og svaret viser med det samme, om det var rigtigt, tæt på eller langt fra.',
+  fightTitle: 'Kamp',
+  fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
+  hearts: (count: number) => `Heltens hjerter: ${formatNumber('da', count)}`,
+  lives: (count: number) => `Slimets liv: ${formatNumber('da', count)}`,
+  won: 'Slimet er besejret!',
+  lost: 'Helten er træt og hviler sig.',
+  again: 'Ny kamp',
+  tryAgain: 'Prøv igen',
   sceneTitle: 'Scene',
   sceneIntro:
     'Dukketeatrets første scene: en lysning i skoven med helten, der står og trækker vejret. Tegningerne er forstørret med et helt tal, så hver pixel står skarpt.',
@@ -55,6 +64,14 @@ export const labText: Translations<typeof da> = {
     tasksTitle: 'Sums',
     tasksIntro:
       'The math game’s tasks, level by level. The wrong answers are typical mistakes, and an answer shows at once whether it was right, close or far off.',
+    fightTitle: 'Fight',
+    fightLabel: 'The hero faces a blue slime in the forest clearing.',
+    hearts: (count) => `The hero’s hearts: ${formatNumber('en', count)}`,
+    lives: (count) => `The slime’s lives: ${formatNumber('en', count)}`,
+    won: 'The slime is beaten!',
+    lost: 'The hero is tired and rests.',
+    again: 'New fight',
+    tryAgain: 'Try again',
     sceneTitle: 'Scene',
     sceneIntro:
       'The puppet theatre’s first scene: a forest clearing with the hero standing and breathing. The drawings are enlarged by a whole number, so every pixel stays sharp.',

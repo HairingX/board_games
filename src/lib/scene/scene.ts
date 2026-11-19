@@ -2,8 +2,10 @@ import { motionTokens } from '../../ui/motion';
 
 /*
  * A scene of the puppet theatre, as data: a ground of 16-pixel tiles, things standing on it,
- * and figures, on a small stage of pixels that is drawn enlarged by a whole number. What is
- * drawn at a moment is worked out here, apart from drawing it, so it can be tested.
+ * figures that stand, bounce and act, signs over their heads, and effects such as a sword's
+ * sweep, on a small stage of pixels drawn enlarged by a whole number. What is drawn at a moment
+ * is worked out here, apart from drawing it, so it can be tested. Times are in seconds on one
+ * clock: an act or a sign holds the moment it began, and plays out from there.
  */
 
 /** The size of a tile, and of a figure's frame, in pixels. */
@@ -31,14 +33,36 @@ export interface Thing {
   y: number;
 }
 
-/** A figure, drawn from a sprite sheet of 16-pixel frames. */
+/** What a figure does once, from the moment `at`. */
+export interface Act {
+  kind: keyof typeof motionTokens.act;
+  at: number;
+}
+
+/** A figure, drawn from a sprite sheet of 16-pixel frames, a column for each way it faces. */
 export interface Figure {
   sheet: string;
   x: number;
   y: number;
   facing: Facing;
-  /** What it does: for now it stands, breathing. */
-  doing: 'standing';
+  /** Standing, breathing; or bouncing through the sheet's four rows, as a slime. */
+  doing: 'standing' | 'bouncing';
+  /** What it does, one after another; the latest begun is the one it does now. */
+  acts?: readonly Act[];
+  /** A sign over its head, from a sheet of its own, shown for a while from `at`. */
+  sign?: { sheet: string; at: number };
+}
+
+/** An effect played once over the stage, such as a sweep or a puff: frames side by side. */
+export interface Effect {
+  sheet: string;
+  /** The size of each frame, and how many there are. */
+  width: number;
+  height: number;
+  frames: number;
+  x: number;
+  y: number;
+  at: number;
 }
 
 export interface Scene {
@@ -51,6 +75,7 @@ export interface Scene {
   ground: readonly (readonly (readonly [number, number])[])[];
   things: readonly Thing[];
   figures: readonly Figure[];
+  effects?: readonly Effect[];
 }
 
 /** One image to draw: a cut of a sheet, at a place on the stage. */
@@ -72,12 +97,87 @@ export function breathLift(seconds: number): number {
   return seconds % every < lifted ? 1 : 0;
 }
 
+/** How far into an act or a sign the moment is, in seconds; below zero before it began. */
+const since = (seconds: number, at: number) => seconds - at;
+
 /**
- * Everything to draw at a moment, `seconds` since the scene began, in order: the ground, then
- * things and figures from the back of the stage to the front, so what stands nearer covers
- * what stands behind it.
+ * A figure as it is drawn at the moment, or nothing while it blinks or once it has vanished.
+ * With motion stilled it keeps still, but an act's lasting outcome, vanishing, still shows.
  */
-export function drawScene(scene: Scene, seconds: number): Draw[] {
+function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | undefined {
+  const { act } = motionTokens;
+  const column = facings.indexOf(figure.facing);
+  const begun = (figure.acts ?? []).filter((one) => one.at <= seconds);
+  const current = begun.reduce<Act | undefined>(
+    (latest, one) => (latest && latest.at > one.at ? latest : one),
+    undefined,
+  );
+  const into = current ? since(seconds, current.at) : Infinity;
+  const kind = current?.kind;
+  const vanished = (figure.acts ?? []).some((one) => one.kind === 'vanish');
+  if (vanished && still) return undefined;
+  if (kind === 'vanish' && into >= act.vanish.seconds) return undefined;
+  if (still) {
+    return { sheet: figure.sheet, cut: frame(column, 0), x: figure.x, y: figure.y };
+  }
+  let row =
+    figure.doing === 'bouncing' ? Math.floor(seconds * motionTokens.bounce.framesPerSecond) % 4 : 0;
+  let x = figure.x;
+  let y = figure.y - (figure.doing === 'standing' ? breathLift(seconds) : 0);
+  if (kind === 'attack' && into < act.attack.seconds) {
+    row = 4;
+    const toward = figure.facing === 'left' ? -1 : figure.facing === 'right' ? 1 : 0;
+    x += toward * act.attack.lunge;
+  }
+  if (kind === 'hurt' && into < act.hurt.seconds && Math.floor(into / act.hurt.blink) % 2 === 0) {
+    return undefined;
+  }
+  if (kind === 'cheer' && into < act.cheer.seconds) {
+    y -= Math.round(Math.sin((into / act.cheer.seconds) * Math.PI) * act.cheer.height);
+  }
+  if (kind === 'vanish' && Math.floor(into / act.hurt.blink) % 2 === 0) return undefined;
+  return { sheet: figure.sheet, cut: frame(column, row), x, y };
+}
+
+function frame(column: number, row: number): Cut {
+  return { x: column * tile, y: row * tile, width: tile, height: tile };
+}
+
+/** A sign over the figure's head while it shows: its own size, centred above the figure. */
+function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined {
+  if (!figure.sign) return undefined;
+  const into = since(seconds, figure.sign.at);
+  if (into < 0 || into >= motionTokens.sign.seconds) return undefined;
+  return {
+    sheet: figure.sign.sheet,
+    cut: size,
+    x: figure.x + Math.round((tile - size.width) / 2),
+    y: figure.y - size.height - 1,
+  };
+}
+
+/** An effect's frame at the moment, while it plays. */
+function drawEffect(effect: Effect, seconds: number): Draw | undefined {
+  const index = Math.floor(since(seconds, effect.at) * motionTokens.effect.framesPerSecond);
+  if (index < 0 || index >= effect.frames) return undefined;
+  return {
+    sheet: effect.sheet,
+    cut: { x: index * effect.width, y: 0, width: effect.width, height: effect.height },
+    x: effect.x,
+    y: effect.y,
+  };
+}
+
+/** The size of the pack's signs over heads, its emotes. */
+export const signSize: Cut = { x: 0, y: 0, width: 14, height: 13 };
+
+/**
+ * Everything to draw at a moment, in order: the ground, then things and figures from the back
+ * of the stage to the front, so what stands nearer covers what stands behind it, then the signs
+ * over heads and the effects on top. With `still`, as when motion is reduced, nothing moves and
+ * no effects play.
+ */
+export function drawScene(scene: Scene, seconds: number, still = false): Draw[] {
   const ground = scene.ground.flatMap((row, y) =>
     row.map(([column, line], x) => ({
       sheet: scene.groundSheet,
@@ -87,14 +187,18 @@ export function drawScene(scene: Scene, seconds: number): Draw[] {
     })),
   );
   const standing = [
-    ...scene.things.map((thing) => ({ ...thing, foot: thing.y + thing.cut.height })),
+    ...scene.things.map((thing) => ({ draw: thing, foot: thing.y + thing.cut.height })),
     ...scene.figures.map((figure) => ({
-      sheet: figure.sheet,
-      cut: { x: facings.indexOf(figure.facing) * tile, y: 0, width: tile, height: tile },
-      x: figure.x,
-      y: figure.y - breathLift(seconds),
+      draw: drawFigure(figure, seconds, still),
       foot: figure.y + tile,
     })),
   ].sort((a, b) => a.foot - b.foot);
-  return [...ground, ...standing.map(({ sheet, cut, x, y }) => ({ sheet, cut, x, y }))];
+  const signs = scene.figures.map((figure) => drawSign(figure, seconds, signSize));
+  const effects = still ? [] : (scene.effects ?? []).map((effect) => drawEffect(effect, seconds));
+  return [
+    ...ground,
+    ...[...standing.map(({ draw }) => draw), ...signs, ...effects].filter(
+      (draw): draw is Draw => draw !== undefined,
+    ),
+  ].map(({ sheet, cut, x, y }) => ({ sheet, cut, x, y }));
 }

@@ -11,6 +11,7 @@ import { useSaved } from '../lib/useSaved';
 import { GameHeader } from '../ui/GameHeader';
 import { LanguageSelect } from '../ui/LanguageSelect';
 import { Switch } from '../ui/Switch';
+import { BattleLab } from './beta/BattleLab';
 import { SceneLab } from './beta/SceneLab';
 import { SoundLab } from './beta/SoundLab';
 import { TaskLab } from './beta/TaskLab';
@@ -64,6 +65,8 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
       return <SceneLab onBack={toMain} />;
     case 'tasks':
       return <TaskLab onBack={toMain} />;
+    case 'fight':
+      return <BattleLab onBack={toMain} />;
     case 'main':
       break;
   }
@@ -120,7 +123,7 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
         <Switch label={t.beta} note={t.betaNote} on={beta === true} onChange={setBeta} />
         {beta && (
           <ul className="family-list">
-            {(['tasks', 'sound', 'scene'] as const).map((name) => (
+            {(['fight', 'tasks', 'sound', 'scene'] as const).map((name) => (
               <li key={name}>
                 <button
                   type="button"
@@ -130,7 +133,14 @@ export function Settings({ family, current, onChange, page, go, onBack, offline 
                   }}
                 >
                   <span className="family-row-name">
-                    {{ tasks: lab.tasksTitle, sound: lab.title, scene: lab.sceneTitle }[name]}{' '}
+                    {
+                      {
+                        fight: lab.fightTitle,
+                        tasks: lab.tasksTitle,
+                        sound: lab.title,
+                        scene: lab.sceneTitle,
+                      }[name]
+                    }{' '}
                     <small>{t.testPage}</small>
                   </span>
                   <span className="family-row-open" aria-hidden="true">

@@ -43,14 +43,18 @@ describe('I18nProvider', () => {
     speak(['en-GB', 'da']);
     render(<Greeting />, { wrapper: I18nProvider });
     expect(await screen.findByRole('button', { name: 'Hello' })).toBeInTheDocument();
-    expect(document.documentElement.lang).toBe('en');
+    await waitFor(() => {
+      expect(document.documentElement.lang).toBe('en');
+    });
   });
 
   it('speaks Danish on a phone in a language it does not speak', async () => {
     speak(['fr-FR']);
     render(<Greeting />, { wrapper: I18nProvider });
     expect(await screen.findByRole('button', { name: 'Hej' })).toBeInTheDocument();
-    expect(document.documentElement.lang).toBe('da');
+    await waitFor(() => {
+      expect(document.documentElement.lang).toBe('da');
+    });
   });
 
   it('changes language and keeps the choice on the phone for next time', async () => {

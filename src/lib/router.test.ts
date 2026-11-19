@@ -21,6 +21,7 @@ describe('parseRoute', () => {
     ['#/indstillinger/beta/lyd', { name: 'sound' }],
     ['#/indstillinger/beta/scene', { name: 'scene' }],
     ['#/indstillinger/beta/regnestykker', { name: 'tasks' }],
+    ['#/indstillinger/beta/kamp', { name: 'fight' }],
   ])('reads %j as a page of the settings', (hash, page) => {
     expect(parseRoute(hash)).toEqual({ name: 'settings', page });
   });
@@ -63,6 +64,7 @@ describe('parseRoute', () => {
     { name: 'settings', page: { name: 'sound' } },
     { name: 'settings', page: { name: 'scene' } },
     { name: 'settings', page: { name: 'tasks' } },
+    { name: 'settings', page: { name: 'fight' } },
     { name: 'game', id: 'parkort', players: null, place: [] },
     { name: 'game', id: 'parkort', players: ['far', 'mor'], place: [] },
     { name: 'game', id: 'parkort', players: ['far', 'mor'], place: ['kort', 'to'] },

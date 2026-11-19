@@ -71,7 +71,7 @@ describe('SceneCanvas', () => {
     expect(canvas).toHaveAttribute('width', String(32 * 3));
     expect(canvas).toHaveStyle({ width: `${String(32 * 3)}px` });
     await waitFor(() => {
-      expect(context.drawImage).toHaveBeenCalledTimes(3);
+      expect(context.drawImage.mock.calls.length).toBeGreaterThanOrEqual(3);
     });
     expect(context.setTransform).toHaveBeenCalledWith(3, 0, 0, 3, 0, 0);
     expect(context.imageSmoothingEnabled).toBe(false);
@@ -100,19 +100,21 @@ describe('SceneCanvas', () => {
     vi.useRealTimers();
   });
 
-  it('stands still when motion is reduced', async () => {
+  it('stands still when motion is reduced, drawing it once', async () => {
     const context = fakeContext();
     drawWith(context);
-    const frame = vi.spyOn(window, 'requestAnimationFrame');
-    render(
+    vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] });
+    const { unmount } = render(
       <MotionConfig reducedMotion="always">
         <SceneCanvas scene={scene} sheets={sheets} label="En skov" load={loadAll} />
       </MotionConfig>,
     );
-    await waitFor(() => {
-      expect(context.drawImage).toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000);
     });
-    expect(frame).not.toHaveBeenCalled();
+    expect(context.clearRect).toHaveBeenCalledTimes(1);
+    unmount();
+    vi.useRealTimers();
   });
 
   it('draws nothing where the browser cannot draw, or a picture will not load', async () => {

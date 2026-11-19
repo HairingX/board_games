@@ -92,7 +92,8 @@ interface Props {
 /**
  * A scene of the puppet theatre, drawn on a canvas: enlarged by a whole number to fill the
  * width, at the phone's own pixel density, and drawn again only when the picture changes, so
- * it costs the battery little. With reduced motion on, the figures stand still.
+ * it costs the battery little. Its clock is the page's (`performance.now()`, in seconds), so a
+ * screen can start an act at the moment it happens. With reduced motion on, nothing moves.
  */
 export function SceneCanvas({ scene, sheets, label, load = loadPicture }: Props) {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
@@ -112,17 +113,16 @@ export function SceneCanvas({ scene, sheets, label, load = loadPicture }: Props)
     const stage = stageSize(scene);
     let frame = 0;
     let drawn = '';
-    const started = performance.now();
     function tick(now: number): void {
-      const draws = drawScene(scene, still ? 0 : (now - started) / 1000);
+      const draws = drawScene(scene, now / 1000, still);
       const picture = JSON.stringify(draws);
       if (picture !== drawn) {
         drawn = picture;
         paint(pen, draws, loaded, stage, scale * density);
       }
-      if (!still) frame = requestAnimationFrame(tick);
+      frame = requestAnimationFrame(tick);
     }
-    tick(started);
+    tick(performance.now());
     return () => {
       cancelAnimationFrame(frame);
     };

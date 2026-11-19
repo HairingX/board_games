@@ -5,6 +5,7 @@ import { about as parkortAbout } from '../games/parkort/about';
 import { text as parkortText } from '../games/parkort/text';
 import { games } from '../lib/games';
 import { text as regnespilText } from '../games/regnespil/text';
+import { labText } from '../routes/beta/text';
 import { appText } from '../routes/text';
 import { common } from '../ui/text';
 import { locales, type Translations } from './locales';
@@ -85,6 +86,8 @@ describe('the messages that are made from values', () => {
     expect(r.far('12')).toBe('The right answer is 12.');
     expect(r.tally(3, 4)).toBe('3 of 4 right');
     expect(regnespilText.da.grade(4, 4)).toBe('ca. 4. klasse');
+    expect(labText.en.hearts(2)).toBe('The hero’s hearts: 2');
+    expect(labText.en.lives(1)).toBe('The slime’s lives: 1');
     expect(t.about('Småspil')).toBe('About Småspil');
     expect(t.offline.unknown('Småspil')).toBe(
       'Småspil works offline once the app has been opened.',
