@@ -8,7 +8,7 @@ import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
 import { GameName } from '../ui/GameName';
 import { appText } from './text';
-import { UpdateBanner } from './UpdateBanner';
+import { UpdateToast } from './UpdateToast';
 import './Home.css';
 
 interface Props {
@@ -52,7 +52,6 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
           </button>
         )}
       </div>
-      {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
       <header className="home-header">
         <h1 className="home-title">{appMeta.name}</h1>
         <p>{t.tagline}</p>
@@ -82,6 +81,7 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
           ))}
         </ul>
       )}
+      {onUpdate && <UpdateToast onUpdate={onUpdate} />}
     </>
   );
 }

@@ -53,7 +53,7 @@ describe('Start', () => {
   it('offers a new version before anyone is chosen', async () => {
     const onUpdate = vi.fn();
     await open(onUpdate);
-    expect(screen.getByRole('status')).toHaveTextContent('Der er en ny version af Småspil.');
+    expect(screen.getByRole('status')).toHaveTextContent('En ny version er klar.');
     fireEvent.click(screen.getByRole('button', { name: 'Opdatér' }));
     expect(onUpdate).toHaveBeenCalledOnce();
   });

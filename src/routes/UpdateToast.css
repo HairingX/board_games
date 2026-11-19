@@ -1,0 +1,33 @@
+/*
+ * The note of a new version: ink on paper turned round, floating over the bottom of the page
+ * above the phone's own bar, so the page never moves for it.
+ */
+.update-toast {
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  left: var(--space-4);
+  z-index: 10;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  font-weight: 600;
+  color: var(--bg);
+  background: var(--text);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.update-toast-button {
+  min-height: var(--touch);
+  color: var(--text);
+  background: var(--bg);
+}
+
+.update-toast-room {
+  height: calc(var(--touch) + var(--space-8));
+}

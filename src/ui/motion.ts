@@ -22,6 +22,8 @@ export const motionTokens = {
    * freely the card follows the finger, from 0 (not at all) to 1.
    */
   swipe: { distance: 120, velocityWeight: 0.2, elastic: 0.8 },
+  /** How far, in pixels, a note such as a new version's rises from below as it arrives. */
+  toast: { rise: 80 },
   /** How much something gives way under the finger. */
   press: { scale: 0.97 },
   /**

@@ -6,7 +6,7 @@ import { useMessages } from '../i18n/I18n';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { LanguageSelect } from '../ui/LanguageSelect';
 import { appText } from './text';
-import { UpdateBanner } from './UpdateBanner';
+import { UpdateToast } from './UpdateToast';
 import './Home.css';
 import './Start.css';
 
@@ -31,7 +31,6 @@ export function Start({ games, onUpdate }: Props) {
       <div className="start-top">
         <LanguageSelect compact />
       </div>
-      {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
       <header className="start-hero">
         <div className="start-fan" aria-hidden="true">
           {games.map((game) => (
@@ -46,27 +45,39 @@ export function Start({ games, onUpdate }: Props) {
     </>
   );
 
-  if (!current) return <WhoIsPlaying header={header} />;
+  const toast = onUpdate && <UpdateToast onUpdate={onUpdate} />;
+
+  if (!current) {
+    return (
+      <>
+        <WhoIsPlaying header={header} />
+        {toast}
+      </>
+    );
+  }
 
   return (
-    <section className="family">
-      {header}
-      <div className="start-continue">
-        <Avatar profile={current} />
-        <p className="start-hello">{current.name}</p>
-        <button
-          type="button"
-          className="btn btn-primary btn-block"
-          onClick={() => {
-            window.location.replace(place);
-          }}
-        >
-          {t.continue}
-        </button>
-        <button type="button" className="btn btn-quiet btn-block" onClick={leave}>
-          {t.switchPlayer}
-        </button>
-      </div>
-    </section>
+    <>
+      <section className="family">
+        {header}
+        <div className="start-continue">
+          <Avatar profile={current} />
+          <p className="start-hello">{current.name}</p>
+          <button
+            type="button"
+            className="btn btn-primary btn-block"
+            onClick={() => {
+              window.location.replace(place);
+            }}
+          >
+            {t.continue}
+          </button>
+          <button type="button" className="btn btn-quiet btn-block" onClick={leave}>
+            {t.switchPlayer}
+          </button>
+        </div>
+      </section>
+      {toast}
+    </>
   );
 }

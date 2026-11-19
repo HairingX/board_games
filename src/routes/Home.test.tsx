@@ -76,13 +76,13 @@ describe('Home', () => {
         onUpdate={onUpdate}
       />,
     );
-    expect(screen.getByText('Der er en ny version af Småspil.')).toBeInTheDocument();
+    expect(screen.getByText('En ny version er klar.')).toBeInTheDocument();
     screen.getByRole('button', { name: 'Opdatér' }).click();
     expect(onUpdate).toHaveBeenCalledOnce();
     rerender(
       <Home games={[]} player={far} onSwitch={() => undefined} onSettings={() => undefined} />,
     );
-    expect(screen.queryByText('Der er en ny version af Småspil.')).not.toBeInTheDocument();
+    expect(screen.queryByText('En ny version er klar.')).not.toBeInTheDocument();
   });
 
   it('greets the player, lets them switch, and offers grown-ups the settings only', () => {

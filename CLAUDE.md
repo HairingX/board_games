@@ -343,7 +343,8 @@ game builds on them, and everything must stay smooth on a phone.
   notes it.
 
 - A new version never reloads the app by itself: it waits, and the home screen offers
-  "Opdatér" between games (`registerType: 'prompt'`). Browsers look for a new version only
+  "Opdatér" between games (`registerType: 'prompt'`), in a note that rises from the bottom
+  over the page (`src/routes/UpdateToast.tsx`), so nothing on the page jumps when it comes. Browsers look for a new version only
   when a page loads, and phones keep the app running, so the app asks itself each time it comes
   back on screen and every hour (`src/lib/updates.ts`); the owner never has to close it.
 - A game keeps the screen on while it is played with `useWakeLock` (`src/lib/wakeLock.ts`).
