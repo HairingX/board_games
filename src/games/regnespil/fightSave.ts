@@ -1,5 +1,5 @@
 import type { Profile } from '../../family/family';
-import { fullHealth, powerAfter, rageAt, type Fight } from './battle';
+import { bush, fullHealth, powerAfter, rageAt, type Fight } from './battle';
 import type { Task } from './tasks';
 
 /*
@@ -33,7 +33,7 @@ export function fightSaveKey(saveKey: string, players: readonly Profile[]): stri
 }
 
 /** What a fight came to hold after it was first saved. */
-type Added = 'round' | 'threat' | 'rageAt' | 'enraged' | 'combo';
+type Added = 'round' | 'threat' | 'rageAt' | 'enraged' | 'combo' | 'full' | 'berries' | 'hungry';
 
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
 const blows: readonly (string | undefined)[] = [
@@ -44,6 +44,7 @@ const blows: readonly (string | undefined)[] = [
   'bumped',
   'dodged',
   'hit',
+  'fed',
   undefined,
 ];
 
@@ -58,7 +59,7 @@ const isCount = (value: unknown, most: number): value is number =>
  * fight saved before turns to defend came is upgraded: its turns counted from none, and no
  * blow announced; one saved before monsters grew enraged is not yet enraged, and grows so at
  * half its lives; one saved before combos has none; one saved before monsters had seeds gets
- * the first.
+ * the first; one saved before the berry bush finds it full, and the monster not hungry.
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
@@ -76,6 +77,9 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (fight.rageAt === undefined || isCount(fight.rageAt, lives)) &&
     (fight.enraged === undefined || typeof fight.enraged === 'boolean') &&
     (fight.combo === undefined || isCount(fight.combo, powerAfter)) &&
+    (fight.full === undefined || fight.full === lives) &&
+    (fight.berries === undefined || isCount(fight.berries, bush.berries)) &&
+    (fight.hungry === undefined || typeof fight.hungry === 'boolean') &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&
@@ -101,6 +105,9 @@ export function reviveFight(saved: unknown): SavedFight | null {
       rageAt: kept.fight.rageAt ?? rageAt(kept.lives),
       enraged: kept.fight.enraged ?? false,
       combo: kept.fight.combo ?? 0,
+      full: kept.lives,
+      berries: kept.fight.berries ?? bush.berries,
+      hungry: kept.fight.hungry ?? false,
     },
   };
 }

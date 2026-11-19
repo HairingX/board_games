@@ -471,6 +471,11 @@
   animation: rs-damage var(--duration-damage) ease-out forwards;
 }
 
+/* A life the monster got back, eating, in the colour of what is good for it. */
+.rs-damage[data-heal='true'] {
+  color: var(--pixel-good);
+}
+
 @keyframes rs-damage {
   0% {
     opacity: 0;

@@ -102,7 +102,7 @@ function walkFor(
   turn: SavedFight,
   at: number,
 ): Walk | undefined {
-  return turn.fight.outcome === 'fighting' && !turn.fight.threat
+  return turn.fight.outcome === 'fighting' && !turn.fight.threat && !turn.fight.hungry
     ? { asked: at, at: at + moments.settle, lasts: approachSeconds(paces[turn.activeId]) }
     : undefined;
 }
@@ -210,6 +210,19 @@ function stage(
     return { slime: { acts: [run] }, hero: { acts: [{ kind: 'knocked', at: shown }], sign: down } };
   }
   const run = { kind: 'charge', at, reach: reach.hero } as const;
+  if (fight.last === 'fed') {
+    // The stroke misses: the slime has turned to the bush, and eats.
+    return {
+      hero: {
+        acts: [
+          run,
+          { kind: 'attack', at: shown, reach: reach.hero },
+          { kind: 'return', at: shown + attack.seconds, reach: reach.hero },
+        ],
+      },
+      slime: { facing: 'right', acts: hurry, sign: { sheet: 'heart', at: shown } },
+    };
+  }
   if (fight.last === 'bumped') {
     return {
       hero: { acts: [run, { kind: 'knocked', at: shown, reach: reach.hero }], sign: down },
@@ -314,6 +327,7 @@ export function Fight({
     activeId: save.activeId,
     task: save.task,
     threat: save.fight.threat,
+    hungry: save.fight.hungry,
     fight: save.fight,
   });
   const { lives } = save;
@@ -402,6 +416,7 @@ export function Fight({
           activeId: save.activeId,
           task: save.task,
           threat: save.fight.threat,
+          hungry: save.fight.hungry,
           fight: save.fight,
         });
         setChosen(undefined);
@@ -409,8 +424,8 @@ export function Fight({
         setWalk(walkFor(paces, save, now()));
         const at = now();
         const ids = players.map((one) => one.id);
-        // The heroes change places, and the monster announces its blow: a sign over its head
-        // and a growl.
+        // The heroes change places, and the monster announces its blow, a sign over its head
+        // and a growl, or that it goes to eat, turning to the bush with a hum.
         const places =
           save.activeId === view.activeId
             ? {}
@@ -418,8 +433,12 @@ export function Fight({
         if (save.fight.threat) {
           setStaging({ ...places, slime: { sign: { sheet: 'alert', at } } });
           sound.babble(voices.slime, 2);
-        } else if (save.activeId !== view.activeId) {
-          setStaging(places);
+        } else if (save.fight.hungry) {
+          setStaging({ ...places, slime: { facing: 'right', sign: { sheet: 'star', at } } });
+          sound.babble(voices.slime, 3);
+        } else {
+          // The slime turns back to the heroes, if it had turned to eat.
+          setStaging((before) => ({ ...before, ...places, slime: {} }));
         }
       },
       (isStroke(fight.last) || fight.last === 'dodged' ? right : wrong) * 1000,
@@ -496,7 +515,13 @@ export function Fight({
     play(music.fight);
     const next = fresh(shownWith(save.recent, task));
     keep(next);
-    setView({ activeId: next.activeId, task: next.task, threat: false, fight: next.fight });
+    setView({
+      activeId: next.activeId,
+      task: next.task,
+      threat: false,
+      hungry: false,
+      fight: next.fight,
+    });
     setChosen(undefined);
     setRevealed(false);
     setStaging({});
@@ -509,7 +534,7 @@ export function Fight({
     // The music starts from a tap, as browsers ask; it goes on if it already plays.
     play(music.fight);
     const verdict = judge(choice, task.answer, task.near);
-    const next = answerFight(fight, verdict, own(active).sword);
+    const next = answerFight(fight, verdict, own(active).sword, random);
     // Saved at once with the next turn and its sum, so a closed app goes on from there.
     const following = nextTurn(active, players.length);
     const recent = shownWith(save.recent, task);
@@ -558,6 +583,10 @@ export function Fight({
         // Halfway, enraged: it roars.
         sound.babble(voices.slime, 8, undefined, reveal + moments.rage);
       }
+    } else if (next.last === 'fed') {
+      // The slime munches its berries, pleased.
+      effect(sounds.slash, reveal);
+      sound.babble(voices.slime, 5, undefined, reveal + moments.squeal);
     } else if (next.last === 'dodged') {
       // The slime misses: the hero jumps clear with a swish.
       effect(sounds.slash, reveal - moments.dodge);
@@ -595,6 +624,7 @@ export function Fight({
       : staging,
     party,
     shown.enraged,
+    shown.berries,
   );
 
   const overlay = (
@@ -629,15 +659,17 @@ export function Fight({
           />
         ))}
       </span>
-      {revealed && isStroke(fight.last) && (
+      {revealed && (isStroke(fight.last) || fight.last === 'fed') && (
         <span
           // Drawn anew at every stroke, so it floats up again.
           key={`damage-${String(answers)}`}
           className="rs-damage"
           aria-hidden="true"
           style={{ left: px(slimeAt.x + 8), top: px(slimeAt.y - 6) }}
+          data-heal={damage < 0}
         >
-          −{formatNumber(locale, damage)}
+          {damage < 0 ? '+' : '−'}
+          {formatNumber(locale, Math.abs(damage))}
         </span>
       )}
       {shown.lives > 0 && (
@@ -666,7 +698,7 @@ export function Fight({
           }
         >
           {/* Drawn anew at every stroke, so it shakes and a piece breaks off. */}
-          <span key={shown.lives} className="rs-life-pieces" data-hit={shown.lives < lives}>
+          <span key={shown.lives} className="rs-life-pieces" data-hit={isStroke(shown.last)}>
             {Array.from({ length: lives }, (_, index) => (
               <span key={index} className="rs-life-piece" data-left={index < shown.lives} />
             ))}
@@ -744,13 +776,24 @@ export function Fight({
                   />
                 </span>
               )}
-              <span className="rs-stake" data-good="false" aria-label={t.stakeWrong(cost / 2)}>
-                <span aria-hidden="true">✗</span>
-                <img src={hud.heartIcon} alt="" className="rs-stake-heart" />
-                <span aria-hidden="true">
-                  {cost === 1 ? '−½' : `−${formatNumber(locale, cost / 2)}`}
+              {view.hungry ? (
+                <span className="rs-stake" data-good="false" aria-label={t.stakeFed}>
+                  <span aria-hidden="true">✗</span>
+                  <span
+                    className="rs-stake-slime"
+                    style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
+                  />
+                  <span aria-hidden="true">+{formatNumber(locale, 1)}</span>
                 </span>
-              </span>
+              ) : (
+                <span className="rs-stake" data-good="false" aria-label={t.stakeWrong(cost / 2)}>
+                  <span aria-hidden="true">✗</span>
+                  <img src={hud.heartIcon} alt="" className="rs-stake-heart" />
+                  <span aria-hidden="true">
+                    {cost === 1 ? '−½' : `−${formatNumber(locale, cost / 2)}`}
+                  </span>
+                </span>
+              )}
             </p>
             <TaskAnswers task={task} chosen={chosen} revealed={revealed} onChoose={answer} />
           </>

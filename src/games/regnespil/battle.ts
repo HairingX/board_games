@@ -1,3 +1,4 @@
+import type { Random } from '../../lib/random';
 import type { Sword } from './swords';
 import { swordRules } from './swords';
 import type { Verdict } from './tasks';
@@ -17,6 +18,12 @@ import type { Verdict } from './tasks';
  * What each costs is the sword's (`swordRules`), so guessing never pays. No death: out of
  * hearts, the hero rests.
  *
+ * A berry bush stands on the stage, as the owner described: a wounded monster may go and eat,
+ * the more likely the more it is hurt and never twice in a row. It shows it the turn before,
+ * turning to the bush. A right answer strikes it before it eats; any other lets it eat, giving
+ * it a life back, but costs the heroes nothing, as it is busy eating. The bush grows its
+ * berries back.
+ *
  * Right answers in a row build a combo: the third is a power stroke that takes two lives (or,
  * should the third be a dodge, the next stroke is). A close answer keeps the combo; only one far off breaks it, so a child who
  * nearly had it is not punished.
@@ -34,14 +41,27 @@ export const powerAfter = 3;
 /** How many lives a power stroke takes. */
 export const powerStroke = 2;
 
+/** How many berries the bush holds, and every how many turns it grows one back. */
+export const bush = { berries: 2, regrowEvery: 4 } as const;
+
+/**
+ * How a monster weighs eating against fighting on (utility scoring): fighting scores
+ * `attack`; eating scores `hunger` times the share of its lives lost, squared, so it is never
+ * hungry unhurt and grows hungrier fast as it is hurt; a little of `whim` is added to eating,
+ * at random, so it is not quite predictable.
+ */
+export const appetite = { attack: 1, hunger: 4, whim: 0.5 } as const;
+
 /** The lives a monster has left when it grows enraged: half of those it began with. */
 export const rageAt = (lives: number) => Math.floor(lives / 2);
 
 /**
  * What happened at the last answer, for the screen to show: smashed is a power stroke; nicked
- * is parried, with a cost; dodged and hit are a monster's blow dodged or landing.
+ * is parried, with a cost; dodged and hit are a monster's blow dodged or landing; fed is the
+ * monster eating while the answer was wrong.
  */
-export type Blow = 'struck' | 'smashed' | 'parried' | 'nicked' | 'bumped' | 'dodged' | 'hit';
+export type Blow =
+  'struck' | 'smashed' | 'parried' | 'nicked' | 'bumped' | 'dodged' | 'hit' | 'fed';
 
 export interface Fight {
   /** The hero's health left, in half hearts. */
@@ -59,6 +79,12 @@ export interface Fight {
   enraged: boolean;
   /** Right answers in a row, up to `powerAfter`. */
   combo: number;
+  /** The lives the monster began with, which eating never goes beyond. */
+  full: number;
+  /** The berries left on the bush. */
+  berries: number;
+  /** Whether the monster has shown it goes to eat at the next answer. */
+  hungry: boolean;
 }
 
 export function startFight(lives: number): Fight {
@@ -72,18 +98,45 @@ export function startFight(lives: number): Fight {
     rageAt: rageAt(lives),
     enraged: false,
     combo: 0,
+    full: lives,
+    berries: bush.berries,
+    hungry: false,
   };
 }
 
-/** The fight after an answer by a player with the sword; a fight that is over stays as it is. */
-export function answerFight(fight: Fight, verdict: Verdict, sword: Sword): Fight {
+/**
+ * The fight after an answer by a player with the sword; a fight that is over stays as it is.
+ * `random` adds the monster's whim to what it chooses to do next.
+ */
+export function answerFight(
+  fight: Fight,
+  verdict: Verdict,
+  sword: Sword,
+  random: Random = Math.random,
+): Fight {
   if (fight.outcome !== 'fighting') return fight;
   const done = answered(fight, verdict, sword);
-  const after = { ...done, round: fight.round + 1, combo: comboAfter(fight, verdict, done.last) };
-  const enraged = after.outcome === 'fighting' && after.lives <= fight.rageAt;
+  const round = fight.round + 1;
+  const regrown = round % bush.regrowEvery === 0 && done.berries < bush.berries ? 1 : 0;
+  const after = {
+    ...done,
+    round,
+    combo: comboAfter(fight, verdict, done.last),
+    berries: done.berries + regrown,
+  };
+  // Once enraged, it stays so, though it eats a life back.
+  const enraged = after.outcome === 'fighting' && (fight.enraged || after.lives <= fight.rageAt);
   // Enraged, the monster strikes back every other turn, beginning at once.
-  const threat = enraged ? !fight.threat : after.round % strikeBackEvery === strikeBackEvery - 1;
-  return { ...after, enraged, threat };
+  const threat = enraged ? !fight.threat : round % strikeBackEvery === strikeBackEvery - 1;
+  const hungry = !threat && after.outcome === 'fighting' && wantsToEat(after, random);
+  return { ...after, enraged, threat, hungry };
+}
+
+/** Whether the monster chooses to eat rather than fight at the next answer. */
+function wantsToEat(fight: Fight, random: Random): boolean {
+  if (fight.berries === 0 || fight.last === 'fed') return false;
+  const lost = (fight.full - fight.lives) / fight.full;
+  return appetite.hunger * lost ** 2 + appetite.whim * random() > appetite.attack;
 }
 
 /**
@@ -102,6 +155,10 @@ function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
   if (fight.threat) {
     if (verdict === 'right') return { ...fight, last: 'dodged' };
     return hurt(fight, costs.far, 'hit');
+  }
+  if (fight.hungry && verdict !== 'right') {
+    const lives = Math.min(fight.full, fight.lives + 1);
+    return { ...fight, lives, berries: fight.berries - 1, last: 'fed' };
   }
   if (verdict === 'right') {
     const power = fight.combo + 1 >= powerAfter;

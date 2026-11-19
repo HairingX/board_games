@@ -78,6 +78,7 @@ const da = {
   defend: 'Forsvar',
   stakeDodge: 'Rigtigt: du undviger slimets angreb',
   stakeRight: 'Rigtigt: dit slag rammer slimet',
+  stakeFed: 'Forkert: slimet spiser bær og får et liv tilbage',
   stakeWrong: (hearts: number) =>
     `Forkert: ${formatNumber('da', hearts)} ${plural('da', hearts, { one: 'hjerte', other: 'hjerter' })} mindre`,
   fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
@@ -182,6 +183,7 @@ export const text: Translations<typeof da> = {
     defend: 'Defend',
     stakeDodge: 'Right: you dodge the slime’s attack',
     stakeRight: 'Right: your stroke hits the slime',
+    stakeFed: 'Wrong: the slime eats berries and gets a life back',
     stakeWrong: (hearts) =>
       `Wrong: ${formatNumber('en', hearts)} ${plural('en', hearts, { one: 'heart', other: 'hearts' })} less`,
     fightLabel: 'The hero faces a blue slime in the forest clearing.',

@@ -162,7 +162,12 @@ game builds on them, and everything must stay smooth on a phone.
   together (2, 3 or 4 each). Halfway, down to half its lives (`rageAt`), the
   monster grows enraged, as the owner asked for a change midway: a cross face (the pack's
   `Slime3`, in the scene and the portrait), an angry sign and a roar, and it strikes back at
-  once and then every other turn. No death: out of hearts, the hero rests and
+  once and then every other turn, and stays so. A berry bush stands behind it (`bushAt`, two
+  berries, one growing back every fourth turn), the owner's own example of a monster that
+  weighs its moves (utility scoring, `appetite` in `battle.ts`): wounded, it may turn to the
+  bush the turn before, the more likely the more it is hurt, never twice in a row; a right
+  answer strikes it first, any other lets it eat a life back ("+1") but costs no hearts, and
+  the stakes show it. No death: out of hearts, the hero rests and
   tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as their
   name, small, over their hero, said in full to screen readers ("Nu er det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
   has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins

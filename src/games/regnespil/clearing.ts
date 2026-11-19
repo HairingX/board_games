@@ -11,7 +11,7 @@ import star from '../../../assets/ninja-adventure/Ui/Emote/emote29.png';
 import coin from '../../../assets/ninja-adventure/Items/Treasure/Coin2.png';
 import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetBlue.png';
 import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.png';
-import type { Act, Effect, Scene } from '../../lib/scene/scene';
+import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
 import { forest, forestSheets } from './forest';
 import { heroSheets, type Hero } from './heroes';
 
@@ -71,6 +71,12 @@ export function benchAt(count: number): readonly { x: number; y: number }[] {
  * the hero to where their stroke reaches the slime.
  */
 export const reach = { slime: slimeAt.x - heroAt.x - 12, hero: slimeAt.x - heroAt.x - 16 };
+
+/** Where the berry bush stands, just behind the slime, so it can turn and eat. */
+export const bushAt = { x: 116, y: 62 };
+
+/** The berry bush with two berries, one, and none, in the nature tiles. */
+const bushes = [96, 80, 64].map((x) => ({ x, y: 224, width: 16, height: 16 }));
 
 /** How long the coins of a victory lie on the ground, in seconds, before they are gone. */
 export const coinsLie = 4;
@@ -132,10 +138,11 @@ export const coinDrop = (at: number, aside: number): Effect => ({
   arc: { dx: aside, height: 18 },
 });
 
-/** What one figure does: its acts, and a sign over its head. */
+/** What one figure does: its acts, a sign over its head, and which way it turns. */
 export interface Doing {
   acts?: readonly Act[];
   sign?: { sheet: Sign; at: number };
+  facing?: Facing;
 }
 
 /**
@@ -157,13 +164,17 @@ export interface Party {
 
 /**
  * The clearing with the heroes and a slime facing each other, as staged: the hero whose turn
- * it is in front, the others behind; the slime enraged or not.
+ * it is in front, the others behind; the slime enraged or not; and the berry bush with the
+ * berries it has.
  */
-export function clearing(staging: Staging, party: Party, enraged = false): Scene {
+export function clearing(staging: Staging, party: Party, enraged = false, berries = 2): Scene {
   const slimeSheet = enraged ? 'slimeRage' : 'slime';
   const places = benchAt(party.bench.length);
+  // The bush holds from none to two berries, each with a cut.
+  const berryBush = { sheet: 'nature', cut: bushes[berries] as Cut, ...bushAt };
   return {
     ...forest,
+    things: [...forest.things, berryBush],
     figures: [
       ...party.bench.map((one, index) => ({
         sheet: one.hero,

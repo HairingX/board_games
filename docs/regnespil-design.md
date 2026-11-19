@@ -135,8 +135,8 @@ a monster's phases (5.3); the engine generalises them.
   - _heavy strike_: two turns of wind-up, warned with "!"; hits for more.
   - _burrow_ (owner's example): digs down, can't be hit for a turn or two, pops up somewhere and
     hits one of the heroes.
-  - _eat berries_ (owner's example): walks to a berry bush on the stage and heals; the bush has
-    a few berries and grows them back every few rounds.
+  - _eat berries_ (owner's example, built for the slime): turns to a berry bush on the stage
+    and heals; the bush has a few berries and grows them back every few rounds.
   - _shield_: blocks strokes until a power stroke (combo) breaks it.
   - _fetch a weapon_ (owner's example): hides behind a tree and comes back with a spear, hitting
     harder from then on.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   answerFight,
+  bush,
   reachedHero,
   fullHealth,
   powerAfter,
@@ -12,9 +13,9 @@ import {
 import { monsterLives } from './swords';
 import type { Verdict } from './tasks';
 
-/** The fight after these answers, one after another, all with the sword. */
+/** The fight after these answers, one after another, all with the sword, the monster without whims. */
 const after = (fight: Fight, verdicts: readonly Verdict[], sword = 'jern' as const) =>
-  verdicts.reduce((now, verdict) => answerFight(now, verdict, sword), fight);
+  verdicts.reduce((now, verdict) => answerFight(now, verdict, sword, () => 0), fight);
 
 describe('a fight', () => {
   it('starts with five hearts, and the monster as tough as every sword together', () => {
@@ -28,6 +29,9 @@ describe('a fight', () => {
       rageAt: 2,
       enraged: false,
       combo: 0,
+      full: 5,
+      berries: bush.berries,
+      hungry: false,
     });
     expect(monsterLives(['træ'])).toBe(2);
     expect(monsterLives(['flamme', 'træ'])).toBe(6);
@@ -87,6 +91,42 @@ describe('a fight', () => {
       lives: 0,
       outcome: 'won',
     });
+  });
+
+  it('lets a wounded monster go to eat, the more likely the more it is hurt', () => {
+    const hurt = { ...startFight(4), lives: 3 };
+    expect(answerFight(hurt, 'close', 'jern', () => 0.99).hungry).toBe(false);
+    const wounded = { ...startFight(4), lives: 1, rageAt: 0 };
+    expect(answerFight(wounded, 'close', 'jern', () => 0).hungry).toBe(true);
+    const halfway = { ...startFight(4), lives: 2, rageAt: 0 };
+    expect(answerFight(halfway, 'close', 'jern', () => 0).hungry).toBe(false);
+    expect(answerFight(halfway, 'close', 'jern', () => 0.5).hungry).toBe(true);
+    expect(answerFight({ ...wounded, berries: 0 }, 'close', 'jern', () => 0).hungry).toBe(false);
+  });
+
+  it('lets a right answer strike a hungry monster before it eats, and any other let it eat', () => {
+    const hungry = { ...startFight(4), lives: 1, hungry: true, combo: 1 };
+    expect(answerFight(hungry, 'right', 'jern', () => 0)).toMatchObject({ outcome: 'won' });
+    const fed = answerFight(hungry, 'far', 'flamme', () => 0);
+    expect(fed).toMatchObject({ last: 'fed', lives: 2, berries: 1, health: 10, combo: 0 });
+    // Never twice in a row.
+    expect(fed.hungry).toBe(false);
+    const raging = { ...hungry, enraged: true, rageAt: 2 };
+    expect(answerFight({ ...raging, lives: 2 }, 'far', 'jern', () => 0)).toMatchObject({
+      lives: 3,
+      enraged: true,
+      threat: true,
+    });
+    const full = answerFight({ ...hungry, lives: 4 }, 'close', 'jern', () => 0);
+    expect(full).toMatchObject({ last: 'fed', lives: 4, combo: 1 });
+  });
+
+  it('grows the bush’s berries back every few turns, up to what it holds', () => {
+    const bare = { ...startFight(9), berries: 0, round: bush.regrowEvery - 1 };
+    expect(answerFight(bare, 'close', 'jern', () => 0).berries).toBe(1);
+    const full = { ...bare, berries: bush.berries };
+    expect(answerFight(full, 'close', 'jern', () => 0).berries).toBe(bush.berries);
+    expect(answerFight({ ...bare, round: 0 }, 'close', 'jern', () => 0).berries).toBe(0);
   });
 
   it('lets a right answer dodge the blow, and any other take what far off costs', () => {

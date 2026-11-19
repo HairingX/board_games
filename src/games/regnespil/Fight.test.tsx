@@ -261,6 +261,9 @@ describe('Fight', () => {
         rageAt: 1,
         enraged: true,
         combo: 1,
+        full: 3,
+        berries: 2,
+        hungry: false,
       },
       lives: 3,
       activeId: 'mille',
@@ -353,6 +356,26 @@ describe('Fight', () => {
     await pause(reveal);
     await pause(right);
     expect(bar()).toHaveStyle({ '--walk-time': '27s' });
+  });
+
+  it('lets a wounded slime go to eat: a wrong answer lets it, costing no hearts', async () => {
+    const { container, babbled } = open();
+    for (let turn = 0; turn < 3; turn++) {
+      await choose('2');
+      await pause(right);
+    }
+    // Struck twice and dodged once, it turns to the bush.
+    expect(babbled()).toContainEqual([voices.slime, 3]);
+    expect(
+      screen.getByLabelText('Forkert: slimet spiser bær og får et liv tilbage'),
+    ).toBeInTheDocument();
+    await choose('1');
+    expect(lives(2)).toBeInTheDocument();
+    expect(hearts('5')).toBeInTheDocument();
+    expect(container.querySelector('.rs-damage')).toHaveTextContent('+1');
+    expect(container.querySelector('.rs-damage')).toHaveAttribute('data-heal', 'true');
+    await pause(wrong);
+    expect(screen.getByText('Forsvar')).toBeInTheDocument();
   });
 
   it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {
