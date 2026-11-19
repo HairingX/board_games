@@ -22,16 +22,18 @@ afterEach(() => {
 function open() {
   const fake = fakeSoundBrowser();
   const onBack = vi.fn();
+  const sound = new SoundEngine(fake.browser);
+  const effect = vi.spyOn(sound, 'effect');
   render(
     <BattleLab
       onBack={onBack}
       random={() => 0}
-      sound={new SoundEngine(fake.browser)}
+      sound={sound}
       now={() => 50}
       load={() => new Promise(() => undefined)}
     />,
   );
-  const played = () => fake.fetch.mock.calls.map(([url]) => url);
+  const played = () => effect.mock.calls.map(([url]) => url);
   return { ...fake, onBack, played };
 }
 
@@ -45,6 +47,11 @@ async function pause(seconds: number): Promise<void> {
 const { right, wrong } = motionTokens.fightPause;
 
 describe('BattleLab', () => {
+  it('makes its sounds ready when it opens', () => {
+    const { fetch } = open();
+    expect(fetch).toHaveBeenCalledTimes(5);
+  });
+
   it('strikes the slime on a right answer, and asks the next sum after a pause', async () => {
     const { played, onBack } = open();
     expect(screen.getByRole('img', { name: 'Heltens hjerter: 3' })).toBeInTheDocument();

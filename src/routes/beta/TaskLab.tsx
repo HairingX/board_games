@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import coin from '../../../assets/ninja-adventure/Audio/Sounds/Bonus/Coin.m4a';
 import { LevelPicker } from '../../games/regnespil/LevelPicker';
 import { type Level } from '../../games/regnespil/levels';
@@ -24,6 +24,11 @@ interface Props {
  */
 export function TaskLab({ onBack, random = Math.random, sound = defaultSound }: Props) {
   const lab = useMessages(labText);
+
+  // The sounds are made ready when the page opens, so the first one plays at once.
+  useEffect(() => {
+    void sound.prepareEffects([coin]);
+  }, [sound]);
   const t = useMessages(text);
   const [level, setLevel] = useState<Level>(1);
   const [task, setTask] = useState<Task>(() => makeTask(1, random));

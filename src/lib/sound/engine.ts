@@ -70,6 +70,16 @@ export class SoundEngine {
 
   /** Starts the sound, or wakes it after the phone paused it; call it from a tap. */
   unlock(): Buses {
+    const buses = this.prepare();
+    if (buses.context.state !== 'running') void buses.context.resume();
+    return buses;
+  }
+
+  /**
+   * The sound's parts, made if they are not yet, without starting the sound: a browser lets
+   * them be made, and sounds be decoded, before any tap, only not be heard.
+   */
+  private prepare(): Buses {
     if (!this.buses) {
       const context = this.browser.makeContext();
       const music = context.createGain();
@@ -80,8 +90,16 @@ export class SoundEngine {
       effects.connect(context.destination);
       this.buses = { context, music, effects };
     }
-    if (this.buses.context.state !== 'running') void this.buses.context.resume();
     return this.buses;
+  }
+
+  /**
+   * Fetches and decodes sounds before they are needed, so the first time one plays it does so
+   * at once, not after the moment it takes to fetch and decode it. Call it when a screen with
+   * sounds opens; a sound that fails is tried again when it plays.
+   */
+  async prepareEffects(urls: readonly string[]): Promise<void> {
+    await Promise.all(urls.map((url) => this.load(url).catch(() => undefined)));
   }
 
   /** Turns music and effects on or off, gently, and remembers it for what plays next. */
@@ -184,7 +202,7 @@ export class SoundEngine {
   private load(url: string): Promise<AudioBuffer> {
     const known = this.sounds.get(url);
     if (known) return known;
-    const { context } = this.unlock();
+    const { context } = this.prepare();
     const loading = this.browser
       .fetch(url)
       .then((response) => response.arrayBuffer())

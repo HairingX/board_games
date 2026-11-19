@@ -118,6 +118,17 @@ describe('SoundEngine', () => {
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
   });
 
+  it('makes sounds ready beforehand without starting the sound, so they play at once', async () => {
+    const { sound, context, fetch } = engine();
+    fetch.mockRejectedValueOnce(new Error('offline'));
+    await sound.prepareEffects(['/hit.m4a', '/coin.m4a']);
+    expect(context.resume).not.toHaveBeenCalled();
+    await sound.effect('/coin.m4a');
+    expect(fetch).toHaveBeenCalledTimes(2);
+    await sound.effect('/hit.m4a');
+    expect(fetch).toHaveBeenCalledTimes(3);
+  });
+
   it('plays music read into memory beforehand, reading each piece once', async () => {
     const { sound, audios, fetch } = engine();
     const first = sound.prepareMusic(['/forest.m4a']);

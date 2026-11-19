@@ -74,6 +74,11 @@ export function BattleLab({
   load,
 }: Props) {
   const lab = useMessages(labText);
+
+  // The sounds are made ready when the page opens, so the first one plays at once.
+  useEffect(() => {
+    void sound.prepareEffects([slashSound, hit, clang, bump, win]);
+  }, [sound]);
   const [level, setLevel] = useState<Level>(1);
   const [task, setTask] = useState<Task>(() => makeTask(1, random));
   const [chosen, setChosen] = useState<number>();
