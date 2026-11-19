@@ -183,6 +183,41 @@ const berryTroll: MonsterDefinition = {
 };
 ```
 
+### 5.7 Generated monsters and bosses
+
+**Proposed (owner's idea).** Monsters and bosses are not all written by hand: the game puts
+them together from pools, so two runs never feel the same.
+
+- **Families, written by hand.** A family is a kind of creature: slime, wolf, troll, bat, frog,
+  dragon and so on. It says what the creature _is_, as tags: its body (`small`, `big`, `giant`),
+  how it moves (`hops`, `runs`, `flies`, `swims`, `burrows`), what it is made of or carries
+  (`slime`, `fire`, `ice`, `water`, `plant`, `stone`, `metal`), its sprite, its voice, and
+  which biomes it lives in. Families are few (perhaps thirty) and carefully made.
+- **Moves, phases and quirks, from pools.** Every move, phase and special behaviour in the
+  library says what it needs, also as tags: _lava spit_ needs `fire`; _dive from the sky_ needs
+  `flies`; _burrow_ needs `burrows`; _eat berries_ needs a berry bush on the stage; _grow_ needs
+  `slime`. A generated monster may only take what its family's tags allow, so a slime never
+  spits lava and a wolf never flies, as the owner asked. Some tags can be given by the biome
+  (a slime in the lava world is a `fire` slime, and then may spit lava), which multiplies the
+  variety without nonsense.
+- **A budget, so it is fair.** Each move and phase costs points by how hard it makes the
+  fight; a common monster has a small budget, a side boss more, a biome's end boss most, and
+  the world tier raises it. The generator spends the budget, so every generated monster is about
+  as hard as its place in the run should be, never a surprise wall for a small child.
+- **Rules every generated monster must pass**: at least one moment that changes the fight
+  (two or three for a boss), every attack announced before it lands, at least one weakness the
+  children can see, and nothing it does may make a child lose more than the sword allows.
+- **Names from two pools** (owner's example: "Slimy Bob", "Hulking Wolf"), per language and
+  per family, silly and kind, never frightening: a first part that describes (_Slimede_,
+  _Brølende_, _Søvnige_, _Pjuskede_, _Glubske_) and a second that names (_Bob_, _Bertil_,
+  _Ulven_, _Klatten_). Alliteration is preferred when it can be had (_Brølende Bjørn_, _Sure
+  Snegl_), as children like the sound. A name is made in each language from the same seed, so
+  the same monster has a fitting name in Danish and English rather than a translation.
+- **One seed per run.** Everything is drawn from a seeded random source, so a run can be
+  reopened the same, a bug can be replayed, and a fun run could later be shared.
+- **Handmade where it matters.** Story bosses (chapter ends, the story's own characters) are
+  written by hand and only varied a little; the generator fills the roads between them.
+
 ## 6. Biomes and the cast
 
 **Proposed.** About ten biomes, each with a rule of its own, its music and its monsters. What the
@@ -306,4 +341,7 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   squeals when struck, to show it is cross; the hero cries out when knocked over.
 - Game information belongs in the scene, not in the top bar, so no one has to look up while
   playing; the top bar should be interesting, not informative.
+- Monsters, bosses, their moves, behaviour and specials generated from big pools, so two runs
+  never feel alike; names put together from two pools ("Slimy Bob", "Hulking Wolf"); limits by
+  kind, so a slime does not spit lava and a wolf does not fly.
 - Children's text larger and easier to read.
