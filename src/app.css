@@ -23,6 +23,10 @@
   --text: light-dark(#2b2420, #f1ebe1);
   --text-muted: light-dark(#6f655b, #a79e93);
   --success: #5f8a4e;
+  /* How an answer went, never by colour alone: right, close to right, and far off. */
+  --right: var(--success);
+  --close: light-dark(#a8740f, #e0b45c);
+  --far: light-dark(#a8402e, #e07a5f);
 
   /* The colours a profile can have (profileColors in src/family/family.ts). */
   --profile-plum: #6b3f63;

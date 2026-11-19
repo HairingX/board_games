@@ -17,3 +17,110 @@
   gap: var(--space-2);
   margin-top: var(--space-3);
 }
+
+.lab-levels {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-control);
+}
+
+.lab-levels button {
+  min-height: var(--touch);
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.lab-levels button[aria-checked='true'] {
+  color: var(--bg);
+  background: var(--text);
+}
+
+.lab-grade {
+  margin: var(--space-2) 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* A task: the sum large, three answers to tap, and how it went. */
+.task {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.sum {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 13vw, 3.6rem);
+  font-weight: 600;
+  text-align: center;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.task-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.task-choice {
+  min-height: 84px;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-variant-numeric: lining-nums tabular-nums;
+  transition:
+    transform var(--duration-press) var(--ease-spring),
+    background var(--duration-press) ease;
+}
+
+.task-choice:active:not(:disabled) {
+  transform: scale(var(--press-scale));
+}
+
+.task-choice:disabled {
+  cursor: default;
+}
+
+.task-choice[data-state='right'] {
+  color: var(--paper);
+  background: var(--right);
+  border-color: var(--right);
+}
+
+.task-choice[data-state='close'] {
+  color: var(--paper);
+  background: var(--close);
+  border-color: var(--close);
+}
+
+.task-choice[data-state='far'] {
+  color: var(--paper);
+  background: var(--far);
+  border-color: var(--far);
+}
+
+.task-choice[data-state='other'] {
+  opacity: 0.4;
+}
+
+.task-verdict {
+  min-height: 1.5em;
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+}

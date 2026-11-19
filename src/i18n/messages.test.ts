@@ -4,6 +4,7 @@ import { familyText } from '../family/text';
 import { about as parkortAbout } from '../games/parkort/about';
 import { text as parkortText } from '../games/parkort/text';
 import { games } from '../lib/games';
+import { text as regnespilText } from '../games/regnespil/text';
 import { appText } from '../routes/text';
 import { common } from '../ui/text';
 import { locales, type Translations } from './locales';
@@ -14,6 +15,7 @@ const all: Record<string, Translations<object>> = {
   appText,
   parkortText,
   parkortAbout,
+  regnespilText,
   ...Object.fromEntries(games.map((game) => [game.id, game.about])),
 };
 
@@ -77,6 +79,12 @@ describe('the messages that are made from values', () => {
     expect(t.newVersion('Småspil')).toBe('There is a new version of Småspil.');
     expect(t.switchFrom('Mille')).toBe('Mille, switch player');
     expect(t.players('Mille and Oscar')).toBe('Players: Mille and Oscar');
+    const r = regnespilText.en;
+    expect(r.grade(0, 1)).toBe('about age 6–8');
+    expect(r.close('12')).toBe('Close. The right answer is 12.');
+    expect(r.far('12')).toBe('The right answer is 12.');
+    expect(r.tally(3, 4)).toBe('3 of 4 right');
+    expect(regnespilText.da.grade(4, 4)).toBe('ca. 4. klasse');
     expect(t.about('Småspil')).toBe('About Småspil');
     expect(t.offline.unknown('Småspil')).toBe(
       'Småspil works offline once the app has been opened.',

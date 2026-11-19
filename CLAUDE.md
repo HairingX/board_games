@@ -102,6 +102,30 @@ game builds on them, and everything must stay smooth on a phone.
   saved: the game always reopens at the furthest card the couple reached. Changing the
   categories or order starts looking back afresh.
 
+## Regnespil
+
+- The owner's design, from the start: the children cannot read yet, so the math drives a
+  roguelite adventure told in pictures and sound. Fights are won by answering sums, with heart
+  lives. A sword chosen at the start sets how forgiving it is (an easy sword allows many
+  mistakes). Side monsters give helper crystals, one chosen of three; bosses end a stretch;
+  chests hold three unique treasures to choose from. A branching map with random routes
+  (forest, water, sky, lightning), some needing gear such as wings. Mishaps, such as a thief;
+  shops and coins; four or five upgrade slots (such as an extra hit each round, or only two
+  answers to choose from as a diamond upgrade). Modes: a mission, and a lightning mode on time.
+- Time is optional and off by default. Answers show at once as right (green), close (yellow)
+  or far off (red), always with the right answer. Siblings play together, not against each
+  other.
+- Levels 1–8 are built (`src/games/regnespil/levels.ts`, from the table in
+  `docs/regnespil-research.md`); 9–12, with fractions, decimals, negatives and powers, come
+  later. `tasks.ts` makes each task from its level's kinds of sums, mixed, with two wrong
+  answers from typical mistakes (off by one or ten, the smaller digit taken from the larger,
+  a neighbour in the table, the wrong operation, left to right instead of the order of
+  operations, brackets forgotten). `judge` calls a wrong answer close within 2 or a tenth.
+- Sums are written as each language does (`text.ts`: `·` and `:` in Danish, `×` and `÷` in
+  English), with lining figures, which children read more easily than the serif's old-style
+  ones, and read in words to screen readers (`SumView.tsx`).
+- Beta: `src/routes/beta/TaskLab.tsx` tries the tasks level by level.
+
 ## Languages
 
 - The app speaks Danish and English; more languages come later. `src/i18n/locales.ts` lists them.

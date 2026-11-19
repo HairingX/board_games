@@ -21,6 +21,9 @@ const da = {
   },
   characters: { hero: 'Helten', troll: 'Trolden', fairy: 'Feen' },
 
+  tasksTitle: 'Regnestykker',
+  tasksIntro:
+    'Regnespillets opgaver, niveau for niveau. De forkerte svar er typiske fejl, og svaret viser med det samme, om det var rigtigt, tæt på eller langt fra.',
   sceneTitle: 'Scene',
   sceneIntro:
     'Dukketeatrets første scene: en lysning i skoven med helten, der står og trækker vejret. Tegningerne er forstørret med et helt tal, så hver pixel står skarpt.',
@@ -49,6 +52,9 @@ export const labText: Translations<typeof da> = {
     },
     characters: { hero: 'The hero', troll: 'The troll', fairy: 'The fairy' },
 
+    tasksTitle: 'Sums',
+    tasksIntro:
+      'The math game’s tasks, level by level. The wrong answers are typical mistakes, and an answer shows at once whether it was right, close or far off.',
     sceneTitle: 'Scene',
     sceneIntro:
       'The puppet theatre’s first scene: a forest clearing with the hero standing and breathing. The drawings are enlarged by a whole number, so every pixel stays sharp.',

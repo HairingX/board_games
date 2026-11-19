@@ -71,6 +71,9 @@ describe('Settings', () => {
     expect(screen.getByRole('switch', { name: /^Beta/ })).not.toBeChecked();
     expect(screen.queryByRole('button', { name: /^Lyd/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('switch', { name: /^Beta/ }));
+    click(/^Regnestykker Testside/);
+    expect(await screen.findByRole('heading', { name: 'Regnestykker' })).toBeInTheDocument();
+    click('Tilbage');
     click(/^Scene Testside/);
     expect(await screen.findByRole('heading', { name: 'Scene' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /lysning i skoven/ })).toBeInTheDocument();
