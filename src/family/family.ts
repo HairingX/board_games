@@ -1,9 +1,17 @@
+import { faces } from './faces';
+
 /** Whether a profile is a grown-up, who may see every game, or a child, who sees their own. */
 export type Role = 'voksen' | 'barn';
 
 /** The colours a profile can have; each is a token in src/app.css named --profile-<colour>. */
 export const profileColors = ['plum', 'teal', 'terracotta', 'olive', 'ochre', 'slate'] as const;
 export type ProfileColor = (typeof profileColors)[number];
+
+/**
+ * What a profile shows instead of its initial: one of the app's faces, by its id, or a photo
+ * taken from the phone, cut square and small, as a data URL kept only on the phone.
+ */
+export type Picture = { kind: 'face'; face: string } | { kind: 'photo'; src: string };
 
 /** A four-digit code, kept only as a salted SHA-256 hash, both in hexadecimal. */
 export interface PinHash {
@@ -16,6 +24,8 @@ export interface Profile {
   name: string;
   role: Role;
   color: ProfileColor;
+  /** Shown instead of the initial; the initial when there is none. */
+  picture?: Picture;
 }
 
 /** What is chosen about a profile in its form. */
@@ -115,13 +125,27 @@ export function reviveFamily(value: unknown): Family {
 
 function reviveProfile(value: unknown): Profile | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
-  const { id, name, role, color } = value as Record<string, unknown>;
+  const { id, name, role, color, picture } = value as Record<string, unknown>;
   const valid =
     typeof id === 'string' &&
     typeof name === 'string' &&
     (role === 'voksen' || role === 'barn') &&
     profileColors.includes(color as ProfileColor);
-  return valid ? { id, name, role, color: color as ProfileColor } : undefined;
+  if (!valid) return undefined;
+  const profile: Profile = { id, name, role, color: color as ProfileColor };
+  return isPicture(picture) ? { ...profile, picture } : profile;
+}
+
+/** A picture the app can still show: a face it has, or a photo from the phone. */
+function isPicture(value: unknown): value is Picture {
+  if (typeof value !== 'object' || value === null) return false;
+  const picture = value as Record<string, unknown>;
+  return (
+    (picture.kind === 'face' && typeof picture.face === 'string' && faces.has(picture.face)) ||
+    (picture.kind === 'photo' &&
+      typeof picture.src === 'string' &&
+      picture.src.startsWith('data:image/'))
+  );
 }
 
 function isPinHash(value: unknown): value is PinHash {

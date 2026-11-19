@@ -141,7 +141,7 @@ function Person({
         start={profile}
         chooseRole={false}
         onSave={(values) => {
-          onChange(updateProfile(family, { ...profile, ...values }));
+          onChange(updateProfile(family, { id: profile.id, ...values }));
           onBack();
         }}
         onCancel={onBack}

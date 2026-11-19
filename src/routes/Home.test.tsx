@@ -91,8 +91,8 @@ describe('Home', () => {
     const { rerender } = render(
       <Home games={[]} player={far} onSwitch={onSwitch} onSettings={onSettings} />,
     );
-    expect(screen.getByText('Hej, Far')).toBeInTheDocument();
-    screen.getByRole('button', { name: 'Skift spiller' }).click();
+    expect(screen.getByText('Far')).toBeInTheDocument();
+    screen.getByRole('button', { name: 'Far, skift spiller' }).click();
     expect(onSwitch).toHaveBeenCalledOnce();
     screen.getByRole('button', { name: 'Indstillinger' }).click();
     expect(onSettings).toHaveBeenCalledOnce();
@@ -116,7 +116,7 @@ describe('Home', () => {
         <Home games={games} player={far} onSwitch={() => undefined} onSettings={() => undefined} />
       </I18nProvider>,
     );
-    expect(await screen.findByText('Hi, Far')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Far, switch player' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Parkort/ })).toHaveTextContent('In Danish');
     expect(screen.getByText('Sum Quest')).toBeInTheDocument();
     expect(screen.queryByText('På dansk')).not.toBeInTheDocument();

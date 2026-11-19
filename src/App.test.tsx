@@ -53,7 +53,7 @@ async function startAs(name: string, games?: readonly GameInfo[]): Promise<void>
   await seedFamily({ profiles: [far, mor, mille] });
   render(games ? <App games={games} /> : <App />);
   await playAs(name);
-  await screen.findByText('Virker uden internet');
+  await screen.findByRole('button', { name: `${name}, skift spiller` });
 }
 
 describe('App', () => {
@@ -61,7 +61,7 @@ describe('App', () => {
     await startAs('Far');
     expect(screen.getByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Parkort/ })).toBeInTheDocument();
-    expect(screen.getByText('Hej, Far')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Far, skift spiller' })).toBeInTheDocument();
   });
 
   it('shows a child only the games for children and everyone, and goes back to choose', async () => {
@@ -74,7 +74,7 @@ describe('App', () => {
     expect(screen.getByText('Det spil findes ikke.')).toBeInTheDocument();
 
     goTo('#/');
-    click('Skift spiller');
+    click('Mille, skift spiller');
     expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe('App', () => {
     fireEvent.change(screen.getByLabelText('Sprog'), { target: { value: 'en' } });
     expect(await screen.findByRole('heading', { name: 'Who’s playing?' })).toBeInTheDocument();
     await playAs('Mille');
-    expect(screen.getByText('Hi, Mille')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mille, switch player' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('en');
   });
 
@@ -118,7 +118,7 @@ describe('App', () => {
     click('Tilbage');
     await screen.findByRole('heading', { name: 'Indstillinger' });
     click('Tilbage');
-    fireEvent.click(await screen.findByRole('button', { name: 'Skift spiller' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Far, skift spiller' }));
     await playAs('Far');
     expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
   });
@@ -247,7 +247,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(window.location.hash).toBe('#/');
     });
-    expect(screen.getByText('Hej, Mille')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mille, skift spiller' })).toBeInTheDocument();
   });
 });
 
@@ -262,7 +262,7 @@ describe('App, opened again', () => {
   it('opens on the start screen, and continues where the player was', async () => {
     await reopen({ player: 'mille', locked: false, place: '#/spil/regnespil', at: 0 });
     expect(await screen.findByRole('heading', { name: 'Småspil' })).toBeInTheDocument();
-    expect(screen.getByText('Hej, Mille')).toBeInTheDocument();
+    expect(screen.getByText('Mille')).toBeInTheDocument();
     click('Fortsæt');
     await waitFor(() => {
       expect(window.location.hash).toBe('#/spil/regnespil');
@@ -276,7 +276,7 @@ describe('App, opened again', () => {
     expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
     click('Annullér');
     await playAs('Mille');
-    expect(await screen.findByText('Virker uden internet')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Mille, skift spiller' })).toBeInTheDocument();
     expect(window.location.hash).toBe('#/');
   });
 
@@ -300,7 +300,7 @@ describe('App, opened again', () => {
 
   it('notes when the app was last used each time it is left', async () => {
     await reopen({ player: 'mor', locked: true, place: '#/', at: Date.now() - 60_000 });
-    await screen.findByText('Hej, Mor');
+    await screen.findByText('Mor');
     // React runs effects after it shows a screen; let them run before the app is left.
     await act(() => Promise.resolve());
     const before = Date.now();
@@ -315,7 +315,7 @@ describe('App, opened again', () => {
 
   it('forgets who played when they switch', async () => {
     await reopen({ player: 'mille', locked: false, place: '#/', at: 0 }, '#/');
-    fireEvent.click(await screen.findByRole('button', { name: 'Skift spiller' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Mille, skift spiller' }));
     expect(await screen.findByRole('heading', { name: 'Hvem spiller?' })).toBeInTheDocument();
     await waitFor(async () => {
       expect(await saves.read(rememberedSaveKey)).toMatchObject({ player: null });

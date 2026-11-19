@@ -6,7 +6,6 @@ import { useLocale, useMessages } from '../i18n/I18n';
 import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
-import { common } from '../ui/text';
 import { appText } from './text';
 import { UpdateBanner } from './UpdateBanner';
 import './Home.css';
@@ -29,14 +28,17 @@ interface Props {
  */
 export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
   const t = useMessages(appText);
-  const { hello } = useMessages(common);
   return (
     <>
       <div className="player">
-        <Avatar profile={player} size="small" />
-        <span className="player-name">{hello(player.name)}</span>
-        <button type="button" className="btn btn-quiet" onClick={onSwitch}>
-          {t.switchPlayer}
+        <button
+          type="button"
+          className="player-switch"
+          aria-label={t.switchFrom(player.name)}
+          onClick={onSwitch}
+        >
+          <Avatar profile={player} size="small" />
+          <span className="player-name">{player.name}</span>
         </button>
         {player.role === 'voksen' && (
           <button
@@ -51,10 +53,6 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
       </div>
       {onUpdate && <UpdateBanner onUpdate={onUpdate} />}
       <header className="home-header">
-        <span className="badge">
-          <span className="badge-dot" aria-hidden="true" />
-          {t.offline}
-        </span>
         <h1 className="home-title">{appMeta.name}</h1>
         <p>{t.tagline}</p>
       </header>

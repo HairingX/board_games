@@ -1,3 +1,4 @@
+import { appMeta } from '../appMeta';
 import { AdultLock } from '../family/AdultLock';
 import type { Family, Profile } from '../family/family';
 import { ManageFamily } from '../family/ManageFamily';
@@ -99,6 +100,11 @@ export function Settings({ family, current, onChange, page, go, onBack }: Props)
         </li>
       </ul>
       <SavedGames />
+      <section className="panel settings-about" aria-labelledby="about-title">
+        <h2 id="about-title">{t.about(appMeta.name)}</h2>
+        <p>{t.offlineNote(appMeta.name)}</p>
+        <p>{t.credits}</p>
+      </section>
       <div className="settings-beta">
         <Switch label={t.beta} note={t.betaNote} on={beta === true} onChange={setBeta} />
         {beta && (

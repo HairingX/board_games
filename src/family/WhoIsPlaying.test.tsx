@@ -81,7 +81,7 @@ describe('WhoIsPlaying', () => {
     expect(screen.getByRole('button', { name: /^Far/ })).toHaveTextContent('Låst');
     expect(screen.getByRole('button', { name: /^Mille/ })).not.toHaveTextContent('Låst');
     click(/^Far/);
-    expect(screen.getByRole('heading', { name: 'Hej, Far' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Far' })).toBeInTheDocument();
     expect(screen.getByText('Skriv voksenkoden.')).toBeInTheDocument();
     click('Annullér');
     click(/^Mille/);

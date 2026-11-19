@@ -1,7 +1,8 @@
 import { useId, useState } from 'react';
 import { useMessages } from '../i18n/I18n';
 import { common } from '../ui/text';
-import { profileColors, type ProfileValues, type Role } from './family';
+import { profileColors, type Picture, type ProfileValues, type Role } from './family';
+import { PicturePicker } from './PicturePicker';
 import { familyText } from './text';
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
   onCancel?: () => void;
 }
 
-/** A profile's name, whether it is a grown-up or a child, and its colour. */
+/** A profile's name, whether it is a grown-up or a child, its colour and its picture. */
 export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
   const t = useMessages(familyText);
   const { cancel } = useMessages(common);
@@ -21,6 +22,7 @@ export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
   const [name, setName] = useState(start.name);
   const [role, setRole] = useState<Role>(start.role);
   const [color, setColor] = useState(start.color);
+  const [picture, setPicture] = useState<Picture | undefined>(start.picture);
   const trimmed = name.trim();
 
   return (
@@ -28,7 +30,7 @@ export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
       className="profile-form"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave({ name: trimmed, role, color });
+        onSave({ name: trimmed, role, color, ...(picture ? { picture } : {}) });
       }}
     >
       <label htmlFor={nameId}>{t.name}</label>
@@ -77,6 +79,8 @@ export function ProfileForm({ start, chooseRole, onSave, onCancel }: Props) {
           />
         ))}
       </div>
+
+      <PicturePicker name={name} color={color} picture={picture} onChange={setPicture} />
 
       <div className="family-actions">
         {onCancel && (

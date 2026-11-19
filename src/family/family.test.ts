@@ -12,6 +12,7 @@ import {
   setLock,
   updateProfile,
 } from './family';
+import { faces } from './faces';
 
 const pin = { salt: 's', hash: 'h' };
 const other = { salt: 't', hash: 'i' };
@@ -114,5 +115,33 @@ describe('reviveFamily', () => {
     { profiles: [], lock: { salt: 's', hash: 1 } },
   ])('starts a new family from %j when it is not one', (value) => {
     expect(reviveFamily(value)).toEqual(newFamily());
+  });
+
+  it('keeps a picture the app can still show, and leaves out any other', () => {
+    const [face = ''] = [...faces.keys()];
+    const photo = { kind: 'photo', src: 'data:image/jpeg;base64,AAA' } as const;
+    const saved = {
+      profiles: [
+        { ...far, picture: { kind: 'face', face } },
+        { ...mor, picture: photo },
+        { ...mille, picture: { kind: 'face', face: 'Gone' } },
+      ],
+      lock: null,
+    };
+    expect(reviveFamily(saved).profiles).toEqual([
+      { ...far, picture: { kind: 'face', face } },
+      { ...mor, picture: photo },
+      mille,
+    ]);
+    for (const picture of [
+      null,
+      'face',
+      { kind: 'face', face: 1 },
+      { kind: 'photo', src: 'https://example.invalid/a.jpg' },
+      { kind: 'photo', src: 2 },
+      { kind: 'drawing' },
+    ]) {
+      expect(reviveFamily({ profiles: [{ ...far, picture }] }).profiles).toEqual([far]);
+    }
   });
 });

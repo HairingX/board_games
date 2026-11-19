@@ -23,7 +23,6 @@
   --text: light-dark(#2b2420, #f1ebe1);
   --text-muted: light-dark(#6f655b, #a79e93);
   --success: #5f8a4e;
-  --success-halo: rgb(95 138 78 / 22%);
 
   /* The colours a profile can have (profileColors in src/family/family.ts). */
   --profile-plum: #6b3f63;
@@ -121,10 +120,15 @@ body {
     calc(var(--safe-bottom) + var(--space-6));
 }
 
+/*
+ * The grain lies still over the screen. It is as tall as the screen at its largest, when the
+ * browser's bars have slid away, so no strip at the bottom is left without it while scrolling.
+ */
 body::before {
   content: '';
   position: fixed;
-  inset: 0;
+  inset: 0 0 auto;
+  height: 100lvh;
   z-index: -1;
   pointer-events: none;
   background: var(--grain);

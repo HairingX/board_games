@@ -9,6 +9,7 @@ const da = {
   noSuchPage: 'Den side findes ikke.',
 
   switchPlayer: 'Skift spiller',
+  switchFrom: (name: string) => `${name}, skift spiller`,
   continue: 'Fortsæt',
   settings: 'Indstillinger',
   beta: 'Beta',
@@ -16,7 +17,10 @@ const da = {
   testPage: 'Testside',
   newVersion: (app: string) => `Der er en ny version af ${app}.`,
   update: 'Opdatér',
-  offline: 'Virker uden internet',
+  about: (app: string) => `Om ${app}`,
+  offlineNote: (app: string) => `${app} virker uden internet, når appen har været åbnet én gang.`,
+  credits:
+    'Tegninger, musik og lyde fra Ninja Adventure af Pixel-boy og AAA, frigivet til alle (CC0).',
   tagline: 'Små spil til sofaen, middagsbordet og køreturen.',
   noGames: 'Spillene er på vej.',
   soon: 'Kommer snart',
@@ -51,6 +55,7 @@ export const appText: Translations<typeof da> = {
     noSuchPage: 'There is no such page.',
 
     switchPlayer: 'Switch player',
+    switchFrom: (name) => `${name}, switch player`,
     continue: 'Continue',
     settings: 'Settings',
     beta: 'Beta',
@@ -58,7 +63,10 @@ export const appText: Translations<typeof da> = {
     testPage: 'Test page',
     newVersion: (app) => `There is a new version of ${app}.`,
     update: 'Update',
-    offline: 'Works offline',
+    about: (app) => `About ${app}`,
+    offlineNote: (app) => `${app} works offline once the app has been opened.`,
+    credits:
+      'Drawings, music and sounds from Ninja Adventure by Pixel-boy and AAA, given to everyone (CC0).',
     tagline: 'Small games for the sofa, the dinner table and the car.',
     noGames: 'The games are on their way.',
     soon: 'Coming soon',

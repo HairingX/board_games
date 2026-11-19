@@ -5,7 +5,6 @@ import { WhoIsPlaying } from '../family/WhoIsPlaying';
 import { useMessages } from '../i18n/I18n';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { LanguageSelect } from '../ui/LanguageSelect';
-import { common } from '../ui/text';
 import { appText } from './text';
 import { UpdateBanner } from './UpdateBanner';
 import './Home.css';
@@ -25,7 +24,6 @@ interface Props {
  */
 export function Start({ games, onUpdate }: Props) {
   const t = useMessages(appText);
-  const { hello } = useMessages(common);
   const { current, leave, place } = useFamily();
 
   const header = (
@@ -55,7 +53,7 @@ export function Start({ games, onUpdate }: Props) {
       {header}
       <div className="start-continue">
         <Avatar profile={current} />
-        <p className="start-hello">{hello(current.name)}</p>
+        <p className="start-hello">{current.name}</p>
         <button
           type="button"
           className="btn btn-primary btn-block"

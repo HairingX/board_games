@@ -48,7 +48,6 @@ describe('the messages that are made from values', () => {
 
   it('fill in the values in Danish', () => {
     const t = { ...common.da, ...familyText.da, ...appText.da, ...parkortText.da };
-    expect(t.hello('Mille')).toBe('Hej, Mille');
     expect(t.countOf(1200, 1500)).toBe('1.200 af 1.500');
     expect(t.howMany(1, 1)).toBe('Vælg 1 spiller.');
     expect(t.howMany(2, 2)).toBe('Vælg 2 spillere.');
@@ -61,7 +60,6 @@ describe('the messages that are made from values', () => {
 
   it('fill in the values in English', () => {
     const t = { ...common.en, ...familyText.en, ...appText.en, ...parkortText.en };
-    expect(t.hello('Mille')).toBe('Hi, Mille');
     expect(t.countOf(1200, 1500)).toBe('1,200 of 1,500');
     expect(t.welcome('Småspil')).toBe('Welcome to Småspil');
     expect(t.pinTyped(2, 4)).toBe('2 of 4 digits');
@@ -77,6 +75,10 @@ describe('the messages that are made from values', () => {
     expect(t.howMany(1, 6)).toBe('Choose 1–6 players.');
 
     expect(t.newVersion('Småspil')).toBe('There is a new version of Småspil.');
+    expect(t.switchFrom('Mille')).toBe('Mille, switch player');
+    expect(t.about('Småspil')).toBe('About Småspil');
+    expect(t.offlineNote('Småspil')).toBe('Småspil works offline once the app has been opened.');
+    expect(t.face(3)).toBe('Face 3');
     expect(t.writtenIn('Danish')).toBe('In Danish');
     expect(t.inBrowser('Småspil')).toMatch(/^Your games are saved in the browser. Add Småspil/);
     expect(t.notBackup('Småspil')).toBe('The file is not a backup from Småspil.');

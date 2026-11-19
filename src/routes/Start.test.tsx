@@ -62,7 +62,7 @@ describe('Start', () => {
     await seedFamily({ profiles: [far], lock: await hashPin('1234') });
     await open();
     fireEvent.click(screen.getByRole('button', { name: /^Far/ }));
-    expect(screen.getByRole('heading', { name: 'Hej, Far' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Far' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Småspil' })).not.toBeInTheDocument();
   });
 });

@@ -49,6 +49,11 @@ const da = {
     slate: 'Skifer',
   } satisfies Record<ProfileColor, string>,
   save: 'Gem',
+  picture: 'Billede',
+  ownPhoto: 'Vælg dit eget billede',
+  yourPhoto: 'Dit eget billede',
+  initial: 'Forbogstav',
+  face: (number: number) => `Ansigt ${formatNumber('da', number)}`,
 
   family: 'Familien',
   people: (count: number) =>
@@ -120,6 +125,11 @@ export const familyText: Translations<typeof da> = {
       slate: 'Slate',
     },
     save: 'Save',
+    picture: 'Picture',
+    ownPhoto: 'Choose your own picture',
+    yourPhoto: 'Your own picture',
+    initial: 'Initial',
+    face: (number) => `Face ${formatNumber('en', number)}`,
 
     family: 'The family',
     people: (count) =>

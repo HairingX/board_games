@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { appMeta } from '../appMeta';
 import { useMessages } from '../i18n/I18n';
-import { common } from '../ui/text';
 import { Avatar } from './Avatar';
 import {
   addProfile,
@@ -37,7 +36,6 @@ const list: View = { name: 'list' };
  */
 export function WhoIsPlaying({ header }: { header?: ReactNode }) {
   const t = useMessages(familyText);
-  const { hello } = useMessages(common);
   const { family, save, choose } = useFamily();
   const [view, setView] = useState<View>(list);
   const back = () => {
@@ -54,7 +52,7 @@ export function WhoIsPlaying({ header }: { header?: ReactNode }) {
     case 'enter-lock':
       return (
         <PinPad
-          title={hello(view.profile.name)}
+          title={view.profile.name}
           text={t.enterLock}
           onEnter={async (pin) => {
             const right = await pinMatches(pin, view.lock);

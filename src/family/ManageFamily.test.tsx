@@ -1,10 +1,17 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
+import { act } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille, mor } from '../../tests/family';
 import type { SettingsPage } from '../lib/router';
 import type { Family } from './family';
+import { faces } from './faces';
 import { ManageFamily } from './ManageFamily';
+import { squarePhoto } from './photo';
+
+vi.mock('./photo', () => ({
+  squarePhoto: vi.fn(() => Promise.resolve('data:image/jpeg;base64,AAA')),
+}));
 
 const click = (name: string | RegExp) => {
   fireEvent.click(screen.getByRole('button', { name }));
@@ -137,5 +144,50 @@ describe('ManageFamily', () => {
   it('shows the list for a person who is no longer in the family', () => {
     renderWith([far], far, { name: 'person', id: 'mille' });
     expect(screen.getByRole('heading', { name: 'Familien' })).toBeInTheDocument();
+  });
+
+  it('gives a profile a face, an own photo, or its initial again', async () => {
+    const { changed, unmount } = renderWith([far, mille]);
+    open('Mille');
+    const [, second = ''] = [...faces.keys()];
+    fireEvent.click(screen.getByRole('radio', { name: 'Ansigt 2' }));
+    expect(screen.getByRole('radio', { name: 'Ansigt 2' })).toBeChecked();
+    click('Gem');
+    expect(changed()?.profiles[1]).toEqual({ ...mille, picture: { kind: 'face', face: second } });
+
+    open('Mille');
+    const input = screen.getByLabelText('Vælg dit eget billede');
+    click('Vælg dit eget billede');
+    fireEvent.change(input, { target: { files: [] } });
+    vi.mocked(squarePhoto).mockRejectedValueOnce(new Error('not a picture'));
+    fireEvent.change(input, { target: { files: [new File(['x'], 'kat.txt')] } });
+    await act(() => Promise.resolve());
+    expect(screen.queryByRole('radio', { name: 'Dit eget billede' })).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { files: [new File(['x'], 'mig.jpg')] } });
+    expect(await screen.findByRole('radio', { name: 'Dit eget billede' })).toBeChecked();
+    click('Gem');
+    expect(changed()?.profiles[1]?.picture).toEqual({
+      kind: 'photo',
+      src: 'data:image/jpeg;base64,AAA',
+    });
+    unmount();
+
+    const withPhoto = {
+      ...mille,
+      picture: { kind: 'photo', src: 'data:image/png;base64,B' } as const,
+    };
+    const next = renderWith([far, withPhoto]);
+    open('Mille');
+    expect(screen.getByRole('radio', { name: 'Dit eget billede' })).toBeChecked();
+    fireEvent.click(screen.getByRole('radio', { name: 'Forbogstav' }));
+    expect(screen.getByRole('radio', { name: 'Forbogstav' })).toHaveTextContent('M');
+    click('Gem');
+    expect(next.changed()?.profiles[1]).toEqual(mille);
+  });
+
+  it('shows a question mark for the initial until a name is written', () => {
+    renderWith([far]);
+    click('Tilføj en i familien');
+    expect(screen.getByRole('radio', { name: 'Forbogstav' })).toHaveTextContent('?');
   });
 });

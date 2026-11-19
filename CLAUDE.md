@@ -140,8 +140,13 @@ game builds on them, and everything must stay smooth on a phone.
   (30 minutes) after the app was last used, so a child opening it the next morning does not
   land on them. Choosing someone on the start screen goes home; "Skift spiller" forgets who
   played.
-- A profile is a name, a colour, and whether it is a grown-up or a child; profiles have no codes,
-  and anyone may choose anyone. The owner decided this: codes per person were a nuisance.
+- A profile is a name, a colour, whether it is a grown-up or a child, and a picture: its
+  initial, one of 30 faces from the Ninja Adventure pack (`src/family/faces.ts`, saved by
+  id), or a photo from the phone, cut to a small square (`src/family/photo.ts`) and kept only
+  on the phone. Profiles have no codes, and anyone may choose anyone. The owner decided this:
+  codes per person were a nuisance.
+- People are shown by name only, never with "Hej" in front: a greeting every time grows tiresome.
+  At the top of the home screen the picture and name are the button that switches player.
 - The grown-ups' lock (`src/family/AdultLock.tsx`) is off until a grown-up turns it on in the
   settings with one four-digit code, kept only as a salted hash. While it is on, the code is
   asked for before a grown-up is chosen on "Hvem spiller?"; children still switch freely.
@@ -151,8 +156,9 @@ game builds on them, and everything must stay smooth on a phone.
   (`audience` in `src/lib/games.tsx`: `voksne`, `børn` or `alle`); children see and open only
   games for children and everyone. Grown-ups open the settings (`src/routes/Settings.tsx`) with
   the cog on the home screen: the language, the family (`src/family/ManageFamily.tsx`, where
-  each person opens to change their name and colour, or be taken out), the grown-ups' lock, and
-  the saved games and backups. Children never see the settings.
+  each person opens to change their name, colour and picture, or be taken out), the grown-ups'
+  lock, the saved games and backups, "Om Småspil" (that it works offline, and the credits for
+  the art and sound), and beta. Children never see the settings.
 - Before a game, "Hvem er med?" (`src/family/ChoosePlayers.tsx`) chooses its players from the
   family, without codes, within the game's `players.min` and `players.max`; someone new can be
   added there, but a child can add only children, so no one gets a grown-up's profile that way.
@@ -256,7 +262,9 @@ gradients, glow or glass.
   tarot cards: an aubergine back with a brass double frame, rays and a medallion with the
   emblem of two linked rings, the same either way up; a paper face with a double frame, the
   category in small caps, the question in EB Garamond, and the card's number and level.
-- The grain is one small tiling image (`src/assets/grain.png`) laid over with soft light.
+- The grain is one small tiling image (`src/assets/grain.png`) laid over with soft light. It
+  lies still, as tall as the largest viewport (`100lvh`), so no strip is left without it at
+  the bottom when a phone's browser bars slide away.
 - Motion is springy and quick, and anything tapped gives way under the finger. Motion's
   settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
 - Large touch targets, no hover-only behaviour, and room for the phone's safe areas.
