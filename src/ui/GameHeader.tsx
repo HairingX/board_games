@@ -7,7 +7,7 @@ import { common } from './text';
 import './GameHeader.css';
 
 interface Props {
-  title: string;
+  title: ReactNode;
   /** Called by the back button; without it, the back button leads to the home screen. */
   onBack?: () => void;
   /** Shown at the right, such as the progress. */

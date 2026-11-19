@@ -33,6 +33,11 @@ export interface Players {
 /** A game's name and a line on what it is, in one language. */
 export interface GameAbout {
   title: string;
+  /**
+   * The start of the title set a little heavier, where the title joins two words that could be
+   * misread as one, such as "Par" in Parkort, which is otherwise read as parkour.
+   */
+  stress?: string;
   description: string;
 }
 

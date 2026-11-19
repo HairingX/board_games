@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { timeAgo } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { GameName } from '../../ui/GameName';
 import { common } from '../../ui/text';
 import { about } from './about';
 import { cards, categories, type CategoryId } from './cards';
@@ -29,7 +30,6 @@ export function Setup({ deck, onChange, onStart }: Props) {
   const locale = useLocale();
   const t = useMessages(text);
   const { cancel, start, countOf } = useMessages(common);
-  const { title } = useMessages(about);
   const [confirmRestart, setConfirmRestart] = useState(false);
   const [openedAt] = useState(Date.now);
   const { seen, later, total } = progress(deck, cards);
@@ -50,7 +50,7 @@ export function Setup({ deck, onChange, onStart }: Props) {
 
   return (
     <>
-      <GameHeader title={title} />
+      <GameHeader title={<GameName about={about} />} />
 
       <p className="pk-intro">{t.intro}</p>
 

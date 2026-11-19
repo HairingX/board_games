@@ -4,6 +4,7 @@ import { useWakeLock } from '../../lib/wakeLock';
 import { FlipCard, type CardMove } from '../../ui/FlipCard';
 import { useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { GameName } from '../../ui/GameName';
 import { common } from '../../ui/text';
 import { about } from './about';
 import { CardBack, CardFront } from './CardFaces';
@@ -35,7 +36,6 @@ interface Props {
 export function Play({ deck, onChange, onBack }: Props) {
   const t = useMessages(text);
   const { countOf } = useMessages(common);
-  const { title } = useMessages(about);
   const [move, setMove] = useState<CardMove>('next');
   /** How many cards back the couple is looking; 0 at the furthest card. */
   const [back, setBack] = useState(0);
@@ -55,7 +55,7 @@ export function Play({ deck, onChange, onBack }: Props) {
   if (!shown) {
     return (
       <>
-        <GameHeader title={title} onBack={onBack} />
+        <GameHeader title={<GameName about={about} />} onBack={onBack} />
         <section className="pk-done">
           <span className="pk-done-icon" aria-hidden="true">
             🎉
@@ -99,7 +99,7 @@ export function Play({ deck, onChange, onBack }: Props) {
   return (
     <div className="pk-play">
       <GameHeader
-        title={title}
+        title={<GameName about={about} />}
         onBack={onBack}
         aside={
           <span aria-label={`${countOf(seen, total)} ${t.talkedAbout(total)}`}>

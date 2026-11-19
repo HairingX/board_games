@@ -6,6 +6,7 @@ import { useLocale, useMessages } from '../i18n/I18n';
 import type { Profile } from '../family/family';
 import { gameTheme, type GameInfo } from '../lib/games';
 import { gameHref } from '../lib/router';
+import { GameName } from '../ui/GameName';
 import { appText } from './text';
 import { UpdateBanner } from './UpdateBanner';
 import './Home.css';
@@ -86,7 +87,7 @@ export function Home({ games, player, onSwitch, onSettings, onUpdate }: Props) {
 
 function TileContent({ game }: { game: GameInfo }) {
   const locale = useLocale();
-  const { title, description } = useMessages(game.about);
+  const { description } = useMessages(game.about);
   const { writtenIn } = useMessages(appText);
   return (
     <>
@@ -94,7 +95,9 @@ function TileContent({ game }: { game: GameInfo }) {
         {game.icon}
       </span>
       <span className="tile-text">
-        <strong>{title}</strong>
+        <strong>
+          <GameName about={game.about} />
+        </strong>
         <span>{description}</span>
         {!game.languages.includes(locale) && (
           <span className="tile-language">

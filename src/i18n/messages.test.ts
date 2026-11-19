@@ -101,3 +101,15 @@ describe('the messages that are made from values', () => {
     );
   });
 });
+
+describe('the games’ names', () => {
+  it.each(games.map((game) => [game.id, game] as const))(
+    '%s stresses only the start of its own name',
+    (_id, game) => {
+      for (const locale of locales) {
+        const { title, stress } = game.about[locale];
+        if (stress) expect(title.startsWith(stress) && stress !== title, locale).toBe(true);
+      }
+    },
+  );
+});

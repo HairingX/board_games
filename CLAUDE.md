@@ -285,6 +285,8 @@ gradients, glow or glass.
   to blend with and shows as a grainy band.
 - Motion is springy and quick, and anything tapped gives way under the finger. Motion's
   settings are in `src/ui/motion.ts`. `prefers-reduced-motion` turns it off.
+- A game's name that joins two words is shown with the first a little heavier (`stress` in its
+  `about`, drawn by `src/ui/GameName.tsx`): "**Par**kort", so it is not read as parkour.
 - Every screen of a game shows the game's icon in its header, and the players' pictures small
   and overlapping beside it (`src/ui/GameFrame.tsx`, given by the app around the game), so it
   is always clear which game is open and whose it is, even when the phone is picked up later.

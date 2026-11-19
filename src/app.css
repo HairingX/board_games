@@ -255,6 +255,15 @@ a {
   width: 100%;
 }
 
+/* A game's name joining two words: the first a little heavier, so they read apart. */
+.game-name-stress {
+  font-weight: 750;
+}
+
+.game-name-rest {
+  font-weight: 450;
+}
+
 /* A section of the home screen for grown-ups, such as the language or the saved games. */
 .panel {
   margin-top: var(--space-8);

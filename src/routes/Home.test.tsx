@@ -104,9 +104,10 @@ describe('Home', () => {
     render(
       <Home games={games} player={far} onSwitch={() => undefined} onSettings={() => undefined} />,
     );
-    for (const game of games) {
-      expect(screen.getByText(game.about.da.title)).toBeInTheDocument();
-    }
+    const names = [...document.querySelectorAll('.tile-text strong')].map(
+      (name) => name.textContent,
+    );
+    expect(names).toEqual(games.map((game) => game.about.da.title));
   });
 
   it('says which games are written in another language than the app speaks', async () => {
