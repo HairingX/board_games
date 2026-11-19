@@ -1,5 +1,5 @@
 import type { Profile } from '../../family/family';
-import { fullHealth, type Fight } from './battle';
+import { fullHealth, rageAt, type Fight } from './battle';
 import type { Task } from './tasks';
 
 /*
@@ -27,6 +27,9 @@ export function fightSaveKey(saveKey: string, players: readonly Profile[]): stri
     .join('+')}`;
 }
 
+/** What a fight came to hold after it was first saved. */
+type Added = 'round' | 'threat' | 'rageAt' | 'enraged';
+
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
 const blows: readonly (string | undefined)[] = [
   'struck',
@@ -47,7 +50,8 @@ const isCount = (value: unknown, most: number): value is number =>
 /**
  * The fight as saved, or null when none is, or what is saved is not a fight this game knows. A
  * fight saved before turns to defend came is upgraded: its turns counted from none, and no
- * blow announced.
+ * blow announced; one saved before monsters grew enraged is not yet enraged, and grows so at
+ * half its lives.
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
@@ -62,6 +66,8 @@ export function reviveFight(saved: unknown): SavedFight | null {
     blows.includes(fight.last as string | undefined) &&
     (fight.round === undefined || isCount(fight.round, Number.MAX_SAFE_INTEGER)) &&
     (fight.threat === undefined || typeof fight.threat === 'boolean') &&
+    (fight.rageAt === undefined || isCount(fight.rageAt, lives)) &&
+    (fight.enraged === undefined || typeof fight.enraged === 'boolean') &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&
@@ -73,10 +79,16 @@ export function reviveFight(saved: unknown): SavedFight | null {
     recent.every((key) => typeof key === 'string');
   if (!known) return null;
   const kept = saved as unknown as Omit<SavedFight, 'fight'> & {
-    fight: Omit<Fight, 'round' | 'threat'> & Partial<Pick<Fight, 'round' | 'threat'>>;
+    fight: Omit<Fight, Added> & Partial<Pick<Fight, Added>>;
   };
   return {
     ...kept,
-    fight: { ...kept.fight, round: kept.fight.round ?? 0, threat: kept.fight.threat ?? false },
+    fight: {
+      ...kept.fight,
+      round: kept.fight.round ?? 0,
+      threat: kept.fight.threat ?? false,
+      rageAt: kept.fight.rageAt ?? rageAt(kept.lives),
+      enraged: kept.fight.enraged ?? false,
+    },
   };
 }

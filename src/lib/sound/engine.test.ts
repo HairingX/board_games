@@ -77,6 +77,17 @@ describe('SoundEngine', () => {
     expect(context.all(FakeBufferSource)[0]?.starts).toEqual([10.25]);
     sound.babble(tone, 1, () => 0.5, 0.5);
     expect(context.all(FakeOscillator)[0]?.starts[0]).toBeCloseTo(10.512);
+    sound.chime(chimes.right, () => 0.5, 0.45);
+    expect(context.all(FakeOscillator)[1]?.starts[0]).toBeCloseTo(10.462);
+    const ducked = sound.unlock().ducked as unknown as FakeGain;
+    expect(ducked.gain.calls[0]).toEqual(['cancel', 10.45]);
+  });
+
+  it('lets a voice speak louder than most', () => {
+    const { sound, context } = engine();
+    sound.babble({ ...tone, volume: 0.5 }, 1, () => 0.5);
+    const envelope = context.all(FakeFilter)[0]?.outputs[0] as FakeGain;
+    expect(envelope.gain.calls[1]?.[1]).toBe(0.5);
   });
 
   it('plays an effect softer when asked', async () => {

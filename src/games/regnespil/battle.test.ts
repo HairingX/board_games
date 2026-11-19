@@ -16,15 +16,20 @@ describe('a fight', () => {
       last: undefined,
       round: 0,
       threat: false,
+      rageAt: 1,
+      enraged: false,
     });
     expect(monsterLives(['træ'])).toBe(2);
     expect(monsterLives(['flamme', 'træ'])).toBe(4);
   });
 
   it('strikes the monster on a right answer, and is won when it has no lives left', () => {
-    const once = answerFight(startFight(2), 'right', 'jern');
-    expect(once).toMatchObject({ lives: 1, last: 'struck', outcome: 'fighting', round: 1 });
-    expect(answerFight(once, 'right', 'jern')).toMatchObject({ lives: 0, outcome: 'won' });
+    const once = answerFight(startFight(3), 'right', 'jern');
+    expect(once).toMatchObject({ lives: 2, last: 'struck', outcome: 'fighting', round: 1 });
+    expect(answerFight(startFight(1), 'right', 'jern')).toMatchObject({
+      lives: 0,
+      outcome: 'won',
+    });
   });
 
   it('costs what the sword says: the wooden sword forgives a close answer', () => {
@@ -41,6 +46,20 @@ describe('a fight', () => {
     expect(after(fight, ['right', 'close']).threat).toBe(true);
     expect(after(fight, ['right', 'close', 'right']).threat).toBe(false);
     expect(after(fight, Array<Verdict>(strikeBackEvery * 2 - 1).fill('right')).threat).toBe(true);
+  });
+
+  it('grows enraged at half its lives, strikes back at once and then every other turn', () => {
+    const fight = startFight(4);
+    const struck = after(fight, ['right']);
+    expect(struck).toMatchObject({ lives: 3, enraged: false, threat: false });
+    const raging = after(struck, ['right']);
+    expect(raging).toMatchObject({ lives: 2, enraged: true, threat: true });
+    expect(after(raging, ['right'])).toMatchObject({ enraged: true, threat: false });
+    expect(after(raging, ['right', 'right'])).toMatchObject({ lives: 1, threat: true });
+    expect(after(raging, ['right', 'right', 'right', 'right'])).toMatchObject({
+      outcome: 'won',
+      enraged: false,
+    });
   });
 
   it('lets a right answer dodge the blow, and any other take what far off costs', () => {

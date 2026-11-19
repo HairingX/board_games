@@ -10,17 +10,24 @@ interface Props {
   task: Task;
   /** The answer chosen, once one is; then the answers show how it went. */
   chosen: Value | undefined;
+  /**
+   * Whether how it went shows yet: until it does, the answer chosen only shows as chosen, so
+   * there is a moment of hope while the hero runs at the monster.
+   */
+  revealed: boolean;
   onChoose: (choice: Value) => void;
 }
 
 /**
- * A sum and its three answers. Once one is chosen, it shows at once: the right answer green,
- * a wrong one yellow if close and red if far off, the others faded, and in words how it went.
+ * A sum and its three answers. Once one is chosen and revealed, it shows how it went: the
+ * right answer green, a wrong one yellow if close and red if far off, the others faded, and in
+ * words how it went.
  */
-export function TaskAnswers({ task, chosen, onChoose }: Props) {
+export function TaskAnswers({ task, chosen, revealed, onChoose }: Props) {
   const t = useMessages(text);
   const locale = useLocale();
-  const verdict = chosen === undefined ? undefined : judge(chosen, task.answer, task.near);
+  const verdict =
+    chosen === undefined || !revealed ? undefined : judge(chosen, task.answer, task.near);
   const answer = formatValue(locale, task.answer);
 
   return (
@@ -35,11 +42,15 @@ export function TaskAnswers({ task, chosen, onChoose }: Props) {
             data-state={
               chosen === undefined
                 ? undefined
-                : same(choice, task.answer)
-                  ? 'right'
-                  : same(choice, chosen)
-                    ? verdict
-                    : 'other'
+                : !revealed
+                  ? same(choice, chosen)
+                    ? 'chosen'
+                    : undefined
+                  : same(choice, task.answer)
+                    ? 'right'
+                    : same(choice, chosen)
+                      ? verdict
+                      : 'other'
             }
             disabled={chosen !== undefined}
             onClick={() => {

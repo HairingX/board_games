@@ -7,6 +7,7 @@ import thump from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit
 import clang from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact.m4a';
 import knock from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact3.m4a';
 import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Bounce2.m4a';
+import choose from '../../../assets/ninja-adventure/Audio/Sounds/Menu/Accept4.m4a';
 import slash from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
 
 /*
@@ -26,15 +27,17 @@ export interface Mixed {
  * How loud each part plays, in dB below full scale: the answers' chimes lead (about −15 dB,
  * set in `src/lib/sound/chimes.ts`), what happens in the fight a little under them, a victory
  * above, and the music far under everything, at the level the owner liked while thinking, as
- * the pack's chiptune music is hard on the ears over many sums.
+ * the pack's chiptune music is hard on the ears over many sums. An answer chosen is a soft tap
+ * under the fight's sounds, saying only that it was heard.
  */
-export const loudness = { action: -18, celebration: -14, music: -44 } as const;
+export const loudness = { tap: -24, action: -18, celebration: -14, music: -44 } as const;
 
 function mixed(url: string, measured: number, target: number): Mixed {
   return { url, gain: 10 ** ((target - measured) / 20) };
 }
 
 export const sounds = {
+  choose: mixed(choose, -16, loudness.tap),
   slash: mixed(slash, -19.9, loudness.action),
   clang: mixed(clang, -10.6, loudness.action),
   bump: mixed(bump, -12.3, loudness.action),

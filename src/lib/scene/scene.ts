@@ -37,7 +37,11 @@ export interface Thing {
 export interface Act {
   kind: keyof typeof motionTokens.act;
   at: number;
-  /** How far a charge runs, in pixels, toward where the figure faces. */
+  /**
+   * How far a charge runs, in pixels, toward where the figure faces; for any other act, how
+   * far out the figure is as it begins, so it strikes or falls there; and it walks home after
+   * a stroke with a `return`, or as it gets up after being knocked over.
+   */
   reach?: number;
 }
 
@@ -65,6 +69,10 @@ export interface Effect {
   x: number;
   y: number;
   at: number;
+  /** How long it shows, in seconds, its frames over and over; played once without it. */
+  lasts?: number;
+  /** Flies this far sideways in an arc this high, in pixels, as it begins, then lies there. */
+  arc?: { dx: number; height: number };
 }
 
 export interface Scene {
@@ -129,21 +137,40 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
   let x = figure.x;
   let y = figure.y - (figure.doing === 'standing' ? breathLift(seconds) : 0);
   const toward = figure.facing === 'left' ? -1 : figure.facing === 'right' ? 1 : 0;
-  if (kind === 'attack' && into < act.attack.seconds) {
-    row = 4;
-    x += toward * act.attack.lunge;
+  if (kind === 'attack') {
+    const striking = into < act.attack.seconds;
+    if (striking) row = 4;
+    x += toward * ((current?.reach ?? 0) + (striking ? act.attack.lunge : 0));
+  }
+  const walking = (moving: boolean) => {
+    if (moving && figure.doing === 'standing') {
+      row = Math.floor(into * motionTokens.walk.framesPerSecond) % 4;
+    }
+  };
+  if (kind === 'return') {
+    const left = Math.max(0, 1 - into / act.return.seconds);
+    x += toward * Math.round((current?.reach ?? 0) * left);
+    walking(left > 0);
   }
   if (kind === 'charge') {
     const { out, hold, back } = act.charge;
     const reach = current?.reach ?? 0;
     const share = into < out ? into / out : into < out + hold ? 1 : 1 - (into - out - hold) / back;
     x += toward * Math.round(reach * Math.max(0, share));
+    walking(share > 0 && share < 1);
   }
   if (kind === 'knocked') {
     const { push, fall, down, rise, drop } = act.knocked;
+    const reach = current?.reach ?? 0;
     const lying = into >= fall && into < fall + down;
-    const share = into < fall ? into / fall : lying ? 1 : 1 - (into - fall - down) / rise;
-    x -= toward * Math.round(push * Math.max(0, share));
+    const lowest = reach - push;
+    const offset =
+      into < fall
+        ? reach - push * (into / fall)
+        : lying
+          ? lowest
+          : lowest * Math.max(0, 1 - (into - fall - down) / rise);
+    x += toward * Math.round(offset);
     if (lying) {
       return {
         sheet: figure.sheet,
@@ -183,13 +210,23 @@ function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined 
 
 /** An effect's frame at the moment, while it plays. */
 function drawEffect(effect: Effect, seconds: number): Draw | undefined {
-  const index = Math.floor(since(seconds, effect.at) * motionTokens.effect.framesPerSecond);
-  if (index < 0 || index >= effect.frames) return undefined;
+  const { framesPerSecond, flight } = motionTokens.effect;
+  const into = since(seconds, effect.at);
+  const step = Math.floor(into * framesPerSecond);
+  const over = effect.lasts === undefined ? step >= effect.frames : into >= effect.lasts;
+  if (into < 0 || over) return undefined;
+  const index = step % effect.frames;
+  let { x, y } = effect;
+  if (effect.arc) {
+    const done = Math.min(1, into / flight);
+    x += Math.round(effect.arc.dx * done);
+    y -= Math.round(effect.arc.height * 4 * done * (1 - done));
+  }
   return {
     sheet: effect.sheet,
     cut: { x: index * effect.width, y: 0, width: effect.width, height: effect.height },
-    x: effect.x,
-    y: effect.y,
+    x,
+    y,
   };
 }
 

@@ -16,6 +16,8 @@ export interface Voice {
   pace: number;
   /** How far, in semitones, a syllable may stray from the voice's pitch. */
   spread: number;
+  /** How loud it speaks, from 0 to 1, if not as most voices do. */
+  volume?: number;
 }
 
 /** One syllable: when it starts and how long it lasts, in seconds, and how high it is. */

@@ -33,6 +33,8 @@ export const motionTokens = {
   breath: { every: 1.4, lifted: 0.5 },
   /** A figure that bounces, as a slime does: frames a second through its four frames. */
   bounce: { framesPerSecond: 6 },
+  /** A figure running or walking, through the four frames of its sheet's walk: frames a second. */
+  walk: { framesPerSecond: 10 },
   /**
    * What a figure does once, in seconds and pixels: a sword stroke lunging forward, being hit
    * (blinking), a cheering jump, and vanishing.
@@ -42,15 +44,23 @@ export const motionTokens = {
     hurt: { seconds: 0.6, blink: 0.08 },
     cheer: { seconds: 0.7, height: 6 },
     vanish: { seconds: 0.5 },
-    /** Running at another figure, the act's `reach` pixels, a moment there, and back. */
-    charge: { out: 0.25, hold: 0.15, back: 0.35 },
-    /** Shoved backwards and over: lying down a while, then up again. */
-    knocked: { push: 6, fall: 0.12, down: 0.7, rise: 0.25, drop: 3 },
+    /**
+     * Running at another figure, the act's `reach` pixels, a moment there, and back: slow enough
+     * to hope, as the owner asked, since the answer shows as it arrives.
+     */
+    charge: { out: 0.45, hold: 0.2, back: 0.4 },
+    /**
+     * Shoved backwards and over, where the act's `reach` took the figure: lying down a while,
+     * then up and back home.
+     */
+    knocked: { push: 6, fall: 0.12, down: 0.7, rise: 0.4, drop: 3 },
+    /** Walking home from where the act's `reach` took the figure. */
+    return: { seconds: 0.4 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },
   /** An effect's frames a second, such as a sword's sweep or a puff of smoke. */
-  effect: { framesPerSecond: 14 },
+  effect: { framesPerSecond: 14, flight: 0.45 },
   /** How long a fight waits after an answer before the next sum: shorter when it was right. */
   fightPause: { right: 0.9, wrong: 1.8 },
 } as const;

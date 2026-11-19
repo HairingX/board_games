@@ -21,7 +21,7 @@ describe('fightSaveKey', () => {
 });
 
 describe('reviveFight', () => {
-  it('upgrades a fight saved before turns to defend, with none announced', () => {
+  it('upgrades a fight saved before turns to defend and rage, with none announced', () => {
     const { health, lives, outcome, last } = saved.fight;
     const older = { health, lives, outcome, last };
     expect(reviveFight({ ...saved, fight: older })).toEqual(saved);
@@ -44,6 +44,8 @@ describe('reviveFight', () => {
     ['an unknown blow', { ...saved, fight: { ...saved.fight, last: 'kicked' } }],
     ['a broken count of turns', { ...saved, fight: { ...saved.fight, round: -1 } }],
     ['a threat that is no yes or no', { ...saved, fight: { ...saved.fight, threat: 'ja' } }],
+    ['rage beyond its lives', { ...saved, fight: { ...saved.fight, rageAt: 4 } }],
+    ['a rage that is no yes or no', { ...saved, fight: { ...saved.fight, enraged: 1 } }],
     ['no player', { ...saved, activeId: 3 }],
     ['no task', { ...saved, task: null }],
     ['a task without its sum', { ...saved, task: { ...saved.task, sum: 'x' } }],

@@ -113,6 +113,11 @@ proposed structure.
 
 ### 5.2 A turn
 
+Built for the slime, as the owner asked: an answer chosen plays a tap, the hero runs at the
+monster (or it at them), and only as they reach it does it show how it went. Halfway through
+its lives the monster grows enraged, and strikes back every other turn. These are the first of
+a monster's phases (5.3); the engine generalises them.
+
 1. The monster chooses its next action and announces it (intent shown over its head).
 2. The battle panel shows the active player's sum, with "Angreb" or "Forsvar" and the stakes,
    from that intent.
@@ -346,3 +351,11 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   never feel alike; names put together from two pools ("Slimy Bob", "Hulking Wolf"); limits by
   kind, so a slime does not spit lava and a wolf does not fly.
 - Children's text larger and easier to read.
+- Coins that spring out of a beaten monster and stay a while on the ground.
+- More sound: the monster should shout and scream more.
+- Something should change halfway through a fight.
+- The attack should look like an attack: the hero starts it, and only halfway does it show
+  whether the answer was right, so there is a moment of hope; right, a successful stroke;
+  wrong, the monster hits back (a slimeball, say) and the hero falls, or the hero falls or
+  hurts himself. A sound when an answer is chosen, then a sound for the stroke, or for the
+  fall.

@@ -159,13 +159,16 @@ game builds on them, and everything must stay smooth on a phone.
   before, the tab turns blue, "Forsvar" with the pack's shield, and a right answer dodges the
   blow, the hero jumping clear in a flash of the pack's blue shield, while any other lets it
   land, costing what far off does. The slime takes 2, 3 or 4
-  strokes, by the hardest sword at the table. No death: out of hearts, the hero rests and
+  strokes, by the hardest sword at the table. Halfway, down to half its lives (`rageAt`), the
+  monster grows enraged, as the owner asked for a change midway: a cross face (the pack's
+  `Slime3`, in the scene and the portrait), an angry sign and a roar, and it strikes back at
+  once and then every other turn. No death: out of hearts, the hero rests and
   tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as a name
   plate with the player's picture over the hero, said in full to screen readers ("Nu er det
   Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
-  has its music (the pack's "17 - Fight"); the slime speaks in its own light voice before it
-  bumps the hero; victory is a fanfare, a puff of smoke, coins and the hero cheering with a
-  heart over his head, and then happy music. A fight is saved after every answer
+  has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins
+  springing out in arcs and lying a while (`coinsLie`), and the hero cheering with a heart
+  over his head, and then happy music. A fight is saved after every answer
   (`fightSave.ts`, one save per group of players, whatever order they were chosen in): the
   hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
   or crashed app goes on where it was, with the same sum, not a new one to try instead.
@@ -210,10 +213,16 @@ game builds on them, and everything must stay smooth on a phone.
   costs), the sum in the middle, and the answers low, where the thumbs are, as the pack's
   chunky buttons. Defending, the tab is "Forsvar" in blue, with a shield, and the stakes ✓ the
   shield, ✗ the hearts the blow costs.
+- An answer is a moment of hope, as the owner asked: choosing one plays a soft tap and the
+  button only shows as chosen, while the hero shouts and runs at the monster (or, defending,
+  the monster cries out and runs at the hero); only as they reach it (`charge.out`) does it
+  show how it went, with its chime, colours and hearts: right, a stroke and the monster's
+  squeal; close, a parry's clang; far off, the slime hops into the hero and bounces them
+  over. The answer is saved the moment it is chosen; only the showing waits.
 - Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
-  answered far off, the slime cries out, charges at the hero and knocks them over; they lie a
-  moment, say "ouch" in their voice and get up, dizzy. Struck, the slime squeals, cross.
-  While it charges, its life bar fades away, and comes back as it stands home again.
+  knocked over, the hero lies a moment, says "ouch" in their voice and gets up, dizzy, and
+  walks home. The monsters speak up over the fight (each voice has its own `volume`). While
+  the slime charges, its life bar fades away, and comes back as it stands home again.
 
 ## Languages
 

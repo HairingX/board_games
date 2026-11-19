@@ -622,6 +622,16 @@
   cursor: pointer;
 }
 
+/* Chosen, before it shows how it went: pressed in, and ringed. */
+.rs-panel .task-choice[data-state='chosen'] {
+  outline: 3px solid var(--pixel-text);
+  outline-offset: 2px;
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 6px 0 var(--pixel-attack-dark),
+    inset 0 -2px 0 var(--pixel-attack-light);
+}
+
 .rs-panel .task-choice[data-state='right'],
 .rs-panel .task-choice[data-state='close'],
 .rs-panel .task-choice[data-state='far'] {

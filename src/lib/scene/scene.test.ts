@@ -134,6 +134,20 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('walks through its frames while it runs, and stands while it holds', () => {
+    const charge = { acts: [{ kind: 'charge', at, reach: 40 }] } as const;
+    const { out } = act.charge;
+    const step = 1 / motionTokens.walk.framesPerSecond;
+    expect(one(charge, at + step + eps)?.cut.y).toBe(16);
+    expect(one(charge, at + 2 * step + eps)?.cut.y).toBe(32);
+    expect(one(charge, at + out + eps)?.cut.y).toBe(0);
+    const home = { acts: [{ kind: 'return', at, reach: 30 }] } as const;
+    expect(one(home, at + step + eps)?.cut.y).toBe(16);
+    expect(one(home, at + act.return.seconds + eps)?.cut.y).toBe(0);
+    const bouncing = { ...charge, doing: 'bouncing' } as const;
+    expect(one(bouncing, at + step + eps)?.cut.y).toBe(one(bouncing, at + eps)?.cut.y);
+  });
+
   it('is knocked backwards and over, lies a while, and gets up again', () => {
     const knocked = { acts: [{ kind: 'knocked', at }] } as const;
     const { push, fall, down, rise, drop } = act.knocked;
@@ -147,6 +161,29 @@ describe('figures acting', () => {
     expect(rising?.x).toBe(20 - push / 2);
     expect(rising?.turn).toBeUndefined();
     expect(one(knocked, at + fall + down + rise + eps)?.x).toBe(20);
+  });
+
+  it('strikes where a run took it, stays there, and walks home', () => {
+    const struck = {
+      acts: [
+        { kind: 'attack', at, reach: 30 },
+        { kind: 'return', at: at + 1, reach: 30 },
+      ],
+    } as const;
+    expect(one(struck, at + eps)).toMatchObject({ x: 20 + 30 + act.attack.lunge, cut: { y: 64 } });
+    expect(one(struck, at + act.attack.seconds + eps)).toMatchObject({ x: 50, cut: { y: 0 } });
+    expect(one(struck, at + 1 + act.return.seconds / 2)?.x).toBe(35);
+    expect(one(struck, at + 1 + act.return.seconds + eps)?.x).toBe(20);
+    expect(one({ acts: [{ kind: 'return', at }] }, at + eps)?.x).toBe(20);
+  });
+
+  it('falls where a run took it, and walks back home as it gets up', () => {
+    const tripped = { acts: [{ kind: 'knocked', at, reach: 30 }] } as const;
+    const { push, fall, down, rise } = act.knocked;
+    expect(one(tripped, at)?.x).toBe(50);
+    expect(one(tripped, at + fall + eps)?.x).toBe(50 - push);
+    expect(one(tripped, at + fall + down + rise / 2)?.x).toBe(20 + (30 - push) / 2);
+    expect(one(tripped, at + fall + down + rise + eps)?.x).toBe(20);
   });
 
   it('does the latest act begun, and none not yet begun', () => {
@@ -191,6 +228,36 @@ describe('figures acting', () => {
     expect(signed(at - 0.1)).toBeUndefined();
     expect(signed(at)).toEqual({ sheet: 'star', cut: signSize, x: 21, y: 6 });
     expect(signed(at + sign.seconds + eps)).toBeUndefined();
+  });
+
+  it('flies an effect out in an arc and keeps it, its frames over and over, while it lasts', () => {
+    const coin: Scene = {
+      ...scene,
+      ground: [],
+      things: [],
+      figures: [],
+      effects: [
+        {
+          sheet: 'coin',
+          width: 10,
+          height: 10,
+          frames: 4,
+          x: 0,
+          y: 50,
+          at,
+          lasts: 2,
+          arc: { dx: 20, height: 16 },
+        },
+      ],
+    };
+    const { framesPerSecond, flight } = motionTokens.effect;
+    expect(drawScene(coin, at + flight / 2)).toEqual([
+      { sheet: 'coin', cut: expect.any(Object) as object, x: 10, y: 34 },
+    ]);
+    const landed = drawScene(coin, at + 5 / framesPerSecond + eps)[0];
+    expect(landed?.cut.x).toBe(10);
+    expect(drawScene(coin, at + 1.5)[0]).toMatchObject({ x: 20, y: 50 });
+    expect(drawScene(coin, at + 2 + eps)).toEqual([]);
   });
 
   it('plays an effect’s frames over the stage, and none with motion stilled', () => {

@@ -5,7 +5,9 @@ import { far, mille } from '../../../tests/family';
 import type { Profile } from '../../family/family';
 import { chimes } from '../../lib/sound/chimes';
 import { sound, SoundEngine } from '../../lib/sound/engine';
+import { voices } from '../../lib/sound/voices';
 import { motionTokens } from '../../ui/motion';
+import { faces } from './art';
 import { Fight } from './Fight';
 import type { SavedFight } from './fightSave';
 import type { PlayerSettings } from './players';
@@ -37,6 +39,7 @@ function open(
   const engine = new SoundEngine(fake.browser);
   const effect = vi.spyOn(engine, 'effect');
   const chime = vi.spyOn(engine, 'chime');
+  const babble = vi.spyOn(engine, 'babble');
   const view = render(
     <Fight
       players={players}
@@ -50,9 +53,10 @@ function open(
       load={() => new Promise(() => undefined)}
     />,
   );
-  const played = () => effect.mock.calls.map(([url, volume]) => [url, volume]);
+  const played = () => effect.mock.calls.map(([url, volume, after]) => [url, volume, after]);
   const chimed = () => chime.mock.calls.map(([made]) => made);
-  return { ...fake, ...view, onBack, onSave, played, chimed };
+  const babbled = () => babble.mock.calls.map(([voice, syllables]) => [voice, syllables]);
+  return { ...fake, ...view, onBack, onSave, played, chimed, chime, babbled };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -65,6 +69,14 @@ async function pause(seconds: number): Promise<void> {
 const hearts = (left: string) => screen.getByRole('img', { name: `Heltens hjerter: ${left} af 5` });
 const lives = (count: number) => screen.getByRole('img', { name: `Slimets liv: ${String(count)}` });
 const { right, wrong } = motionTokens.fightPause;
+/** How long after an answer is chosen it shows how it went. */
+const reveal = motionTokens.act.charge.out;
+
+/** Chooses an answer, and lets it show how it went. */
+async function choose(name: string): Promise<void> {
+  click(name);
+  await pause(reveal);
+}
 
 describe('Fight', () => {
   it('makes its sounds and music ready when it opens, and fades the music when left', () => {
@@ -76,18 +88,26 @@ describe('Fight', () => {
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
   });
 
-  it('strikes the slime on a right answer, with music, and asks the next sum after a pause', async () => {
-    const { played, chimed, audios, onBack } = open();
+  it('runs at the slime on an answer, and only as the hero reaches it shows a stroke', async () => {
+    const { played, chimed, chime, audios, onBack } = open();
     expect(hearts('5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     click('2');
-    expect(lives(2)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '2' })).toBeDisabled();
+    // A moment of hope: chosen, but not yet shown how it went.
+    expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-state', 'chosen');
+    expect(screen.getByRole('button', { name: '1' })).not.toHaveAttribute('data-state');
+    expect(lives(3)).toBeInTheDocument();
     expect(chimed()).toEqual([chimes.right]);
+    expect(chime.mock.lastCall?.[2]).toBe(reveal);
     expect(played()).toEqual([
-      [sounds.slash.url, sounds.slash.gain],
-      [hits[0]?.url, hits[0]?.gain],
+      [sounds.choose.url, sounds.choose.gain, 0],
+      [sounds.slash.url, sounds.slash.gain, reveal],
+      [hits[0]?.url, hits[0]?.gain, reveal],
     ]);
+    await pause(reveal);
+    expect(lives(2)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2' })).toHaveAttribute('data-state', 'right');
+    expect(screen.getByRole('button', { name: '2' })).toBeDisabled();
     expect(audios).toHaveLength(1);
     await pause(right);
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
@@ -98,29 +118,45 @@ describe('Fight', () => {
 
   it('costs half a heart for a close answer with the iron sword', async () => {
     const { played, chimed } = open();
-    click('1');
+    await choose('1');
     expect(hearts('4,5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     expect(chimed()).toEqual([chimes.close]);
-    expect(played()).toEqual([[sounds.clang.url, sounds.clang.gain]]);
+    expect(played()).toContainEqual([sounds.clang.url, sounds.clang.gain, reveal]);
     await pause(wrong);
     expect(screen.getByRole('button', { name: '1' })).toBeEnabled();
   });
 
-  it('forgives a close answer with the wooden sword, and meets a softer slime', () => {
+  it('forgives a close answer with the wooden sword, and meets a softer slime', async () => {
     open([{ level: 1, sword: 'træ' }]);
     expect(lives(2)).toBeInTheDocument();
-    click('1');
+    await choose('1');
     expect(hearts('5')).toBeInTheDocument();
+  });
+
+  it('enrages the slime halfway: its face turns cross, it roars, and strikes back at once', async () => {
+    const { container, babbled } = open([{ level: 1, sword: 'træ' }]);
+    const face = () => container.querySelector('.rs-foe-face')?.getAttribute('src');
+    const calm = face();
+    await choose('2');
+    expect(face()).not.toBe(calm);
+    expect(babbled()).toContainEqual([voices.slime, 8]);
+    await pause(right);
+    expect(screen.getByText('Forsvar')).toBeInTheDocument();
   });
 
   it('wins with a fanfare, coins and a cheering hero, and starts again', async () => {
     const { played, context, audios, runLater } = open([{ level: 1, sword: 'træ' }]);
-    click('2');
+    await choose('2');
+    await pause(right);
+    // Enraged, the slime strikes back at once: the hero dodges.
+    await choose('2');
     await pause(right);
     click('2');
+    expect(screen.queryByText('Slimet er besejret!')).not.toBeInTheDocument();
+    await pause(reveal);
     expect(screen.getByRole('status')).toHaveTextContent('Slimet er besejret!');
-    expect(played()).toContainEqual([sounds.victory.url, sounds.victory.gain]);
+    expect(played()).toContainEqual([sounds.victory.url, sounds.victory.gain, reveal]);
     expect(context.all(FakeOscillator).length).toBeGreaterThan(0);
     runLater();
     expect(audios[0]?.pause).toHaveBeenCalledOnce();
@@ -135,19 +171,13 @@ describe('Fight', () => {
   it('loses a heart for an answer far off, and lets the hero rest when none are left', async () => {
     const { played, chimed } = open([{ level: 7, sword: 'flamme' }]);
     expect(lives(4)).toBeInTheDocument();
-    expect(lives(4)).toHaveAttribute('data-away', 'false');
-    click('12');
-    expect(lives(4)).toHaveAttribute('data-away', 'true');
-    expect(lives(4)).toHaveStyle({ '--away': '0.75s' });
-    await pause(wrong);
-    expect(lives(4)).toHaveAttribute('data-away', 'false');
-    for (let bump = 1; bump < 5; bump++) {
-      click('12');
+    for (let bump = 0; bump < 5; bump++) {
+      await choose('12');
       await pause(wrong);
     }
     expect(hearts('0')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
-    expect(played()).toContainEqual([sounds.bump.url, sounds.bump.gain]);
+    expect(played()).toContainEqual([sounds.bump.url, sounds.bump.gain, reveal]);
     expect(chimed()).toContainEqual(chimes.far);
     click('Prøv igen');
     expect(hearts('5')).toBeInTheDocument();
@@ -164,18 +194,18 @@ describe('Fight', () => {
     expect(lives(3)).toBeInTheDocument();
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '12 gange 2' })).toBeInTheDocument();
-    click('12');
+    await choose('12');
     expect(hearts('4')).toBeInTheDocument();
     await pause(wrong);
     expect(screen.getByText('Nu er det Milles tur')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '1 plus 1' })).toBeInTheDocument();
-    click('3');
+    await choose('3');
     expect(hearts('4')).toBeInTheDocument();
     await pause(wrong);
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
   });
 
-  it('saves the fight after every answer, with the next turn and its sum', async () => {
+  it('saves the fight at once after every answer, with the next turn and its sum', async () => {
     const { onSave } = open(
       [
         { level: 7, sword: 'jern' },
@@ -190,15 +220,25 @@ describe('Fight', () => {
     expect(after?.task.sum).toEqual([1, '+', 1]);
     expect(after?.recent).toEqual(['[12,"×",2]']);
     // The sum answered stays on screen through the pause; the saved next one comes after.
+    await pause(reveal);
     expect(screen.getByRole('img', { name: '12 gange 2' })).toBeInTheDocument();
     await pause(wrong);
     expect(screen.getByRole('img', { name: '1 plus 1' })).toBeInTheDocument();
   });
 
-  it('goes on from a saved fight, where it was', () => {
+  it('goes on from a saved fight, where it was, the slime as enraged as it was', () => {
     const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 } as const;
-    open([{ level: 1, sword: 'jern' }], [mille], {
-      fight: { health: 3, lives: 1, outcome: 'fighting', last: 'struck', round: 4, threat: false },
+    const { container } = open([{ level: 1, sword: 'jern' }], [mille], {
+      fight: {
+        health: 3,
+        lives: 1,
+        outcome: 'fighting',
+        last: 'struck',
+        round: 4,
+        threat: false,
+        rageAt: 1,
+        enraged: true,
+      },
       lives: 3,
       activeId: 'mille',
       task,
@@ -207,14 +247,16 @@ describe('Fight', () => {
     expect(hearts('1,5')).toBeInTheDocument();
     expect(lives(1)).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '3 plus 4' })).toBeInTheDocument();
+    expect(container.querySelector('.rs-foe-face')).toHaveAttribute('src', faces.slimeRage);
   });
 
   it('saves a new fight when one begins again', async () => {
-    const { onSave } = open([{ level: 1, sword: 'træ' }]);
-    click('2');
-    await pause(right);
-    click('2');
-    click('Ny kamp');
+    const { onSave } = open([{ level: 7, sword: 'træ' }]);
+    for (let bump = 0; bump < 10; bump++) {
+      await choose('12');
+      await pause(wrong);
+    }
+    click('Prøv igen');
     expect(onSave.mock.lastCall?.[0]).toMatchObject({
       fight: { health: 10, lives: 2, outcome: 'fighting' },
       lives: 2,
@@ -222,18 +264,19 @@ describe('Fight', () => {
     });
   });
 
-  it('defends every third turn: the slime warns, the tab turns blue, and a right answer dodges', async () => {
-    const { onSave } = open([{ level: 1, sword: 'flamme' }]);
+  it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {
+    const { onSave, babbled } = open([{ level: 1, sword: 'flamme' }]);
     expect(screen.getByText('Angreb')).toBeInTheDocument();
-    click('2');
+    await choose('2');
     await pause(right);
-    click('2');
+    await choose('2');
     // The sum answered still shows as an attack through the pause.
     expect(screen.getByText('Angreb')).toBeInTheDocument();
     await pause(right);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
     expect(screen.getByLabelText('Rigtigt: du undviger slimets angreb')).toBeInTheDocument();
-    click('2');
+    await choose('2');
+    expect(babbled()).toContainEqual([voices.slime, 4]);
     expect(lives(2)).toBeInTheDocument();
     expect(hearts('5')).toBeInTheDocument();
     expect(onSave.mock.lastCall?.[0].fight).toMatchObject({ last: 'dodged', threat: false });
@@ -241,17 +284,21 @@ describe('Fight', () => {
     expect(screen.getByText('Angreb')).toBeInTheDocument();
   });
 
-  it('lets the slime’s blow land when the answer to defend is wrong', async () => {
+  it('lets the slime’s blow land when the answer to defend is wrong, its life bar left behind', async () => {
     open([{ level: 1, sword: 'jern' }]);
-    click('2');
+    await choose('2');
     await pause(right);
-    click('2');
+    await choose('2');
     await pause(right);
+    expect(lives(1)).toHaveAttribute('data-away', 'false');
     click('1');
+    expect(lives(1)).toHaveAttribute('data-away', 'true');
+    expect(lives(1)).toHaveStyle({ '--away': '1.05s' });
+    await pause(reveal);
     expect(hearts('4')).toBeInTheDocument();
   });
 
-  it('uses the page’s clock and the app’s sound when none are given', () => {
+  it('uses the page’s clock and the app’s sound when none are given', async () => {
     // The app's own sound needs the browser's Web Audio, which the tests have not.
     vi.spyOn(sound, 'prepareEffects').mockResolvedValue(undefined);
     vi.spyOn(sound, 'prepareMusic').mockResolvedValue(undefined);
@@ -271,6 +318,7 @@ describe('Fight', () => {
     );
     const choice = container.querySelector('.task-choice');
     if (choice) fireEvent.click(choice);
+    await pause(reveal);
     expect(screen.getByRole('status')).not.toBeEmptyDOMElement();
     expect(music).toHaveBeenCalledOnce();
     expect(effect).toHaveBeenCalled();

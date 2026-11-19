@@ -162,13 +162,13 @@ export class SoundEngine {
 
   /**
    * Plays a chime, made of tones in the phone, so it needs nothing fetched; each time a shade
-   * higher or lower, so it never grows tiresome.
+   * higher or lower, so it never grows tiresome; `after` seconds from now.
    */
-  chime(chime: Chime, random: Random = Math.random): void {
+  chime(chime: Chime, random: Random = Math.random, after = 0): void {
     const { context, effects, ducked } = this.unlock();
     if (this.settings.effects === 0) return;
-    duck(ducked.gain, context.currentTime);
-    const start = context.currentTime + syllableEdge;
+    duck(ducked.gain, context.currentTime + after);
+    const start = context.currentTime + syllableEdge + after;
     const shade = (random() * 2 - 1) * chimeSpread;
     for (const note of chime.notes) {
       const at = start + note.at;
@@ -275,12 +275,13 @@ export class SoundEngine {
     const { context, effects } = this.unlock();
     if (this.settings.effects === 0) return;
     const start = context.currentTime + syllableEdge + after;
+    const loud = voice.volume ?? syllableVolume;
     for (const syllable of babble(voice, syllables, random)) {
       const at = start + syllable.at;
       const envelope = context.createGain();
       envelope.gain.setValueAtTime(0, at);
-      envelope.gain.linearRampToValueAtTime(syllableVolume, at + syllableEdge);
-      envelope.gain.setValueAtTime(syllableVolume, at + syllable.length - syllableEdge);
+      envelope.gain.linearRampToValueAtTime(loud, at + syllableEdge);
+      envelope.gain.setValueAtTime(loud, at + syllable.length - syllableEdge);
       envelope.gain.linearRampToValueAtTime(0, at + syllable.length);
       envelope.connect(effects);
       const tone = context.createOscillator();
