@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import type { Profile } from '../../family/family';
 import { Avatar } from '../../family/Avatar';
 import { formatNumber } from '../../i18n/format';
@@ -154,6 +154,8 @@ export function Fight({
   const [chosen, setChosen] = useState<Value>();
   const [fight, setFight] = useState(() => startFight(lives));
   const [staging, setStaging] = useState<Staging>({});
+  /** How many answers have been given, so what one answer starts plays out afresh. */
+  const [answers, setAnswers] = useState(0);
 
   // The sounds are made ready when the fight opens, so the first one plays at once, and the
   // music fades out when it is left.
@@ -220,6 +222,7 @@ export function Fight({
     setChosen(choice);
     setFight(next);
     setStaging(stage(next, now()));
+    setAnswers(answers + 1);
     sound.chime(chimes[verdict]);
     const { charge } = motionTokens.act;
     if (next.last === 'struck') {
@@ -247,6 +250,7 @@ export function Fight({
   /** What a wrong answer costs the active player, in half hearts, at its worst. */
   const cost = swordRules[sword].far;
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
+  const { charge } = motionTokens.act;
 
   const scene = clearing(staging);
 
@@ -268,10 +272,21 @@ export function Fight({
       </span>
       {fight.lives > 0 && (
         <span
+          // Drawn anew at every answer, so its fading plays out again.
+          key={answers}
           className="rs-life"
           role="img"
           aria-label={t.lives(fight.lives)}
-          style={{ left: px(slimeAt.x + 8), top: px(slimeAt.y + 17), width: px(lifeWidth) }}
+          // Away while the monster charges, as the bar stays where the monster stood.
+          data-away={chosen !== undefined && fight.last === 'bumped'}
+          style={
+            {
+              left: px(slimeAt.x + 8),
+              top: px(slimeAt.y + 17),
+              width: px(lifeWidth),
+              '--away': `${String(charge.out + charge.hold + charge.back)}s`,
+            } as CSSProperties
+          }
         >
           {/* Drawn anew at every stroke, so it shakes and a piece breaks off. */}
           <span key={fight.lives} className="rs-life-pieces" data-hit={fight.lives < lives}>

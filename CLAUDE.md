@@ -198,6 +198,7 @@ game builds on them, and everything must stay smooth on a phone.
 - Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
   answered far off, the slime cries out, charges at the hero and knocks them over; they lie a
   moment, say "ouch" in their voice and get up, dizzy. Struck, the slime squeals, cross.
+  While it charges, its life bar fades away, and comes back as it stands home again.
 
 ## Languages
 

@@ -431,6 +431,23 @@
   transform: translateX(-50%);
 }
 
+/* While the monster charges, its life fades away, and comes back as it stands home again. */
+.rs-life[data-away='true'] {
+  animation: rs-away var(--away) linear;
+}
+
+@keyframes rs-away {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  12%,
+  88% {
+    opacity: 0;
+  }
+}
+
 .rs-life-pieces {
   display: flex;
   gap: 2px;

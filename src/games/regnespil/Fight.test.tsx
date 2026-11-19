@@ -130,7 +130,13 @@ describe('Fight', () => {
   it('loses a heart for an answer far off, and lets the hero rest when none are left', async () => {
     const { played, chimed } = open([{ level: 7, sword: 'flamme' }]);
     expect(lives(4)).toBeInTheDocument();
-    for (let bump = 0; bump < 5; bump++) {
+    expect(lives(4)).toHaveAttribute('data-away', 'false');
+    click('12');
+    expect(lives(4)).toHaveAttribute('data-away', 'true');
+    expect(lives(4)).toHaveStyle({ '--away': '0.75s' });
+    await pause(wrong);
+    expect(lives(4)).toHaveAttribute('data-away', 'false');
+    for (let bump = 1; bump < 5; bump++) {
       click('12');
       await pause(wrong);
     }
