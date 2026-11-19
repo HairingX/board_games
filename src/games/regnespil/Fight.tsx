@@ -28,7 +28,7 @@ import { monsterLives, swordRules } from './swords';
 import { hits, music, sounds, victoryLength, type Mixed } from './sounds';
 import { pick } from './sums';
 import { TaskAnswers } from './TaskAnswers';
-import { judge, makeTask, type Task } from './tasks';
+import { freshFor, judge, makeTask, sumKey, type Task } from './tasks';
 import { text } from './text';
 import type { Value } from './values';
 import './regnespil.css';
@@ -76,6 +76,11 @@ interface Props {
 }
 
 const pageClock = () => performance.now() / 1000;
+
+/** The sums shown lately, with the task's, the latest last. */
+function shownWith(recent: readonly string[], task: Task): readonly string[] {
+  return [...recent, sumKey(task.sum)].slice(-freshFor);
+}
 
 /** The stage after an answer: who acts, what shows over their heads, and the effects. */
 function stage(fight: FightState, at: number): Staging {
@@ -151,6 +156,8 @@ export function Fight({
   const [active, setActive] = useState(0);
   const own = (index: number) => settings[index] as PlayerSettings;
   const [task, setTask] = useState<Task>(() => makeTask(own(0).level, random));
+  /** The sums shown lately, so the next is none of them. */
+  const [recent, setRecent] = useState<readonly string[]>([]);
   const [chosen, setChosen] = useState<Value>();
   const [fight, setFight] = useState(() => startFight(lives));
   const [staging, setStaging] = useState<Staging>({});
@@ -195,7 +202,9 @@ export function Fight({
       () => {
         const next = nextTurn(active, players.length);
         setActive(next);
-        setTask(makeTask((settings[next] as PlayerSettings).level, random));
+        const shown = shownWith(recent, task);
+        setRecent(shown);
+        setTask(makeTask((settings[next] as PlayerSettings).level, random, shown));
         setChosen(undefined);
       },
       (fight.last === 'struck' ? right : wrong) * 1000,
@@ -203,12 +212,14 @@ export function Fight({
     return () => {
       clearTimeout(timer);
     };
-  }, [chosen, fight, active, players.length, settings, random]);
+  }, [chosen, fight, active, players.length, settings, random, recent, task]);
 
   function restart(): void {
     play(music.fight);
     setActive(0);
-    setTask(makeTask(own(0).level, random));
+    const shown = shownWith(recent, task);
+    setRecent(shown);
+    setTask(makeTask(own(0).level, random, shown));
     setChosen(undefined);
     setFight(startFight(lives));
     setStaging({});

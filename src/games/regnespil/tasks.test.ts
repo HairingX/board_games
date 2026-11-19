@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { levels } from './levels';
-import { judge, makeTask, type Token } from './tasks';
+import { freshFor, freshTask, judge, makeTask, sumKey, type Token } from './tasks';
 import { numeric, valueKey, type Value } from './values';
 
 /** A source of random numbers that repeats, so tasks can be checked by the thousand. */
@@ -150,6 +150,34 @@ describe('makeTask', () => {
     const task = makeTask(4, random);
     expect(task.sum).toEqual([52, '−', 17]);
     expect(task.choices).toContain(45);
+  });
+});
+
+describe('makeTask, over and over', () => {
+  it.each(levels)('never repeats a sum shown lately at level %i', (level) => {
+    const random = seeded(level + 300);
+    let recent: string[] = [];
+    for (let i = 0; i < 1000; i++) {
+      const task = makeTask(level, random, recent);
+      const key = sumKey(task.sum);
+      expect(recent.slice(-freshFor)).not.toContain(key);
+      recent = [...recent, key].slice(-freshFor);
+    }
+  });
+
+  it('gives up drawing anew with a random source that never changes, rather than hang', () => {
+    const task = makeTask(1, () => 0);
+    expect(makeTask(1, () => 0, [sumKey(task.sum)]).sum).toEqual(task.sum);
+  });
+
+  it('may repeat a sum shown a while ago, but never the last, where the lately ones run out', () => {
+    const one = makeTask(1, () => 0);
+    const other = makeTask(2, () => 0);
+    let draws = 0;
+    // Only two sums can be drawn, both shown lately: the one shown last is drawn first.
+    const draw = () => (draws++ % 2 === 0 ? one : other);
+    const recent = [sumKey(other.sum), sumKey(one.sum)];
+    expect(freshTask(draw, recent)).toBe(other);
   });
 });
 

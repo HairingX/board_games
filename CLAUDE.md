@@ -132,7 +132,9 @@ game builds on them, and everything must stay smooth on a phone.
   digit taken from the larger, a neighbour in the table, the wrong operation, left to right
   instead of the order of operations, brackets forgotten, digits lined up wrong, tops and
   bottoms added alike, the sign, a power taken as times, a root as half). Answers below zero
-  are offered only where negative numbers are taught. Fractions are exact (`values.ts`), so
+  are offered only where negative numbers are taught. A sum never repeats one of the last five
+  shown (`freshFor`), so the same sum never comes twice in a row, as the owner asked; it is
+  drawn again until it is new. Fractions are exact (`values.ts`), so
   2/4 and 1/2 are one answer. `judge` calls a wrong answer close within a level's nearness:
   2 or a tenth of the answer, and for decimals and fractions 0.1 or a tenth.
 - Sums are written as each language does (`text.ts`: `·`, `:` and "af" in Danish, `×`, `÷`
