@@ -13,6 +13,7 @@ import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import {
   answerFight,
   fullHealth,
+  coinsEach,
   powerAfter,
   reachedHero,
   startFight,
@@ -20,11 +21,13 @@ import {
   type Fight as FightState,
 } from './battle';
 import { faces, hud, swordPictures, topFrames } from './art';
+import { heroFaces } from './heroes';
 import {
   benchAt,
   clearing,
   clearingSheets,
   coinDrop,
+  coinSpots,
   heroAt,
   puff,
   reach,
@@ -66,6 +69,10 @@ const isStroke = (blow: Blow | undefined) => blow === 'struck' || blow === 'smas
 
 /** Whether the blow hurt the hero, so the scene shakes. */
 const isHurt = (blow: Blow | undefined) => blow === 'bumped' || blow === 'hit' || blow === 'nicked';
+
+/** Where the purses stand at the right of the stage, one under another, in its pixels. */
+const purseX = 128;
+const purseTop = (index: number) => 4 + index * 14;
 
 /** How wide the life bar under the monster is, in the stage's pixels. */
 const lifeWidth = 24;
@@ -145,20 +152,30 @@ const walkedAt = (walk: Walk | undefined, seconds: number) =>
     : 0;
 
 /**
- * When the victory's moments come after the last stroke, in seconds, and how far to the side
- * each coin springs from the slime's place, in the stage's pixels.
+ * When the victory's moments come after the last stroke, in seconds: the slime vanishing, its
+ * puff, the first coin springing out and the next after it, and the heroes' cheers.
  */
 const victory = {
   vanish: 0.12,
   puff: 0.3,
-  coins: [
-    { at: 0.45, aside: -24 },
-    { at: 0.55, aside: 22 },
-    { at: 0.65, aside: -10 },
-    { at: 0.75, aside: 8 },
-  ],
+  coins: { first: 0.45, apart: 0.07 },
   cheers: [0.8, 1.5],
 } as const;
+
+/** When a victory's coin springs out, after the last stroke shows, in seconds. */
+const coinAt = (index: number) => victory.coins.first + index * victory.coins.apart;
+
+/**
+ * A victory's coins, to pick up: when the last stroke showed, on the page's clock; how many
+ * have landed, to be picked up; how many each player had before, so the purses count up as
+ * the coins are taken; and which have been taken. Coin `i` is for player `i` round the table.
+ */
+interface Loot {
+  at: number;
+  landed: number;
+  before: readonly number[];
+  taken: ReadonlySet<number>;
+}
 
 interface Props {
   players: readonly Profile[];
@@ -170,6 +187,8 @@ interface Props {
   saved: SavedFight | null;
   /** Saves the fight, after every answer and when a new one begins. */
   onSave: (fight: SavedFight) => void;
+  /** Puts coins in the players' purses, as many as each is given, in the players' order. */
+  onCoins: (gains: readonly number[]) => void;
   /** Shown at the right of the header: the sound's levels. */
   aside?: ReactNode;
   random?: Random;
@@ -290,7 +309,9 @@ function stage(
       effects: [
         ...cuts,
         puff(shown + victory.puff),
-        ...victory.coins.map((coin) => coinDrop(shown + coin.at, coin.aside)),
+        ...coinSpots
+          .slice(0, (others.length + 1) * coinsEach)
+          .map((spot, index) => coinDrop(shown + coinAt(index), spot)),
       ],
     };
   }
@@ -322,6 +343,7 @@ export function Fight({
   onBack,
   saved,
   onSave,
+  onCoins,
   aside,
   random = Math.random,
   sound = defaultSound,
@@ -370,6 +392,8 @@ export function Fight({
   const [chosen, setChosen] = useState<Value>();
   /** Whether how the answer chosen went shows yet. */
   const [revealed, setRevealed] = useState(false);
+  /** A victory's coins, while they are there to pick up. */
+  const [loot, setLoot] = useState<Loot>();
   /** Whether the slime spat at the hero, rather than charging, at the last answer. */
   const [spat, setSpat] = useState(false);
   /** How many lives the last stroke took. */
@@ -416,6 +440,28 @@ export function Fight({
       clearTimeout(timer);
     };
   }, [outcome, sound]);
+
+  // Each of a victory's coins becomes one to pick up as it lands.
+  const lootAt = loot?.at;
+  const coins = players.length * coinsEach;
+  useEffect(() => {
+    if (lootAt === undefined) return;
+    const timers = Array.from({ length: coins }, (_, index) =>
+      setTimeout(
+        () => {
+          // The timers stop when the victory's coins go, so they are there.
+          setLoot((known) => {
+            const coinsThere = known as Loot;
+            return { ...coinsThere, landed: Math.max(coinsThere.landed, index + 1) };
+          });
+        },
+        Math.max(0, lootAt + coinAt(index) + motionTokens.effect.flight - now()) * 1000,
+      ),
+    );
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [lootAt, coins, now]);
 
   function play({ url, gain }: Mixed): void {
     sound.music(url, gain);
@@ -556,6 +602,7 @@ export function Fight({
     setChosen(undefined);
     setRevealed(false);
     setStaging({});
+    setLoot(undefined);
     setBack(0);
     setWalking(false);
     setWalk(walkFor(paces, next, now()));
@@ -615,6 +662,14 @@ export function Fight({
       // The slime squeals at the blow, cross at being struck.
       sound.babble(voices.slime, 3, undefined, reveal + moments.squeal);
       if (next.outcome === 'won') {
+        // The coins go in the purses at once, so none is lost; picking them up shows them.
+        onCoins(players.map(() => coinsEach));
+        setLoot({
+          at: at + reveal,
+          landed: 0,
+          before: settings.map((one) => one.coins),
+          taken: new Set(),
+        });
         effect(sounds.victory, reveal);
         sound.babble(voices.hero, 6, undefined, reveal + victory.cheers[0]);
       } else if (next.enraged && !fight.enraged) {
@@ -683,22 +738,81 @@ export function Fight({
           />
         ))}
       </span>
-      <span
-        className="rs-combo"
-        role="img"
-        aria-label={t.combo(shown.combo, powerAfter)}
-        data-full={shown.combo >= powerAfter - 1}
-      >
-        {Array.from({ length: powerAfter }, (_, index) => (
-          <img
-            key={index}
-            src={swordPictures[sword]}
-            alt=""
-            className="rs-combo-pip"
-            data-lit={index < shown.combo}
-          />
-        ))}
-      </span>
+      {shown.outcome !== 'won' && (
+        <span
+          className="rs-combo"
+          role="img"
+          aria-label={t.combo(shown.combo, powerAfter)}
+          data-full={shown.combo >= powerAfter - 1}
+        >
+          {Array.from({ length: powerAfter }, (_, index) => (
+            <img
+              key={index}
+              src={swordPictures[sword]}
+              alt=""
+              className="rs-combo-pip"
+              data-lit={index < shown.combo}
+            />
+          ))}
+        </span>
+      )}
+      {loot && shown.outcome === 'won' && (
+        <>
+          <ul className="rs-purses">
+            {players.map((player, index) => {
+              const count =
+                (loot.before[index] as number) +
+                [...loot.taken].filter((coin) => coin % players.length === index).length;
+              return (
+                <li
+                  key={player.id}
+                  className="rs-purse"
+                  role="img"
+                  aria-label={t.purse(player.name, count)}
+                  style={{ top: px(purseTop(index)) }}
+                >
+                  <img src={heroFaces[own(index).hero]} alt="" className="rs-purse-face" />
+                  <span
+                    className="rs-purse-coin"
+                    style={{ backgroundImage: `url("${clearingSheets.coin}")` }}
+                  />
+                  {/* Drawn anew as it grows, so it gives a little bounce. */}
+                  <span key={count} className="rs-purse-count" aria-hidden="true">
+                    {formatNumber(locale, count)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {coinSpots.slice(0, loot.landed).map((spot, index) => (
+            <button
+              key={index}
+              type="button"
+              className="rs-coin"
+              aria-label={t.pickUp}
+              data-taken={loot.taken.has(index)}
+              disabled={loot.taken.has(index)}
+              style={
+                {
+                  left: px(spot.x + 5),
+                  top: px(spot.y + 5),
+                  '--to-x': px(purseX - spot.x),
+                  '--to-y': px(purseTop(index % players.length) - spot.y),
+                } as CSSProperties
+              }
+              onClick={() => {
+                effect(sounds.coin);
+                setLoot({ ...loot, taken: new Set([...loot.taken, index]) });
+              }}
+            >
+              <span
+                className="rs-coin-face"
+                style={{ backgroundImage: `url("${clearingSheets.coin}")` }}
+              />
+            </button>
+          ))}
+        </>
+      )}
       {revealed && (isStroke(fight.last) || fight.last === 'fed') && (
         <span
           // Drawn anew at every stroke, so it floats up again.

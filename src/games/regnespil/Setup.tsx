@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react';
 import { Avatar } from '../../family/Avatar';
 import type { Profile } from '../../family/family';
-import { useMessages } from '../../i18n/I18n';
+import { formatNumber } from '../../i18n/format';
+import { useLocale, useMessages } from '../../i18n/I18n';
 import { GameHeader } from '../../ui/GameHeader';
+import { clearingSheets } from './clearing';
 import { HeroPicker } from './HeroPicker';
 import { LevelStepper } from './LevelStepper';
 import type { PlayerSettings } from './players';
@@ -28,6 +30,7 @@ interface Props {
  */
 export function Setup({ players, settings, onChange, onStart, onListen, aside }: Props) {
   const t = useMessages(text);
+  const locale = useLocale();
   return (
     <section className="rs-setup">
       <GameHeader title={t.setupTitle} aside={aside} />
@@ -37,10 +40,23 @@ export function Setup({ players, settings, onChange, onStart, onListen, aside }:
           const own = settings[index] as PlayerSettings;
           return (
             <li key={player.id} className="rs-player">
-              <h2 className="rs-player-name">
-                <Avatar profile={player} size="small" />
-                {player.name}
-              </h2>
+              <div className="rs-player-head">
+                <h2 className="rs-player-name">
+                  <Avatar profile={player} size="small" />
+                  {player.name}
+                </h2>
+                <span
+                  className="rs-player-purse"
+                  role="img"
+                  aria-label={t.purse(player.name, own.coins)}
+                >
+                  <span
+                    className="rs-purse-coin"
+                    style={{ backgroundImage: `url("${clearingSheets.coin}")` }}
+                  />
+                  <span aria-hidden="true">{formatNumber(locale, own.coins)}</span>
+                </span>
+              </div>
               <LevelStepper
                 name={player.name}
                 level={own.level}

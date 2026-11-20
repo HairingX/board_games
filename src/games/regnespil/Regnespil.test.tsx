@@ -65,6 +65,7 @@ describe('Regnespil', () => {
         level: 1,
         sword: 'jern',
         hero: 'KnightGold',
+        coins: 0,
       });
     });
   });
@@ -109,7 +110,31 @@ describe('Regnespil', () => {
     expect(go).toHaveBeenCalledWith([]);
   });
 
+  it('puts a victory’s coins in the player’s purse, kept on their profile', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 };
+    await saves.write('regnespil/mille', { level: 1, sword: 'træ', hero: 'Monkey', coins: 4 });
+    await saves.write('regnespil/kamp/mille', {
+      fight: { health: 10, lives: 1, outcome: 'fighting', last: 'struck' },
+      lives: 2,
+      activeId: 'mille',
+      task,
+      recent: [],
+    });
+    for (const quiet of ['music', 'chime', 'babble'] as const) {
+      vi.spyOn(sound, quiet).mockReturnValue(undefined);
+    }
+    vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
+    render(<Regnespil players={[mille]} saveKey="regnespil" place={[fightPlace]} go={vi.fn()} />);
+    fireEvent.click(await screen.findByRole('button', { name: '2' }));
+    await waitFor(async () => {
+      expect(await saves.read('regnespil/mille')).toMatchObject({ coins: 7 });
+    });
+  });
+
   it('goes on with a saved fight when it is opened again, and begins afresh without its player', async () => {
+    // Its own players' swords, whatever other tests saved: flame and wood, 4 and 2 lives.
+    await saves.write('regnespil/far', { level: 13, sword: 'flamme', hero: 'Knight', coins: 0 });
+    await saves.write('regnespil/mille', { level: 1, sword: 'træ', hero: 'Monkey', coins: 0 });
     const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 };
     const fight = { health: 4, lives: 1, outcome: 'fighting', last: 'struck' };
     await saves.write('regnespil/kamp/far+mille', {

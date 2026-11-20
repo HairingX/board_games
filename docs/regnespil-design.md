@@ -298,7 +298,10 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
 4. Mood-following music (section 8).
 5. The story (`docs/regnespil-story.md`).
 6. Built: the combo; a close answer keeps it, one far off breaks it. To tune once played.
-7. Coins and the shop: within a run only, never real money, and no random loot.
+7. Decided (owner): each player has a purse of their own, kept for good, never real money, and
+   no random loot; coins are picked up by tapping them (built). A chest (tap to open, choose
+   one of two or three things) waits for the adventure's map, so what it holds means
+   something. The shop is still to be decided.
 8. When the game suggests a higher math level to a child, and how it says so kindly.
 
 ## 11. The owner's ideas, as raised
@@ -371,3 +374,15 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   poncho) shows how many coins each has in all.
 - A chest is tapped to open; it shows two or three different things, and the child taps the
   one they want, so the reward after the sums is interactive.
+- Every fight against the slime feels the same: it does nothing but spit slime on its turn. It
+  would be good with some chance in it, so it sometimes avoids an attack, just so the children
+  feel annoyed by it (not too often). When the hero runs over to strike, it should react,
+  rather than stand still for the stroke and complain: it is a scene, it should be a fight,
+  role play, where it tries to avoid the stroke: sometimes it is hit, sometimes it avoids it,
+  by burrowing into the ground, jumping up, or going completely flat on the ground. Something
+  happens along the way, so no attack feels the same; both the monster and the hero should do
+  more than run over and strike. Once a sum is chosen, the children should be rewarded with a
+  little entertainment, small doses all the time. After running and striking, the next sum
+  need not come at once: a little scene, where the monster shows it is cross, runs over and
+  picks up a spear, throws stones or sand at the hero, or spits at them; constant interaction
+  between the sums, not every time, perhaps after two or three sums, something cheeky or funny.

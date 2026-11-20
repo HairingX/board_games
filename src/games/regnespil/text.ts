@@ -79,6 +79,9 @@ const da = {
   stakeDodge: 'Rigtigt: du undviger slimets angreb',
   stakeRight: 'Rigtigt: dit slag rammer slimet',
   stakeFed: 'Forkert: slimet spiser bær og får et liv tilbage',
+  pickUp: 'Saml mønten op',
+  purse: (name: string, count: number) =>
+    `${genitive('da', name)} pung: ${formatNumber('da', count)} ${plural('da', count, { one: 'mønt', other: 'mønter' })}`,
   stakeWrong: (hearts: number) =>
     `Forkert: ${formatNumber('da', hearts)} ${plural('da', hearts, { one: 'hjerte', other: 'hjerter' })} mindre`,
   fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
@@ -184,6 +187,9 @@ export const text: Translations<typeof da> = {
     stakeDodge: 'Right: you dodge the slime’s attack',
     stakeRight: 'Right: your stroke hits the slime',
     stakeFed: 'Wrong: the slime eats berries and gets a life back',
+    pickUp: 'Pick up the coin',
+    purse: (name, count) =>
+      `${genitive('en', name)} purse: ${formatNumber('en', count)} ${plural('en', count, { one: 'coin', other: 'coins' })}`,
     stakeWrong: (hearts) =>
       `Wrong: ${formatNumber('en', hearts)} ${plural('en', hearts, { one: 'heart', other: 'hearts' })} less`,
     fightLabel: 'The hero faces a blue slime in the forest clearing.',

@@ -32,11 +32,14 @@ afterEach(() => {
 
 /** A fight with the sums made the same every time: at level 1 "1 + 1", at level 7 "12 · 2". */
 function open(
-  chosen: readonly Omit<PlayerSettings, 'hero'>[] = [{ level: 1, sword: 'jern' }],
+  chosen: readonly (Omit<PlayerSettings, 'hero' | 'coins'> & Partial<PlayerSettings>)[] = [
+    { level: 1, sword: 'jern' },
+  ],
   players: readonly Profile[] = [mille],
   saved: SavedFight | null = null,
 ) {
-  const settings = chosen.map((one): PlayerSettings => ({ ...one, hero: 'Knight' }));
+  const settings = chosen.map((one): PlayerSettings => ({ hero: 'Knight', coins: 0, ...one }));
+  const onCoins = vi.fn<(gains: readonly number[]) => void>();
   const fake = fakeSoundBrowser();
   const onBack = vi.fn();
   const onSave = vi.fn<(fight: SavedFight) => void>();
@@ -50,6 +53,7 @@ function open(
       settings={settings}
       saved={saved}
       onSave={onSave}
+      onCoins={onCoins}
       onBack={onBack}
       random={() => 0}
       sound={engine}
@@ -61,7 +65,7 @@ function open(
   const played = () => effect.mock.calls.map(([url, volume, after]) => [url, volume, after]);
   const chimed = () => chime.mock.calls.map(([made]) => made);
   const babbled = () => babble.mock.calls.map(([voice, syllables]) => [voice, syllables]);
-  return { ...fake, ...view, onBack, onSave, played, chimed, chime, babbled };
+  return { ...fake, ...view, onBack, onSave, onCoins, played, chimed, chime, babbled };
 }
 
 /** Lets the pause after an answer pass, and the sounds be fetched. */
@@ -153,7 +157,7 @@ describe('Fight', () => {
   });
 
   it('wins with a fanfare, coins and a cheering hero, and starts again', async () => {
-    const { played, context, audios, runLater } = open([{ level: 1, sword: 'træ' }]);
+    const { played, context, audios, runLater, onCoins } = open([{ level: 1, sword: 'træ' }]);
     await choose('2');
     await pause(right);
     // Enraged, the slime strikes back at once: the hero dodges.
@@ -170,7 +174,18 @@ describe('Fight', () => {
     await pause(victoryLength);
     expect(audios[1]?.src).toMatch(/^blob:/);
     expect(audios).toHaveLength(2);
+    // The coins go in the purse at once, and are picked up one by one.
+    expect(onCoins).toHaveBeenCalledWith([3]);
+    const coins = screen.getAllByRole('button', { name: 'Saml mønten op' });
+    expect(coins).toHaveLength(3);
+    expect(screen.getByRole('img', { name: 'Milles pung: 0 mønter' })).toBeInTheDocument();
+    fireEvent.click(coins[0] as HTMLElement);
+    expect(coins[0]).toBeDisabled();
+    expect(coins[0]).toHaveAttribute('data-taken', 'true');
+    expect(screen.getByRole('img', { name: 'Milles pung: 1 mønt' })).toBeInTheDocument();
+    expect(played()).toContainEqual([sounds.coin.url, sounds.coin.gain, 0]);
     click('Ny kamp');
+    expect(screen.queryByRole('button', { name: 'Saml mønten op' })).not.toBeInTheDocument();
     expect(lives(2)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
   });
@@ -213,7 +228,7 @@ describe('Fight', () => {
   });
 
   it('wins together, the monster as tough as both swords', async () => {
-    open(
+    const { onCoins } = open(
       [
         { level: 1, sword: 'træ' },
         { level: 1, sword: 'træ' },
@@ -226,6 +241,14 @@ describe('Fight', () => {
       await pause(right);
     }
     expect(screen.getByRole('status')).toHaveTextContent(won);
+    // Each gets as many coins, wherever the coins are tapped, once they have all landed.
+    expect(onCoins).toHaveBeenCalledWith([3, 3]);
+    await pause(1);
+    const coins = screen.getAllByRole('button', { name: 'Saml mønten op' });
+    expect(coins).toHaveLength(6);
+    fireEvent.click(coins[1] as HTMLElement);
+    expect(screen.getByRole('img', { name: 'Fars pung: 1 mønt' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Milles pung: 0 mønter' })).toBeInTheDocument();
   });
 
   it('saves the fight at once after every answer, with the next turn and its sum', async () => {
@@ -455,9 +478,10 @@ describe('Fight', () => {
     const { container } = render(
       <Fight
         players={[mille]}
-        settings={[{ level: 1, sword: 'træ', hero: 'Samurai' }]}
+        settings={[{ level: 1, sword: 'træ', hero: 'Samurai', coins: 0 }]}
         saved={null}
         onSave={() => undefined}
+        onCoins={() => undefined}
         onBack={() => undefined}
       />,
     );

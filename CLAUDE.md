@@ -174,8 +174,14 @@ game builds on them, and everything must stay smooth on a phone.
   tries again. The players take turns (`src/lib/turns.ts`); whose turn it is shows as their
   name, small, over their hero, said in full to screen readers ("Nu er det Idas tur"). The next sum comes by itself after a short pause (`fightPause`). The fight
   has its music (the pack's "17 - Fight"); victory is a fanfare, a puff of smoke, coins
-  springing out in arcs and lying a while (`coinsLie`), and the heroes cheering, a heart over
-  the head of the one who struck, and then happy music. A fight is saved after every answer
+  springing out in arcs, and the heroes cheering, a heart over the head of the one who struck,
+  and then happy music. The coins are picked up, as the owner asked, since children love
+  taking money: each lands as a button (`coinSpots`, far enough apart for a finger) and,
+  tapped, flashes and flies up into its player's purse with the pack's "Coin2", the purse's
+  count bouncing as it grows. Each player has a purse of their own, kept for good on their
+  profile (`coins` in `players.ts`), shown on the setup too; a victory gives each player
+  `coinsEach` (three), shared out equally whoever taps them, and puts them in the purses at
+  once, so none is lost if the app closes. A fight is saved after every answer
   (`fightSave.ts`, one save per group of players, whatever order they were chosen in): the
   hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
   or crashed app goes on where it was, with the same sum, not a new one to try instead.

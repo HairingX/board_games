@@ -100,6 +100,9 @@
   --duration-shake: 300ms;
   /* How long the lives a stroke took float up over the monster. */
   --duration-damage: 1000ms;
+  /* How long a coin takes to turn once, lying to be picked up, and to fly up to the purse. */
+  --duration-coin-spin: 600ms;
+  --duration-coin-fly: 650ms;
   /* How long one beat of the combo's pulse lasts, when the next stroke is a power stroke. */
   --duration-ready: 700ms;
   --press-scale: 0.96;

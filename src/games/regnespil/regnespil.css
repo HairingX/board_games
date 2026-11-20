@@ -18,6 +18,13 @@
   border-radius: var(--radius-md);
 }
 
+.rs-player-head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
 .rs-player-name {
   display: flex;
   gap: var(--space-2);
@@ -452,6 +459,126 @@
 .rs-combo-pip[data-lit='false'] {
   opacity: 0.3;
   filter: grayscale(1);
+}
+
+/*
+ * A victory's coins, to pick up: each shows where it lands, spinning, a button large enough for
+ * a child's finger around it; tapped, it flashes, grows and flies up into its player's purse.
+ */
+.rs-coin {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * 18);
+  height: calc(var(--px) * 18);
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  animation: rs-coin-land var(--duration-press) var(--ease-spring);
+}
+
+/* Landed, a coin pops up to be picked up. */
+@keyframes rs-coin-land {
+  from {
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+}
+
+.rs-coin-face,
+.rs-purse-coin {
+  display: block;
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+  background-size: calc(var(--px) * 40) 100%;
+  image-rendering: pixelated;
+}
+
+.rs-coin-face {
+  animation: rs-coin-spin var(--duration-coin-spin) steps(4) infinite;
+}
+
+@keyframes rs-coin-spin {
+  to {
+    background-position: calc(var(--px) * -40) 0;
+  }
+}
+
+.rs-coin[data-taken='true'] {
+  cursor: default;
+  animation: rs-coin-take var(--duration-coin-fly) ease-in forwards;
+}
+
+@keyframes rs-coin-take {
+  0% {
+    transform: translate(-50%, -50%);
+    filter: brightness(1);
+  }
+
+  25% {
+    transform: translate(-50%, -50%) scale(1.8);
+    filter: brightness(2.2);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--to-x)), calc(-50% + var(--to-y))) scale(0.6);
+    filter: brightness(1.4);
+  }
+}
+
+/* A player's purse on the setup, at the end of their name: a coin, twice its size, and how many. */
+.rs-player-purse {
+  --px: 2px;
+
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Each player's purse at the right of the stage: their hero, a coin and how many they have. */
+.rs-purses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-purse {
+  position: absolute;
+  right: calc(var(--px) * 4);
+  display: flex;
+  gap: calc(var(--px) * 2);
+  align-items: center;
+  height: calc(var(--px) * 12);
+  padding: 0 calc(var(--px) * 3);
+  font-weight: 800;
+  color: var(--pixel-close);
+  background: var(--pixel-plate);
+  border-radius: var(--radius-sm);
+}
+
+.rs-purse-face {
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+  object-fit: cover;
+  object-position: top;
+  image-rendering: pixelated;
+}
+
+/* The count gives a little bounce each time it grows. */
+.rs-purse-count {
+  display: inline-block;
+  animation: rs-purse-bump var(--duration-press) var(--ease-spring);
+}
+
+@keyframes rs-purse-bump {
+  from {
+    transform: scale(1.5);
+  }
 }
 
 /* The lives a stroke took, floating up over the monster and fading. */

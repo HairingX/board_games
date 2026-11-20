@@ -6,8 +6,8 @@ import { reviveSettings, suggest } from './players';
 const today = new Date(2026, 10, 19);
 
 describe('suggest', () => {
-  it('starts a grown-up at level 13 with the flame sword', () => {
-    expect(suggest(far, today)).toMatchObject({ level: 13, sword: 'flamme' });
+  it('starts a grown-up at level 13 with the flame sword, and an empty purse', () => {
+    expect(suggest(far, today)).toMatchObject({ level: 13, sword: 'flamme', coins: 0 });
   });
 
   it('starts a child without a birthday at level 1 with the wooden sword', () => {
@@ -37,16 +37,18 @@ describe('suggest', () => {
 
 describe('reviveSettings', () => {
   it('keeps a level, a sword and a hero the game has', () => {
-    const saved = { level: 7, sword: 'jern', hero: 'Samurai' };
+    const saved = { level: 7, sword: 'jern', hero: 'Samurai', coins: 12 };
     expect(reviveSettings(saved, mille)).toEqual(saved);
   });
 
-  it('gives settings saved before heroes the hero the profile suggests', () => {
+  it('gives settings saved before heroes and purses the suggested hero and an empty purse', () => {
     expect(reviveSettings({ level: 7, sword: 'jern' }, mille)).toEqual({
       level: 7,
       sword: 'jern',
       hero: suggestHero(mille),
+      coins: 0,
     });
+    expect(reviveSettings({ level: 7, sword: 'jern', coins: -3 }, mille)?.coins).toBe(0);
     expect(reviveSettings({ level: 7, sword: 'jern', hero: 'Boy' }, mille)?.hero).toBe(
       suggestHero(mille),
     );

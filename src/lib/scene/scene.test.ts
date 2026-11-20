@@ -289,6 +289,11 @@ describe('figures acting', () => {
       effects: [{ ...(coin.effects?.[0] as Effect), arc: { dx: -40, height: 0, seconds: 1 } }],
     };
     expect(drawScene(ball, at + 0.5)[0]?.x).toBe(-20);
+    const falling: Scene = {
+      ...coin,
+      effects: [{ ...(coin.effects?.[0] as Effect), arc: { dx: 0, dy: 20, height: 0 } }],
+    };
+    expect(drawScene(falling, at + 1.5)[0]?.y).toBe(70);
   });
 
   it('plays an effect’s frames over the stage, and none with motion stilled', () => {

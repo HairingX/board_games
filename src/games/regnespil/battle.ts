@@ -35,6 +35,9 @@ export const fullHealth = 10;
 /** Every how many turns the monster strikes back, its turn announced the one before. */
 export const strikeBackEvery = 3;
 
+/** How many coins each player gets for a victory, to pick up and keep in their purse. */
+export const coinsEach = 3;
+
 /** How many right answers in a row make a power stroke: the last of them, if it is a stroke. */
 export const powerAfter = 3;
 

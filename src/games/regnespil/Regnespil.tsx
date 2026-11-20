@@ -8,7 +8,7 @@ import { SoundMenu } from '../../ui/SoundMenu';
 import { Fight, fightMusic } from './Fight';
 import { fightSaveKey, reviveFight } from './fightSave';
 import { Listening } from './Listening';
-import { reviveSettings, suggest } from './players';
+import { reviveSettings, suggest, type PlayerSettings } from './players';
 import { Setup } from './Setup';
 import { music } from './sounds';
 
@@ -63,6 +63,12 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
               : null
           }
           onSave={saveFight}
+          onCoins={(gains) => {
+            gains.forEach((gain, index) => {
+              const own = settings[index] as PlayerSettings;
+              change(index, { ...own, coins: own.coins + gain });
+            });
+          }}
           onBack={back}
           aside={aside}
         />

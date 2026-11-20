@@ -4,11 +4,15 @@ import { isHero, suggestHero, type Hero } from './heroes';
 import { guides, levels, type Level } from './levels';
 import { isSword, type Sword } from './swords';
 
-/** What each player has in the math game, kept on their profile: their level, sword and hero. */
+/**
+ * What each player has in the math game, kept on their profile: their level, sword and hero,
+ * and the coins in their purse, kept for good, as the owner decided.
+ */
 export interface PlayerSettings {
   level: Level;
   sword: Sword;
   hero: Hero;
+  coins: number;
 }
 
 /** Where a grown-up starts: hard sums and a fight with resistance, as the owner decided. */
@@ -26,10 +30,11 @@ const woodenUntil = 2;
  */
 export function suggest(player: Profile, today: Date): PlayerSettings {
   const hero = suggestHero(player);
-  if (player.role === 'voksen') return { ...grownUp, hero };
-  if (player.born === undefined) return { level: 1, sword: 'træ', hero };
+  if (player.role === 'voksen') return { ...grownUp, hero, coins: 0 };
+  if (player.born === undefined) return { level: 1, sword: 'træ', hero, coins: 0 };
   const grade = schoolGrade(player.born, today);
-  return { level: levelFor(grade), sword: grade <= woodenUntil ? 'træ' : 'jern', hero };
+  const sword = grade <= woodenUntil ? 'træ' : 'jern';
+  return { level: levelFor(grade), sword, hero, coins: 0 };
 }
 
 /** The first level that suits the school grade; after school, upper-secondary level. */
@@ -43,12 +48,17 @@ function levelFor(grade: number): Level {
 
 /**
  * A player's settings as saved, or undefined when nothing usable was. Settings saved before
- * heroes came get the hero the player's profile suggests.
+ * heroes came get the hero the player's profile suggests; before purses, an empty one.
  */
 export function reviveSettings(saved: unknown, player: Profile): PlayerSettings | undefined {
   if (typeof saved !== 'object' || saved === null) return undefined;
-  const { level, sword, hero } = saved as Record<string, unknown>;
+  const { level, sword, hero, coins } = saved as Record<string, unknown>;
   return levels.includes(level as Level) && isSword(sword)
-    ? { level: level as Level, sword, hero: isHero(hero) ? hero : suggestHero(player) }
+    ? {
+        level: level as Level,
+        sword,
+        hero: isHero(hero) ? hero : suggestHero(player),
+        coins: Number.isSafeInteger(coins) && (coins as number) >= 0 ? (coins as number) : 0,
+      }
     : undefined;
 }

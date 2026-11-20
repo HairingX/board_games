@@ -14,6 +14,7 @@ import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.pn
 import slimeball from '../../../assets/ninja-adventure/FX/Projectile/EnergyBall.png';
 import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteSheet.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
+import { motionTokens } from '../../ui/motion';
 import { forest, forestSheets } from './forest';
 import { heroSheets, type Hero } from './heroes';
 
@@ -82,8 +83,21 @@ export const bushAt = { x: 116, y: 62 };
 /** The berry bush with two berries, one, and none, in the nature tiles. */
 const bushes = [96, 80, 64].map((x) => ({ x, y: 224, width: 16, height: 16 }));
 
-/** How long the coins of a victory lie on the ground, in seconds, before they are gone. */
-export const coinsLie = 4;
+/** Where a coin springs from: the middle of where the slime was. */
+const coinFrom = { x: slimeAt.x + 3, y: slimeAt.y + 6 };
+
+/**
+ * Where the coins of a victory land, in the order they fall: on a grid around where the slime
+ * was, nearest first, far enough apart for a child's finger to pick each one up, and clear of
+ * the hero. Twenty, enough for six players' coins.
+ */
+export const coinSpots: readonly { x: number; y: number }[] = Array.from(
+  { length: 20 },
+  (_, index) => ({ x: 64 + (index % 5) * 18, y: 70 + Math.floor(index / 5) * 18 }),
+).sort(
+  (a, b) =>
+    Math.hypot(a.x - coinFrom.x, a.y - coinFrom.y) - Math.hypot(b.x - coinFrom.x, b.y - coinFrom.y),
+);
 
 /** A sword's sweep over the slime, and the puff it vanishes in; frames side by side. */
 export const sweep = (at: number): Effect => ({
@@ -158,19 +172,18 @@ export const shieldUp = (at: number): Effect => ({
 });
 
 /**
- * A coin springing out of where the slime was, in an arc to the side, and lying there
- * spinning a while.
+ * A coin springing out of where the slime was, in an arc to where it lands, spinning; there it
+ * becomes a coin to pick up, over the scene.
  */
-export const coinDrop = (at: number, aside: number): Effect => ({
+export const coinDrop = (at: number, to: { x: number; y: number }): Effect => ({
   sheet: 'coin',
   width: 10,
   height: 10,
   frames: 4,
-  x: slimeAt.x + 3,
-  y: slimeAt.y + 6,
+  ...coinFrom,
   at,
-  lasts: coinsLie,
-  arc: { dx: aside, height: 18 },
+  lasts: motionTokens.effect.flight,
+  arc: { dx: to.x - coinFrom.x, dy: to.y - coinFrom.y, height: 18 },
 });
 
 /** What one figure does: its acts, a sign over its head, and which way it turns. */
