@@ -405,9 +405,10 @@ describe('Fight', () => {
     expect(splashed.played()).toContainEqual([sounds.splash.url, sounds.splash.gain, reveal]);
   });
 
-  it('defends: the slime warns, the tab turns blue, and a right answer dodges', async () => {
-    const { onSave, babbled } = open([{ level: 1, sword: 'flamme' }]);
+  it('defends: the slime warns, the panel turns blue, and a right answer dodges', async () => {
+    const { onSave, babbled, container } = open([{ level: 1, sword: 'flamme' }]);
     expect(screen.getByText('Angreb')).toBeInTheDocument();
+    expect(container.querySelector('.rs-panel')).toHaveAttribute('data-turn', 'attack');
     await choose('2');
     await pause(right);
     await choose('2');
@@ -416,6 +417,8 @@ describe('Fight', () => {
     await pause(right);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
     expect(screen.getByLabelText('Rigtigt: du undviger slimets angreb')).toBeInTheDocument();
+    // The whole panel turns blue to defend, and red again to attack.
+    expect(container.querySelector('.rs-panel')).toHaveAttribute('data-turn', 'defend');
     await choose('2');
     expect(babbled()).toContainEqual([voices.slime, 4]);
     expect(lives(2)).toBeInTheDocument();

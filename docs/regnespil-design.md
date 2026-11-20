@@ -360,3 +360,14 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   fall.
 - The monster's voice was hardly heard; its blows were always a push, never a shot of slime or
   the like. Defence is only a hop: is it a dodge?
+- The panel below should show by its colour whether the player attacks or defends, red or
+  blue, so it is clear when choosing; hopping instead of attacking looked odd, as the monster
+  attacks first. (Built: the panel and its answers turn blue to defend.)
+- There does not seem to be much development through the fight. The monster running towards
+  a time limit, so one must be a little quicker or be struck on the hardest sword, is liked.
+- The sounds now are liked: the monsters seem to grumble, and their signs show they get cross.
+- Children love taking money: the coins a beaten monster sprays out should be tapped to be
+  picked up, for a feeling of winning; a coin tapped flies up and twinkles. A purse (or a cool
+  poncho) shows how many coins each has in all.
+- A chest is tapped to open; it shows two or three different things, and the child taps the
+  one they want, so the reward after the sums is interactive.

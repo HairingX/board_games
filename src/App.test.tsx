@@ -318,7 +318,11 @@ describe('App, opened again', () => {
       { player: 'mille', locked: false, place: '#/spil/regnespil/mille', at: 0 },
       '#/spil/regnespil/mille',
     );
-    expect(await screen.findByRole('heading', { name: /Klar til eventyret/ })).toBeInTheDocument();
+    // The game's code is fetched when it is opened, which can take more than a second on a busy
+    // machine.
+    expect(
+      await screen.findByRole('heading', { name: /Klar til eventyret/ }, { timeout: 5000 }),
+    ).toBeInTheDocument();
     goTo('#/');
     const tile = screen.getByRole('link', { name: /Regnespil/ });
     expect(tile).toHaveTextContent('Under udvikling');

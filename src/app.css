@@ -117,6 +117,9 @@
   --pixel-backdrop: #16121a;
   --pixel-ink: #131b1b;
   --pixel-panel: #34312c;
+  /* The battle panel while attacking, a dark red, and while defending, a dark blue. */
+  --pixel-panel-attack: #4a2622;
+  --pixel-panel-defend: #182c48;
   --pixel-plate: rgb(22 18 26 / 72%);
   --pixel-text: #f4efe6;
   --pixel-attack: #ef6b33;

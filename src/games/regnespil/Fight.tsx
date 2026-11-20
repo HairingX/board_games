@@ -785,7 +785,10 @@ export function Fight({
           {...(load ? { load } : {})}
         />
       </div>
-      <div className="rs-panel">
+      <div
+        className="rs-panel"
+        data-turn={shown.outcome !== 'fighting' ? undefined : view.threat ? 'defend' : 'attack'}
+      >
         {shown.outcome === 'fighting' ? (
           <>
             {view.threat ? (

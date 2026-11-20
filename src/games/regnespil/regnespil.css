@@ -694,6 +694,33 @@
     inset 0 3px 0 var(--pixel-attack-light);
 }
 
+/*
+ * Whether the player attacks or defends shows in the whole panel, as the owner asked, so it is
+ * clear before an answer is chosen: dark red with orange answers to attack, dark blue with
+ * blue answers to defend.
+ */
+.rs-panel[data-turn='attack'] {
+  background: var(--pixel-panel-attack);
+}
+
+.rs-panel[data-turn='defend'] {
+  background: var(--pixel-panel-defend);
+}
+
+.rs-panel[data-turn='defend'] .task-choice {
+  text-shadow: 0 2px 0 var(--pixel-defend-dark);
+  background: var(--pixel-defend);
+  box-shadow:
+    inset 0 -6px 0 var(--pixel-defend-dark),
+    inset 0 4px 0 var(--pixel-defend-light);
+}
+
+.rs-panel[data-turn='defend'] .task-choice[data-state='chosen'] {
+  box-shadow:
+    inset 0 6px 0 var(--pixel-defend-dark),
+    inset 0 -2px 0 var(--pixel-defend-light);
+}
+
 /* Defending: the monster strikes back, and the tab turns blue, with a shield. */
 .rs-tab[data-defend='true'] {
   text-shadow: 0 2px 0 var(--pixel-defend-dark);

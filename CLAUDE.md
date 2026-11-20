@@ -230,7 +230,9 @@ game builds on them, and everything must stay smooth on a phone.
   own weapon), the stakes as pictures (✓ the weapon hitting the monster, ✗ the hearts it
   costs), the sum in the middle, and the answers low, where the thumbs are, as the pack's
   chunky buttons. Defending, the tab is "Forsvar" in blue, with a shield, and the stakes ✓ the
-  shield, ✗ the hearts the blow costs.
+  shield, ✗ the hearts the blow costs. The whole panel shows which, as the owner asked: dark
+  red with orange answers to attack, dark blue with blue answers to defend
+  (`--pixel-panel-attack`, `--pixel-panel-defend`).
 - An answer is a moment of hope, as the owner asked: choosing one plays a soft tap and the
   button only shows as chosen, while the hero shouts and runs at the monster (or, defending,
   the monster cries out and runs at the hero); only as they reach it (`charge.out`) does it
