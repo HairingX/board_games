@@ -374,7 +374,9 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   poncho) shows how many coins each has in all.
 - A chest is tapped to open; it shows two or three different things, and the child taps the
   one they want, so the reward after the sums is interactive.
-- Every fight against the slime feels the same: it does nothing but spit slime on its turn. It
+- (Built in part, see `CLAUDE.md`: the slime evades strokes that do not land, and teases
+  between the sums; picking up a spear, sand, more of the hero's own reactions to come.)
+  Every fight against the slime feels the same: it does nothing but spit slime on its turn. It
   would be good with some chance in it, so it sometimes avoids an attack, just so the children
   feel annoyed by it (not too often). When the hero runs over to strike, it should react,
   rather than stand still for the stroke and complain: it is a scene, it should be a fight,

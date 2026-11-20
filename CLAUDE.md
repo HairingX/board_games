@@ -243,8 +243,17 @@ game builds on them, and everything must stay smooth on a phone.
   button only shows as chosen, while the hero shouts and runs at the monster (or, defending,
   the monster cries out and runs at the hero); only as they reach it (`charge.out`) does it
   show how it went, with its chime, colours and hearts: right, a stroke and the monster's
-  squeal; close, a parry's clang; far off, the slime hops into the hero and bounces them
-  over. The answer is saved the moment it is chosen; only the showing waits.
+  squeal; close, the slime gets out of the way, so the stroke swishes through the air, and
+  giggles; far off, the slime hops into the hero and bounces them over. The answer is saved
+  the moment it is chosen; only the showing waits.
+- So no two turns feel alike, as the owner asked, the slime acts its part (`antics.ts`, drawn
+  from the fight's seed, so a reopened fight plays the same, and never changing what an
+  answer costs or gives): it gets out of the way of a stroke that does not land by a high
+  leap, by burrowing into the ground, or by stepping back; and from the third sum, now and
+  then and never two turns running, it teases the heroes between the sums before the next
+  comes, hopping about crossly with an angry sign, or throwing pebbles (the pack's
+  `SpriteSheetRock`) that the hero hops over. A right answer always lands: rewarding the
+  right answer comes first.
 - Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
   knocked over, the hero lies a moment, says "ouch" in their voice and gets up, dizzy, and
   walks home. The monsters speak up over the fight (each voice has its own `volume`). While

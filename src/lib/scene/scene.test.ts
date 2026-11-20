@@ -142,6 +142,17 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('leaps high, and burrows into the ground and up again', () => {
+    const leaping = { acts: [{ kind: 'leap', at }] } as const;
+    expect(one(leaping, at + act.leap.seconds / 2)?.y).toBe(20 - act.leap.height);
+    expect(one(leaping, at + act.leap.seconds + eps)?.y).toBe(20);
+    const sinking = { acts: [{ kind: 'sink', at }], doing: 'bouncing' } as const;
+    const { down, under, up } = act.sink;
+    expect(one(sinking, at + down / 2)).toMatchObject({ y: 28, cut: { height: 8 } });
+    expect(one(sinking, at + down + under / 2)).toBeUndefined();
+    expect(one(sinking, at + down + under + up + 1)).toMatchObject({ y: 20, cut: { height: 16 } });
+  });
+
   it('steps into place from where it was', () => {
     const stepping = { acts: [{ kind: 'step', at, from: { x: -20, y: 10 } }] } as const;
     expect(one(stepping, at + eps)).toMatchObject({ x: 0, y: 30 });

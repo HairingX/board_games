@@ -63,6 +63,10 @@ export const motionTokens = {
     approach: { seconds: 15 },
     /** Stepping into place from where the act says it was, as a hero whose turn it is now. */
     step: { seconds: 0.4 },
+    /** A high jump, clear of a stroke. */
+    leap: { seconds: 0.55, height: 16 },
+    /** Burrowing into the ground, a moment under it, and up again. */
+    sink: { down: 0.15, under: 0.4, up: 0.2 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },

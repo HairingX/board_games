@@ -203,6 +203,27 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
   if (kind === 'hurt' && into < act.hurt.seconds && Math.floor(into / act.hurt.blink) % 2 === 0) {
     return undefined;
   }
+  if (kind === 'leap' && into < act.leap.seconds) {
+    y -= Math.round(Math.sin((into / act.leap.seconds) * Math.PI) * act.leap.height);
+  }
+  if (kind === 'sink') {
+    const { down, under, up } = act.sink;
+    // How much of the figure is above the ground: all, going down to none, and back.
+    const share =
+      into < down
+        ? 1 - into / down
+        : into < down + under
+          ? 0
+          : Math.min(1, (into - down - under) / up);
+    const height = Math.round(tile * share);
+    if (height === 0) return undefined;
+    return {
+      sheet: figure.sheet,
+      cut: { x: column * tile, y: row * tile, width: tile, height },
+      x,
+      y: y + tile - height,
+    };
+  }
   if (kind === 'cheer' && into < act.cheer.seconds) {
     y -= Math.round(Math.sin((into / act.cheer.seconds) * Math.PI) * act.cheer.height);
   }

@@ -13,6 +13,7 @@ import shield from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetB
 import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.png';
 import slimeball from '../../../assets/ninja-adventure/FX/Projectile/EnergyBall.png';
 import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteSheet.png';
+import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRock.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
 import { motionTokens } from '../../ui/motion';
 import { forest, forestSheets } from './forest';
@@ -40,6 +41,7 @@ export const clearingSheets = {
   cross,
   slimeball,
   splash,
+  pebble,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -75,7 +77,12 @@ export function benchAt(count: number): readonly { x: number; y: number }[] {
  * How far each runs to reach the other, in pixels: the slime to just in front of the hero,
  * the hero to where their stroke reaches the slime.
  */
-export const reach = { slime: slimeAt.x - heroAt.x - 12, hero: slimeAt.x - heroAt.x - 16 };
+export const reach = {
+  slime: slimeAt.x - heroAt.x - 12,
+  hero: slimeAt.x - heroAt.x - 16,
+  /** How far the slime steps back from a stroke. */
+  sidestep: 14,
+};
 
 /** Where the berry bush stands, just behind the slime, so it can turn and eat. */
 export const bushAt = { x: 116, y: 62 };
@@ -128,6 +135,19 @@ export const slimeShot = (at: number, dx: number, seconds: number, height: numbe
 /** Where a ball of slime leaves the slime, and how far it has to fly to reach the hero. */
 const shotFrom = slimeAt.x - 6;
 export const shotReach = heroAt.x - shotFrom;
+
+/** A pebble the slime throws in teasing, landing just short of the hero; frames side by side. */
+export const pebbleThrow = (at: number): Effect => ({
+  sheet: 'pebble',
+  width: 16,
+  height: 16,
+  frames: 4,
+  x: shotFrom,
+  y: slimeAt.y + 2,
+  at,
+  lasts: motionTokens.effect.flight,
+  arc: { dx: shotReach + 10, height: 16 },
+});
 
 /** The ball of slime splashing over the hero; frames side by side. */
 export const slimeSplash = (at: number): Effect => ({

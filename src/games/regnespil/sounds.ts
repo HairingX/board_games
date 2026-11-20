@@ -4,7 +4,6 @@ import goodTime from '../../../assets/ninja-adventure/Audio/Musics/20 - Good Tim
 import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.m4a';
 import thud from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit2.m4a';
 import thump from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit8.m4a';
-import clang from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact.m4a';
 import knock from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact3.m4a';
 import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Bounce2.m4a';
 import choose from '../../../assets/ninja-adventure/Audio/Sounds/Menu/Accept4.m4a';
@@ -42,7 +41,6 @@ function mixed(url: string, measured: number, target: number): Mixed {
 export const sounds = {
   choose: mixed(choose, -16, loudness.tap),
   slash: mixed(slash, -19.9, loudness.action),
-  clang: mixed(clang, -10.6, loudness.action),
   bump: mixed(bump, -12.3, loudness.action),
   spit: mixed(spit, -15.2, loudness.action),
   coin: mixed(coin, -15.3, loudness.action),

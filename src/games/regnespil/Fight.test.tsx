@@ -83,6 +83,12 @@ const { right, wrong } = motionTokens.fightPause;
 /** How long after an answer is chosen it shows how it went. */
 const reveal = motionTokens.act.charge.out;
 
+/** Lets the pause after an answer pass, and the slime's teasing too if it teases, until the next sum shows. */
+async function next(seconds: number): Promise<void> {
+  await pause(seconds);
+  if (document.querySelector('.task-choice:disabled')) await pause(2);
+}
+
 /** Chooses an answer, and lets it show how it went. */
 async function choose(name: string): Promise<void> {
   click(name);
@@ -133,7 +139,7 @@ describe('Fight', () => {
     expect(hearts('4,5')).toBeInTheDocument();
     expect(lives(3)).toBeInTheDocument();
     expect(chimed()).toEqual([chimes.close]);
-    expect(played()).toContainEqual([sounds.clang.url, sounds.clang.gain, reveal]);
+    expect(played()).toContainEqual([sounds.slash.url, sounds.slash.gain, reveal]);
     await pause(wrong);
     expect(screen.getByRole('button', { name: '1' })).toBeEnabled();
   });
@@ -195,7 +201,7 @@ describe('Fight', () => {
     expect(lives(4)).toBeInTheDocument();
     for (let bump = 0; bump < 5; bump++) {
       await choose('12');
-      await pause(wrong);
+      await next(wrong);
     }
     expect(hearts('0')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
@@ -238,7 +244,7 @@ describe('Fight', () => {
     expect(lives(4)).toBeInTheDocument();
     for (let turn = 0; turn < 4; turn++) {
       await choose('2');
-      await pause(right);
+      await next(right);
     }
     expect(screen.getByRole('status')).toHaveTextContent(won);
     // Each gets as many coins, wherever the coins are tapped, once they have all landed.
@@ -306,7 +312,7 @@ describe('Fight', () => {
     const { onSave } = open([{ level: 7, sword: 'træ' }]);
     for (let bump = 0; bump < 10; bump++) {
       await choose('12');
-      await pause(wrong);
+      await next(wrong);
     }
     click('Prøv igen');
     expect(onSave.mock.lastCall?.[0]).toMatchObject({
@@ -325,14 +331,14 @@ describe('Fight', () => {
     await choose('2');
     const damage = () => container.querySelector('.rs-damage');
     expect(damage()).toHaveTextContent('−1');
-    await pause(right);
+    await next(right);
     await choose('2');
     expect(combo(2)).toHaveAttribute('data-full', 'true');
-    await pause(right);
+    await next(right);
     // Enraged, it strikes back: dodged, the combo is full, and the next stroke is a power stroke.
     await choose('2');
     expect(combo(3)).toBeInTheDocument();
-    await pause(right);
+    await next(right);
     click('2');
     expect(stage()).toHaveAttribute('data-shake', 'false');
     await pause(reveal);
@@ -428,16 +434,32 @@ describe('Fight', () => {
     expect(splashed.played()).toContainEqual([sounds.splash.url, sounds.splash.gain, reveal]);
   });
 
+  it('lets the slime get out of the way of a stroke that does not land, as the seed has it', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 } as const;
+    // With the seed 3 the slime steps back from the first stroke.
+    const { played } = open([{ level: 1, sword: 'jern' }], [mille], {
+      fight: startFight(3),
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+      seed: 3,
+    });
+    await choose('1');
+    expect(hearts('4,5')).toBeInTheDocument();
+    expect(played()).toContainEqual([sounds.slash.url, sounds.slash.gain, reveal]);
+  });
+
   it('defends: the slime warns, the panel turns blue, and a right answer dodges', async () => {
     const { onSave, babbled, container } = open([{ level: 1, sword: 'flamme' }]);
     expect(screen.getByText('Angreb')).toBeInTheDocument();
     expect(container.querySelector('.rs-panel')).toHaveAttribute('data-turn', 'attack');
     await choose('2');
-    await pause(right);
+    await next(right);
     await choose('2');
     // The sum answered still shows as an attack through the pause.
     expect(screen.getByText('Angreb')).toBeInTheDocument();
-    await pause(right);
+    await next(right);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
     expect(screen.getByLabelText('Rigtigt: du undviger slimets angreb')).toBeInTheDocument();
     // The whole panel turns blue to defend, and red again to attack.
@@ -447,7 +469,7 @@ describe('Fight', () => {
     expect(lives(2)).toBeInTheDocument();
     expect(hearts('5')).toBeInTheDocument();
     expect(onSave.mock.lastCall?.[0].fight).toMatchObject({ last: 'dodged', threat: false });
-    await pause(right);
+    await next(right);
     expect(screen.getByText('Angreb')).toBeInTheDocument();
   });
 
