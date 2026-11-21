@@ -16,7 +16,7 @@ import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteShe
 import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRock.png';
 import grass from '../../../assets/ninja-adventure/FX/Particle/Grass.png';
 import lance from '../../../assets/ninja-adventure/Items/Weapons/Lance/Sprite.png';
-import flag from '../../../assets/ninja-adventure/Backgrounds/Animated/Flag/FlagRed16x16.png';
+import cup from '../../../assets/ninja-adventure/Items/Treasure/GoldCup.png';
 import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpark.png';
 import sparkle from '../../../assets/ninja-adventure/FX/Magic/Spark/SpriteSheet.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
@@ -49,7 +49,7 @@ export const clearingSheets = {
   pebble,
   grass,
   lance,
-  flag,
+  cup,
   ring,
   sparkle,
 } as const;
@@ -184,17 +184,18 @@ export const spearHeld = (at: number): Effect => ({
   lasts: motionTokens.act.leap.seconds,
 });
 
-/**
- * A victory flag the hero holds up beside them: waving for `waves` seconds (from `at`), then
- * standing still for good, so the fight shows it was won; frames side by side.
- */
-export const victoryFlag = (at: number, waves: number): readonly Effect[] => {
-  const held = { sheet: 'flag', width: 16, height: 16, x: heroAt.x + 9, y: heroAt.y - 9 };
-  return [
-    { ...held, frames: 4, at, lasts: waves },
-    { ...held, frames: 1, at: at + waves, lasts: Number.POSITIVE_INFINITY },
-  ];
-};
+/** A gold cup over the heroes' heads after a victory, floating gently up and down, for good. */
+export const trophy = (at: number): Effect => ({
+  sheet: 'cup',
+  width: 9,
+  height: 11,
+  frames: 1,
+  x: heroAt.x + 3,
+  y: heroAt.y - 18,
+  at,
+  lasts: Number.POSITIVE_INFINITY,
+  float: { height: 2, every: 1.2 },
+});
 
 /**
  * Where fireworks burst over the trees, in the stage's pixels, clear of the hearts and the

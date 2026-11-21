@@ -399,3 +399,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - After a victory, show that the heroes won, rather than the hero just standing alone in a
   field: the hero holding a flag or something festive, or fireworks. A gravestone perhaps,
   but not for the youngest children. (Built: a flag held up for good, and fireworks.)
+- The flag only waved for 10–12 seconds before it froze; a held flag frozen looked bad. Of the
+  proposals (a flag planted in the ground, a flag in the hand, a victory dance), the owner chose
+  the victory dance. (Built: the heroes hop and cheer again and again under a gold cup.)

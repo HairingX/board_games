@@ -244,7 +244,13 @@ export function Fight({
   const [leaves, setLeaves] = useState(false);
   /** How many lives the last stroke took. */
   const [damage, setDamage] = useState(0);
-  const [staging, setStaging] = useState<Staging>(() => aftermath(save.fight, now()));
+  const [staging, setStaging] = useState<Staging>(() =>
+    aftermath(
+      save.fight,
+      now(),
+      players.filter((one) => one.id !== save.activeId).map((one) => one.id),
+    ),
+  );
   /** How long each player took over their latest sums, by their profile's id. */
   const [paces, setPaces] = useState<Readonly<Record<string, readonly number[]>>>({});
   /** The slime's walk up to the hero now, or the next one. */

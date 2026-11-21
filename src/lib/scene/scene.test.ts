@@ -142,6 +142,14 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('cheers again and again when the act repeats', () => {
+    const dancing = { acts: [{ kind: 'cheer', at, repeat: 2 }] } as const;
+    const high = one(dancing, at + act.cheer.seconds / 2)?.y;
+    expect(high).toBe(20 - act.cheer.height);
+    expect(one(dancing, at + 1.5)?.y).toBe(20);
+    expect(one(dancing, at + 20 + act.cheer.seconds / 2)?.y).toBe(high);
+  });
+
   it('leaps high, and burrows into the ground and up again', () => {
     const leaping = { acts: [{ kind: 'leap', at }] } as const;
     expect(one(leaping, at + act.leap.seconds / 2)?.y).toBe(20 - act.leap.height);
@@ -305,6 +313,31 @@ describe('figures acting', () => {
       effects: [{ ...(coin.effects?.[0] as Effect), arc: { dx: 0, dy: 20, height: 0 } }],
     };
     expect(drawScene(falling, at + 1.5)[0]?.y).toBe(70);
+  });
+
+  it('floats an effect gently up and down', () => {
+    const cup: Scene = {
+      ...scene,
+      ground: [],
+      things: [],
+      figures: [],
+      effects: [
+        {
+          sheet: 'cup',
+          width: 9,
+          height: 11,
+          frames: 1,
+          x: 0,
+          y: 10,
+          at,
+          lasts: Number.POSITIVE_INFINITY,
+          float: { height: 2, every: 2 },
+        },
+      ],
+    };
+    expect(drawScene(cup, at)[0]?.y).toBe(10);
+    expect(drawScene(cup, at + 1)[0]?.y).toBe(8);
+    expect(drawScene(cup, at + 100)[0]?.y).toBe(10);
   });
 
   it('plays an effect once every so often, while it lasts or for good', () => {

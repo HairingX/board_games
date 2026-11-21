@@ -16,7 +16,7 @@ import {
   smash,
   spearHeld,
   sweep,
-  victoryFlag,
+  trophy,
   type Doing,
   type Staging,
 } from './clearing';
@@ -64,18 +64,31 @@ export const victory = {
 } as const;
 
 /**
- * How a victory is celebrated, so it is plain the fight was won, as the owner asked: the hero
- * holds up a flag, waving a while and then standing, and fireworks burst over the trees, each
- * every so often, for a while (not for good, to spare the phone's battery); when the fight
- * is opened again, they burst a little again.
+ * How a victory is celebrated, so it is plain the fight was won, as the owner chose: a
+ * victory dance, the heroes hopping and cheering again and again, each a little after the
+ * other, under a gold cup floating over them, while fireworks burst over the trees, each every
+ * so often, for a while; when the fight is opened again, they burst a little again.
  */
-export const celebration = { flag: 2.2, waves: 12, fireworks: 12, again: 6, every: 2.4 } as const;
+export const celebration = {
+  dance: 2.2,
+  every: 2.4,
+  apart: 0.4,
+  fireworks: 12,
+  again: 6,
+} as const;
 
 /** The flag and fireworks of a victory, from `at`, the fireworks for `lasts` seconds. */
 const celebrate = (at: number, lasts: number): readonly Effect[] => [
-  ...victoryFlag(at, celebration.waves),
+  trophy(at),
   ...fireworks(at, lasts, celebration.every),
 ];
+
+/** A hero's victory dance from `at`: a cheering hop again and again, the `index`th a little after. */
+const dance = (at: number, index: number): Act => ({
+  kind: 'cheer',
+  at: at + index * celebration.apart,
+  repeat: celebration.every,
+});
 
 /** When a victory's coin springs out, after the last stroke shows, in seconds. */
 export const coinAt = (index: number) => victory.coins.first + index * victory.coins.apart;
@@ -187,9 +200,14 @@ export const attacks = {
     const cheers = victory.cheers.map((cheer) => ({ kind: 'cheer', at: shown + cheer }) as const);
     return {
       staging: {
-        bench: Object.fromEntries(moment.others.map((id) => [id, { acts: cheers }])),
+        bench: Object.fromEntries(
+          moment.others.map((id, index) => [
+            id,
+            { acts: [...cheers, dance(shown + celebration.dance, index + 1)] },
+          ]),
+        ),
         hero: {
-          acts: [...strike(moment), ...cheers],
+          acts: [...strike(moment), ...cheers, dance(shown + celebration.dance, 0)],
           sign: { sheet: 'heart', at: shown + victory.cheers[0] },
         },
         monster: { acts: [...hurry(moment), { kind: 'vanish', at: shown + victory.vanish }] },
@@ -197,7 +215,7 @@ export const attacks = {
           ...cuts(shown, power),
           puff(shown + victory.puff),
           ...coinSpots.slice(0, coins).map((spot, index) => coinDrop(shown + coinAt(index), spot)),
-          ...celebrate(shown + celebration.flag, celebration.fireworks),
+          ...celebrate(shown + celebration.dance, celebration.fireworks),
         ],
       },
       cues: [
@@ -448,12 +466,17 @@ export const reached = {
 
 /**
  * How the stage stands when a fight is opened again at `at`, rather than played to where it
- * is: a beaten monster is gone, as it vanished at the victory, and the hero holds up the flag
- * while fireworks burst a little again.
+ * is: a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
+ * ones waiting behind, by their players' ids) dance under the gold cup while fireworks burst a
+ * little again.
  */
-export function aftermath(fight: Fight, at: number): Staging {
+export function aftermath(fight: Fight, at: number, others: readonly string[]): Staging {
   return fight.outcome === 'won'
     ? {
+        hero: { acts: [dance(at, 0)] },
+        bench: Object.fromEntries(
+          others.map((id, index) => [id, { acts: [dance(at, index + 1)] }]),
+        ),
         monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] },
         effects: celebrate(at, celebration.again),
       }

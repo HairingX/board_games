@@ -67,8 +67,9 @@ describe('the fight’s beats', () => {
     const won = attacks.victory({ ...moment, others: ['far'] }, false, 6);
     const celebrated = clearing(won.staging, { front: 'Knight', bench: [] }, slime.look.calm);
     const atParty = drawScene(celebrated, moment.at + reveal + 3).map((draw) => draw.sheet);
-    expect(atParty).toEqual(expect.arrayContaining(['flag', 'sparkle']));
-    expect(won.staging.bench?.far?.acts).toHaveLength(2);
+    expect(atParty).toEqual(expect.arrayContaining(['cup', 'sparkle']));
+    // Two cheers, then the dance, again and again.
+    expect(won.staging.bench?.far?.acts?.at(-1)).toMatchObject({ kind: 'cheer', repeat: 2.4 });
     expect(heard(won)).toBe(true);
     expect(attacks.bumped({ ...moment, walked: 12 }).staging.monster?.acts?.[0]).toMatchObject({
       kind: 'return',
@@ -87,18 +88,26 @@ describe('the fight’s beats', () => {
 
   it('has a beaten monster gone when the fight is opened again, and anything else as it stands', () => {
     const won = { ...startFight(2), lives: 0, outcome: 'won' } as const;
-    const scene = clearing(aftermath(won, 5), { front: 'Knight', bench: [] }, slime.look.calm);
+    const scene = clearing(
+      aftermath(won, 5, ['far']),
+      { front: 'Knight', bench: [{ id: 'far', hero: 'Samurai' }] },
+      slime.look.calm,
+    );
     const drawnNow = drawScene(scene, 5).map((draw) => draw.sheet);
     expect(drawnNow).toContain('Knight');
-    expect(drawnNow).toContain('flag');
+    expect(drawnNow).toEqual(expect.arrayContaining(['cup', 'Samurai']));
     expect(drawnNow).toContain('ring');
     expect(drawnNow).not.toContain(slime.look.calm);
     expect(drawScene(scene, 5, true).map((draw) => draw.sheet)).not.toContain(slime.look.calm);
-    // Later the fireworks are over, and the flag stands still, held up for good.
-    const later = drawScene(scene, 5 + 60).filter((draw) => draw.sheet !== 'floor');
-    expect(later.map((draw) => draw.sheet)).toContain('flag');
-    expect(later.map((draw) => draw.sheet)).not.toContain('ring');
-    expect(aftermath(startFight(2), 5)).toEqual({});
+    // Later the fireworks are over, and the heroes still dance under the cup.
+    const later = drawScene(scene, 5 + 60).map((draw) => draw.sheet);
+    expect(later).toContain('cup');
+    expect(later).not.toContain('ring');
+    const hops = [60, 60.35].map(
+      (time) => drawScene(scene, 5 + time).find((draw) => draw.sheet === 'Knight')?.y,
+    );
+    expect(hops[0]).not.toBe(hops[1]);
+    expect(aftermath(startFight(2), 5, [])).toEqual({});
   });
 
   it('shows how an answer went as the hero or the monster arrives', () => {

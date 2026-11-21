@@ -47,6 +47,8 @@ export interface Act {
   lasts?: number;
   /** Where a figure stepping into place comes from, in pixels from its place. */
   from?: { x: number; y: number };
+  /** Done again every so many seconds, for good, as a hero cheering after a victory. */
+  repeat?: number;
 }
 
 /** A figure, drawn from a sprite sheet of 16-pixel frames, a column for each way it faces. */
@@ -79,6 +81,8 @@ export interface Effect {
    */
   lasts?: number;
   repeat?: number;
+  /** Floats gently up and down by this many pixels, once every `every` seconds. */
+  float?: { height: number; every: number };
   /**
    * Flies this far sideways (and down) in an arc this high, in pixels, as it begins, then lies
    * there; in its own time, in seconds, or the effects' usual flight.
@@ -135,7 +139,8 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     (latest, one) => (latest && latest.at > one.at ? latest : one),
     undefined,
   );
-  const into = current ? since(seconds, current.at) : Infinity;
+  const sinceBegun = current ? since(seconds, current.at) : Infinity;
+  const into = current?.repeat === undefined ? sinceBegun : sinceBegun % current.repeat;
   const kind = current?.kind;
   const vanished = (figure.acts ?? []).some((one) => one.kind === 'vanish');
   if (vanished && still) return undefined;
@@ -269,6 +274,10 @@ function drawEffect(effect: Effect, seconds: number): Draw | undefined {
     const done = Math.min(1, into / (effect.arc.seconds ?? flight));
     x += Math.round(effect.arc.dx * done);
     y += Math.round((effect.arc.dy ?? 0) * done - effect.arc.height * 4 * done * (1 - done));
+  }
+  if (effect.float) {
+    const { height, every } = effect.float;
+    y -= Math.round((height * (1 - Math.cos((2 * Math.PI * into) / every))) / 2);
   }
   return {
     sheet: effect.sheet,
