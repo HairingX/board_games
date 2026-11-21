@@ -14,6 +14,8 @@ import cross from '../../../assets/ninja-adventure/FX/Attack/CutX/SpriteSheet.pn
 import slimeball from '../../../assets/ninja-adventure/FX/Projectile/EnergyBall.png';
 import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteSheet.png';
 import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRock.png';
+import grass from '../../../assets/ninja-adventure/FX/Particle/Grass.png';
+import lance from '../../../assets/ninja-adventure/Items/Weapons/Lance/Sprite.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
 import { motionTokens } from '../../ui/motion';
 import { forest, forestSheets } from './forest';
@@ -42,6 +44,8 @@ export const clearingSheets = {
   slimeball,
   splash,
   pebble,
+  grass,
+  lance,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -149,6 +153,31 @@ export const pebbleThrow = (at: number): Effect => ({
   arc: { dx: shotReach + 10, height: 16 },
 });
 
+/** Grass the monster kicks up at the hero in teasing, landing short of them; frames side by side. */
+export const grassKick = (at: number): Effect => ({
+  sheet: 'grass',
+  width: 12,
+  height: 13,
+  frames: 6,
+  x: shotFrom + 4,
+  y: slimeAt.y + 4,
+  at,
+  lasts: motionTokens.effect.flight,
+  arc: { dx: shotReach + 14, height: 10 },
+});
+
+/** A spear the monster holds up over its head for a moment, to frighten the heroes. */
+export const spearHeld = (at: number): Effect => ({
+  sheet: 'lance',
+  width: 6,
+  height: 23,
+  frames: 1,
+  x: slimeAt.x + 5,
+  y: slimeAt.y - 18,
+  at,
+  lasts: motionTokens.act.leap.seconds,
+});
+
 /** The ball of slime splashing over the hero; frames side by side. */
 export const slimeSplash = (at: number): Effect => ({
   sheet: 'splash',
@@ -214,12 +243,12 @@ export interface Doing {
 }
 
 /**
- * What happens on the stage now: the hero whose turn it is, the slime, the other heroes by
+ * What happens on the stage now: the hero whose turn it is, the monster, the other heroes by
  * their player's id, and effects.
  */
 export interface Staging {
   hero?: Doing;
-  slime?: Doing;
+  monster?: Doing;
   bench?: Readonly<Record<string, Doing>>;
   effects?: readonly Effect[];
 }
@@ -231,12 +260,11 @@ export interface Party {
 }
 
 /**
- * The clearing with the heroes and a slime facing each other, as staged: the hero whose turn
- * it is in front, the others behind; the slime enraged or not; and the berry bush with the
- * berries it has.
+ * The clearing with the heroes and a monster facing each other, as staged: the hero whose turn
+ * it is in front, the others behind; the monster as it looks now (a sheet's name); and the
+ * berry bush with the berries it has.
  */
-export function clearing(staging: Staging, party: Party, enraged = false, berries = 2): Scene {
-  const slimeSheet = enraged ? 'slimeRage' : 'slime';
+export function clearing(staging: Staging, party: Party, look: string, berries = 2): Scene {
   const places = benchAt(party.bench.length);
   // The bush holds from none to two berries, each with a cut.
   const berryBush = { sheet: 'nature', cut: bushes[berries] as Cut, ...bushAt };
@@ -252,7 +280,7 @@ export function clearing(staging: Staging, party: Party, enraged = false, berrie
         ...staging.bench?.[one.id],
       })),
       { sheet: party.front, ...heroAt, facing: 'right', doing: 'standing', ...staging.hero },
-      { sheet: slimeSheet, ...slimeAt, facing: 'left', doing: 'bouncing', ...staging.slime },
+      { sheet: look, ...slimeAt, facing: 'left', doing: 'bouncing', ...staging.monster },
     ],
     effects: staging.effects ?? [],
   };

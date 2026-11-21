@@ -374,8 +374,10 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   poncho) shows how many coins each has in all.
 - A chest is tapped to open; it shows two or three different things, and the child taps the
   one they want, so the reward after the sums is interactive.
-- (Built in part, see `CLAUDE.md`: the slime evades strokes that do not land, and teases
-  between the sums; picking up a spear, sand, more of the hero's own reactions to come.)
+- (Built, see `CLAUDE.md`: the slime evades strokes that do not land, and teases between the
+  sums, by taunting, pebbles, grass and a spear for show, the hero reacting; a spear that
+  makes it hit harder belongs to a monster's phases, still to come. The owner confirmed a
+  right answer always lands.)
   Every fight against the slime feels the same: it does nothing but spit slime on its turn. It
   would be good with some chance in it, so it sometimes avoids an attack, just so the children
   feel annoyed by it (not too often). When the hero runs over to strike, it should react,
@@ -388,3 +390,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   need not come at once: a little scene, where the monster shows it is cross, runs over and
   picks up a spear, throws stones or sand at the hero, or spits at them; constant interaction
   between the sums, not every time, perhaps after two or three sums, something cheeky or funny.
+- The code should be structured like a game, so future ideas are easy to add without
+  rewriting a lot; many adjustments and more in the fights will come. (Built: rules, monsters
+  as data, antics and beats; see `CLAUDE.md`.)

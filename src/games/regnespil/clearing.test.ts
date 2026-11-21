@@ -4,7 +4,7 @@ import { benchAt, clearing, heroAt } from './clearing';
 
 describe('the clearing', () => {
   it('stands the heroes waiting behind the one whose turn it is, apart and on the stage', () => {
-    const scene = clearing({}, { front: 'Knight', bench: [] });
+    const scene = clearing({}, { front: 'Knight', bench: [] }, 'slime');
     const { height } = stageSize(scene);
     for (const count of [1, 2, 3]) {
       const places = benchAt(count);
@@ -28,7 +28,7 @@ describe('the clearing', () => {
           { id: 'far', hero: 'Monkey' },
         ],
       },
-      true,
+      'slimeRage',
     );
     expect(scene.figures.map((figure) => figure.sheet)).toEqual([
       'Samurai',

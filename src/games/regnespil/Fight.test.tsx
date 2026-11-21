@@ -410,14 +410,14 @@ describe('Fight', () => {
 
   it('lets the slime spit a ball of slime, as the fight’s seed has it, to jump over or be splashed by', async () => {
     const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 } as const;
-    // The seed 5 has the slime spit at the third turn.
+    // The seed 0 has the slime spit at the third turn.
     const saved: SavedFight = {
       fight: { ...startFight(3), round: 2, threat: true },
       lives: 3,
       activeId: 'mille',
       task,
       recent: [],
-      seed: 5,
+      seed: 0,
     };
     const jumped = open([{ level: 1, sword: 'jern' }], [mille], saved);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
@@ -465,7 +465,8 @@ describe('Fight', () => {
     // The whole panel turns blue to defend, and red again to attack.
     expect(container.querySelector('.rs-panel')).toHaveAttribute('data-turn', 'defend');
     await choose('2');
-    expect(babbled()).toContainEqual([voices.slime, 4]);
+    // The seed 0 has the slime spit at the third turn: it cries out as it does.
+    expect(babbled()).toContainEqual([voices.slime, 3]);
     expect(lives(2)).toBeInTheDocument();
     expect(hearts('5')).toBeInTheDocument();
     expect(onSave.mock.lastCall?.[0].fight).toMatchObject({ last: 'dodged', threat: false });
@@ -473,12 +474,17 @@ describe('Fight', () => {
     expect(screen.getByText('Angreb')).toBeInTheDocument();
   });
 
-  it('lets the slime’s blow land when the answer to defend is wrong, its life bar left behind', async () => {
-    const { container } = open([{ level: 1, sword: 'jern' }]);
-    await choose('2');
-    await pause(right);
-    await choose('2');
-    await pause(right);
+  it('lets the slime’s charge land when the answer to defend is wrong, its life bar left behind', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 } as const;
+    // The seed 1 has the slime charge at the third turn.
+    const { container } = open([{ level: 1, sword: 'jern' }], [mille], {
+      fight: { ...startFight(3), lives: 1, round: 2, threat: true },
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+      seed: 1,
+    });
     expect(lives(1)).toHaveAttribute('data-away', 'false');
     click('1');
     expect(lives(1)).toHaveAttribute('data-away', 'true');

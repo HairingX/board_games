@@ -251,9 +251,27 @@ game builds on them, and everything must stay smooth on a phone.
   answer costs or gives): it gets out of the way of a stroke that does not land by a high
   leap, by burrowing into the ground, or by stepping back; and from the third sum, now and
   then and never two turns running, it teases the heroes between the sums before the next
-  comes, hopping about crossly with an angry sign, or throwing pebbles (the pack's
-  `SpriteSheetRock`) that the hero hops over. A right answer always lands: rewarding the
-  right answer comes first.
+  comes: hopping about crossly with an angry sign while the hero shakes a fist back, throwing
+  pebbles (the pack's `SpriteSheetRock`) that the hero hops over, kicking grass at them
+  (`Particle/Grass`) with its back turned, or running off behind the bushes and coming back
+  waving a spear (`Lance`), only for show. A right answer always lands, as the owner
+  confirmed: rewarding the right answer comes first.
+- A fight is built like a game, as the owner asked, so new ideas and adjustments are added,
+  not written around, in four layers:
+  - the rules (`battle.ts`): pure functions from a fight and an answer to the next fight, and
+    what happened (`Blow`); they decide costs, lives, rage, combos and hunger;
+  - the monsters as data (`monsters.ts`): what a monster looks and sounds like, and which
+    ways of striking back, evasions and teases it has; a new monster is an entry there;
+  - the antics (`antics.ts`): which of its ways a monster uses at a turn, from the fight's
+    seed;
+  - the beats (`beats.ts`): for each thing that can happen, what is seen (the staging: acts,
+    signs, effects) and heard (cues: sounds and voices, each at its moment), as pure
+    functions in tables (`attacks`, `strikes`, `evasions`, `teases`, `reached`), and
+    `answerBeat`, which picks the beat an answer plays. A new move, reaction or bit of
+    teasing is one entry in a table and one name in a monster's list.
+    The fight's screen (`Fight.tsx`) only keeps time: it asks the rules, picks the ways, and
+    plays the beat (`perform`). The stage's places and effects are in `clearing.ts`, and the
+    puppet theatre's acts in `src/lib/scene/scene.ts`.
 - Monsters tease, never kill, as the owner wants, so children are annoyed into beating them:
   knocked over, the hero lies a moment, says "ouch" in their voice and gets up, dizzy, and
   walks home. The monsters speak up over the fight (each voice has its own `volume`). While
