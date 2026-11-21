@@ -428,3 +428,13 @@ export const reached = {
     cues: [voice('monster', 4), sound('bump'), voice('hero', 2, moments.ouch)],
   }),
 } as const;
+
+/**
+ * How the stage stands when a fight is opened again, rather than played to where it is: a
+ * beaten monster is gone, as it vanished at the victory, not standing there again.
+ */
+export function aftermath(fight: Fight): Staging {
+  return fight.outcome === 'won'
+    ? { monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] } }
+    : {};
+}

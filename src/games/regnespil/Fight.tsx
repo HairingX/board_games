@@ -22,6 +22,7 @@ import {
 import { hud, swordPictures, topFrames } from './art';
 import { heroFaces } from './heroes';
 import {
+  aftermath,
   answerBeat,
   coinAt,
   glare,
@@ -243,7 +244,7 @@ export function Fight({
   const [leaves, setLeaves] = useState(false);
   /** How many lives the last stroke took. */
   const [damage, setDamage] = useState(0);
-  const [staging, setStaging] = useState<Staging>({});
+  const [staging, setStaging] = useState<Staging>(() => aftermath(save.fight));
   /** How long each player took over their latest sums, by their profile's id. */
   const [paces, setPaces] = useState<Readonly<Record<string, readonly number[]>>>({});
   /** The slime's walk up to the hero now, or the next one. */

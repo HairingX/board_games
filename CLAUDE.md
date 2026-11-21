@@ -184,7 +184,8 @@ game builds on them, and everything must stay smooth on a phone.
   once, so none is lost if the app closes. A fight is saved after every answer
   (`fightSave.ts`, one save per group of players, whatever order they were chosen in): the
   hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
-  or crashed app goes on where it was, with the same sum, not a new one to try instead.
+  or crashed app goes on where it was, with the same sum, not a new one to try instead. The
+  stage reopens as the fight stands (`aftermath` in `beats.ts`): a beaten monster is gone.
 - The party, as agreed: each player chooses a hero on the setup (`HeroPicker.tsx`), kept with
   their level and sword and suggested the first time from the face on their profile, or else
   by their id (`heroes.ts`), among figures the story will not use (not `Boy`, `Princess`,

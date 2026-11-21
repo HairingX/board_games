@@ -393,3 +393,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - The code should be structured like a game, so future ideas are easy to add without
   rewriting a lot; many adjustments and more in the fights will come. (Built: rules, monsters
   as data, antics and beats; see `CLAUDE.md`.)
+- Closing the game and opening it later, after the boss was beaten, showed the boss still
+  hopping while the panel said it was beaten: an odd state. (Fixed: a beaten monster is gone
+  when the fight is opened again.)

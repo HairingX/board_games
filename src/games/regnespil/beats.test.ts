@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { drawScene } from '../../lib/scene/scene';
 import {
+  aftermath,
   attacks,
   evasions,
   reached,
@@ -11,6 +12,7 @@ import {
   type Beat,
   type Moment,
 } from './beats';
+import { startFight } from './battle';
 import { clearing } from './clearing';
 import { slime } from './monsters';
 import { sounds } from './sounds';
@@ -78,6 +80,16 @@ describe('the fight’s beats', () => {
     const pounce = reached.pounce({ ...moment, lost: true }, walking);
     expect(pounce.staging.hero?.sign?.sheet).toBe('sleepy');
     expect(heard(pounce)).toBe(true);
+  });
+
+  it('has a beaten monster gone when the fight is opened again, and anything else as it stands', () => {
+    const won = { ...startFight(2), lives: 0, outcome: 'won' } as const;
+    const scene = clearing(aftermath(won), { front: 'Knight', bench: [] }, slime.look.calm);
+    const drawnNow = drawScene(scene, 5).map((draw) => draw.sheet);
+    expect(drawnNow).toContain('Knight');
+    expect(drawnNow).not.toContain(slime.look.calm);
+    expect(drawScene(scene, 5, true).map((draw) => draw.sheet)).not.toContain(slime.look.calm);
+    expect(aftermath(startFight(2))).toEqual({});
   });
 
   it('shows how an answer went as the hero or the monster arrives', () => {
