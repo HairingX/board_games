@@ -16,6 +16,9 @@ import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteShe
 import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRock.png';
 import grass from '../../../assets/ninja-adventure/FX/Particle/Grass.png';
 import lance from '../../../assets/ninja-adventure/Items/Weapons/Lance/Sprite.png';
+import flag from '../../../assets/ninja-adventure/Backgrounds/Animated/Flag/FlagRed16x16.png';
+import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpark.png';
+import sparkle from '../../../assets/ninja-adventure/FX/Magic/Spark/SpriteSheet.png';
 import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
 import { motionTokens } from '../../ui/motion';
 import { forest, forestSheets } from './forest';
@@ -46,6 +49,9 @@ export const clearingSheets = {
   pebble,
   grass,
   lance,
+  flag,
+  ring,
+  sparkle,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -177,6 +183,40 @@ export const spearHeld = (at: number): Effect => ({
   at,
   lasts: motionTokens.act.leap.seconds,
 });
+
+/**
+ * A victory flag the hero holds up beside them: waving for `waves` seconds (from `at`), then
+ * standing still for good, so the fight shows it was won; frames side by side.
+ */
+export const victoryFlag = (at: number, waves: number): readonly Effect[] => {
+  const held = { sheet: 'flag', width: 16, height: 16, x: heroAt.x + 9, y: heroAt.y - 9 };
+  return [
+    { ...held, frames: 4, at, lasts: waves },
+    { ...held, frames: 1, at: at + waves, lasts: Number.POSITIVE_INFINITY },
+  ];
+};
+
+/**
+ * Where fireworks burst over the trees, in the stage's pixels, clear of the hearts and the
+ * purses in the corners, and which: a ring of sparks or a sparkle of stars.
+ */
+const bursts = [
+  { sheet: 'ring', width: 32, height: 32, frames: 6, x: 28, y: 20 },
+  { sheet: 'sparkle', width: 30, height: 35, frames: 9, x: 70, y: 6 },
+  { sheet: 'ring', width: 32, height: 32, frames: 6, x: 102, y: 22 },
+] as const;
+
+/**
+ * Fireworks over the trees from `at`, for `lasts` seconds: each burst over and over, every
+ * `every` seconds, one after another.
+ */
+export const fireworks = (at: number, lasts: number, every: number): readonly Effect[] =>
+  bursts.map((burst, index) => ({
+    ...burst,
+    at: at + (index * every) / bursts.length,
+    lasts,
+    repeat: every,
+  }));
 
 /** The ball of slime splashing over the hero; frames side by side. */
 export const slimeSplash = (at: number): Effect => ({

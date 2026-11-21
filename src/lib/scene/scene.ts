@@ -73,8 +73,12 @@ export interface Effect {
   x: number;
   y: number;
   at: number;
-  /** How long it shows, in seconds, its frames over and over; played once without it. */
+  /**
+   * How long it shows, in seconds: its frames over and over, or, with `repeat`, once every
+   * `repeat` seconds; without it, played once, or with `repeat` for good.
+   */
   lasts?: number;
+  repeat?: number;
   /**
    * Flies this far sideways (and down) in an arc this high, in pixels, as it begins, then lies
    * there; in its own time, in seconds, or the effects' usual flight.
@@ -252,9 +256,13 @@ function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined 
 function drawEffect(effect: Effect, seconds: number): Draw | undefined {
   const { framesPerSecond, flight } = motionTokens.effect;
   const into = since(seconds, effect.at);
-  const step = Math.floor(into * framesPerSecond);
-  const over = effect.lasts === undefined ? step >= effect.frames : into >= effect.lasts;
-  if (into < 0 || over) return undefined;
+  if (into < 0 || (effect.lasts !== undefined && into >= effect.lasts)) return undefined;
+  // Played once, once every `repeat` seconds, or over and over while it lasts.
+  const step = Math.floor(
+    (effect.repeat === undefined ? into : into % effect.repeat) * framesPerSecond,
+  );
+  const looping = effect.lasts !== undefined && effect.repeat === undefined;
+  if (!looping && step >= effect.frames) return undefined;
   const index = step % effect.frames;
   let { x, y } = effect;
   if (effect.arc) {

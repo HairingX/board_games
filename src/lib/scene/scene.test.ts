@@ -307,6 +307,23 @@ describe('figures acting', () => {
     expect(drawScene(falling, at + 1.5)[0]?.y).toBe(70);
   });
 
+  it('plays an effect once every so often, while it lasts or for good', () => {
+    const burst: Scene = {
+      ...scene,
+      ground: [],
+      things: [],
+      figures: [],
+      effects: [{ sheet: 'spark', width: 8, height: 8, frames: 2, x: 0, y: 0, at, repeat: 1 }],
+    };
+    const fps = motionTokens.effect.framesPerSecond;
+    expect(drawScene(burst, at + 1 / fps + eps)[0]?.cut.x).toBe(8);
+    expect(drawScene(burst, at + 0.5)).toEqual([]);
+    expect(drawScene(burst, at + 5 + eps)).toHaveLength(1);
+    const ended: Scene = { ...burst, effects: [{ ...(burst.effects?.[0] as Effect), lasts: 3 }] };
+    expect(drawScene(ended, at + 2 + eps)).toHaveLength(1);
+    expect(drawScene(ended, at + 3 + eps)).toEqual([]);
+  });
+
   it('plays an effect’s frames over the stage, and none with motion stilled', () => {
     const withEffect: Scene = {
       ...scene,

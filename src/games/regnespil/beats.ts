@@ -4,6 +4,7 @@ import { motionTokens } from '../../ui/motion';
 import {
   coinDrop,
   coinSpots,
+  fireworks,
   grassKick,
   pebbleThrow,
   puff,
@@ -15,6 +16,7 @@ import {
   smash,
   spearHeld,
   sweep,
+  victoryFlag,
   type Doing,
   type Staging,
 } from './clearing';
@@ -60,6 +62,20 @@ export const victory = {
   coins: { first: 0.45, apart: 0.07 },
   cheers: [0.8, 1.5],
 } as const;
+
+/**
+ * How a victory is celebrated, so it is plain the fight was won, as the owner asked: the hero
+ * holds up a flag, waving a while and then standing, and fireworks burst over the trees, each
+ * every so often, for a while (not for good, to spare the phone's battery); when the fight
+ * is opened again, they burst a little again.
+ */
+export const celebration = { flag: 2.2, waves: 12, fireworks: 12, again: 6, every: 2.4 } as const;
+
+/** The flag and fireworks of a victory, from `at`, the fireworks for `lasts` seconds. */
+const celebrate = (at: number, lasts: number): readonly Effect[] => [
+  ...victoryFlag(at, celebration.waves),
+  ...fireworks(at, lasts, celebration.every),
+];
 
 /** When a victory's coin springs out, after the last stroke shows, in seconds. */
 export const coinAt = (index: number) => victory.coins.first + index * victory.coins.apart;
@@ -181,6 +197,7 @@ export const attacks = {
           ...cuts(shown, power),
           puff(shown + victory.puff),
           ...coinSpots.slice(0, coins).map((spot, index) => coinDrop(shown + coinAt(index), spot)),
+          ...celebrate(shown + celebration.flag, celebration.fireworks),
         ],
       },
       cues: [
@@ -430,11 +447,15 @@ export const reached = {
 } as const;
 
 /**
- * How the stage stands when a fight is opened again, rather than played to where it is: a
- * beaten monster is gone, as it vanished at the victory, not standing there again.
+ * How the stage stands when a fight is opened again at `at`, rather than played to where it
+ * is: a beaten monster is gone, as it vanished at the victory, and the hero holds up the flag
+ * while fireworks burst a little again.
  */
-export function aftermath(fight: Fight): Staging {
+export function aftermath(fight: Fight, at: number): Staging {
   return fight.outcome === 'won'
-    ? { monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] } }
+    ? {
+        monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] },
+        effects: celebrate(at, celebration.again),
+      }
     : {};
 }

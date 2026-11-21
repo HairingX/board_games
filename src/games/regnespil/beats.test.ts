@@ -65,6 +65,9 @@ describe('the fight’s beats', () => {
     expect(struck.staging.monster?.sign?.sheet).toBe('angry');
     expect(struck.cues.filter((cue) => 'sound' in cue && cue.sound === 'hit')).toHaveLength(2);
     const won = attacks.victory({ ...moment, others: ['far'] }, false, 6);
+    const celebrated = clearing(won.staging, { front: 'Knight', bench: [] }, slime.look.calm);
+    const atParty = drawScene(celebrated, moment.at + reveal + 3).map((draw) => draw.sheet);
+    expect(atParty).toEqual(expect.arrayContaining(['flag', 'sparkle']));
     expect(won.staging.bench?.far?.acts).toHaveLength(2);
     expect(heard(won)).toBe(true);
     expect(attacks.bumped({ ...moment, walked: 12 }).staging.monster?.acts?.[0]).toMatchObject({
@@ -84,12 +87,18 @@ describe('the fight’s beats', () => {
 
   it('has a beaten monster gone when the fight is opened again, and anything else as it stands', () => {
     const won = { ...startFight(2), lives: 0, outcome: 'won' } as const;
-    const scene = clearing(aftermath(won), { front: 'Knight', bench: [] }, slime.look.calm);
+    const scene = clearing(aftermath(won, 5), { front: 'Knight', bench: [] }, slime.look.calm);
     const drawnNow = drawScene(scene, 5).map((draw) => draw.sheet);
     expect(drawnNow).toContain('Knight');
+    expect(drawnNow).toContain('flag');
+    expect(drawnNow).toContain('ring');
     expect(drawnNow).not.toContain(slime.look.calm);
     expect(drawScene(scene, 5, true).map((draw) => draw.sheet)).not.toContain(slime.look.calm);
-    expect(aftermath(startFight(2))).toEqual({});
+    // Later the fireworks are over, and the flag stands still, held up for good.
+    const later = drawScene(scene, 5 + 60).filter((draw) => draw.sheet !== 'floor');
+    expect(later.map((draw) => draw.sheet)).toContain('flag');
+    expect(later.map((draw) => draw.sheet)).not.toContain('ring');
+    expect(aftermath(startFight(2), 5)).toEqual({});
   });
 
   it('shows how an answer went as the hero or the monster arrives', () => {

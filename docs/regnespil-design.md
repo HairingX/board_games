@@ -396,3 +396,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - Closing the game and opening it later, after the boss was beaten, showed the boss still
   hopping while the panel said it was beaten: an odd state. (Fixed: a beaten monster is gone
   when the fight is opened again.)
+- After a victory, show that the heroes won, rather than the hero just standing alone in a
+  field: the hero holding a flag or something festive, or fireworks. A gravestone perhaps,
+  but not for the youngest children. (Built: a flag held up for good, and fireworks.)
