@@ -22,6 +22,8 @@ export interface SavedFight {
   seed: number;
   /** Which monster the heroes fight, by its kind. */
   foe: Foe;
+  /** The step of the journey the fight is at, if it is on one. */
+  step?: string;
 }
 
 /** The largest seed: any whole number that fits in 32 bits. */
@@ -88,7 +90,7 @@ const isCount = (value: unknown, most: number): value is number =>
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
-  const { fight, lives, activeId, task, recent, seed, foe } = saved;
+  const { fight, lives, activeId, task, recent, seed, foe, step } = saved;
   const known =
     isCount(lives, Number.MAX_SAFE_INTEGER) &&
     lives > 0 &&
@@ -112,6 +114,7 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (fight.shield === undefined || isCount(fight.shield, shieldPieces)) &&
     (fight.shieldRaised === undefined || typeof fight.shieldRaised === 'boolean') &&
     (foe === undefined || isFoe(foe)) &&
+    (step === undefined || typeof step === 'string') &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&

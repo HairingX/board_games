@@ -38,6 +38,7 @@ describe('reviveFight', () => {
 
   it('keeps a fight as it was saved', () => {
     expect(reviveFight(structuredClone(saved))).toEqual(saved);
+    expect(reviveFight({ ...saved, step: 'sti' })).toEqual({ ...saved, step: 'sti' });
     const threatened = { ...saved, fight: { ...saved.fight, round: 2, threat: true } };
     expect(reviveFight(structuredClone(threatened))).toEqual(threatened);
     expect(reviveFight({ ...saved, task: { ...saved.task, answer: { n: 1, d: 2 } } })).toBeTruthy();
@@ -68,6 +69,7 @@ describe('reviveFight', () => {
     ['a combo beyond a power stroke', { ...saved, fight: { ...saved.fight, combo: 4 } }],
     ['a seed that is no whole number', { ...saved, seed: 1.5 }],
     ['a monster the game has not', { ...saved, foe: 'dragon' }],
+    ['a step that is no name', { ...saved, step: 3 }],
     ['a shield beyond its pieces', { ...saved, fight: { ...saved.fight, shield: 9 } }],
     ['a shield beyond its lives', { ...saved, fight: { ...saved.fight, shieldAt: 9 } }],
     ['a raised shield no yes or no', { ...saved, fight: { ...saved.fight, shieldRaised: 1 } }],
