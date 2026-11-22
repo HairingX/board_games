@@ -650,6 +650,7 @@ export function Fight({
       look: shown.enraged ? monster.look.enraged : monster.look.calm,
       big: monster.big,
       size: monster.size,
+      stands: monster.stands,
       bush: monster.plan.bush,
       shielded,
     },

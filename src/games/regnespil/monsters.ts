@@ -35,6 +35,11 @@ export interface Monster {
   big?: Big;
   /** How many times its size it is drawn, a whole number, if larger. */
   size?: number;
+  /**
+   * Whether it stands still, as the dog does, running through its frames only as it moves,
+   * rather than bouncing as a slime does.
+   */
+  stands?: boolean;
   voice: Voice;
   /** How many times the players' swords' lives it has. */
   toughness: number;
@@ -110,6 +115,7 @@ export const copperDog: Monster = {
   face: { calm: dogFace, enraged: dogFace },
   big: dogFrames,
   size: copperDogSize,
+  stands: true,
   voice: voices.dog,
   toughness: 1.5,
   least: 5,

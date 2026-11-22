@@ -269,7 +269,9 @@ game builds on them, and everything must stay smooth on a phone.
     grumpy. It can be skipped from a quiet button at the top that comes after three seconds
     (`skipAfter`), so a child's first tap does not end it.
   - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
-    dog drawn twice its size, mirrored to face the heroes, half again as tough as a slime, at
+    dog drawn twice its size, mirrored to face the heroes, standing still on its first frame
+    and running through its two only as it moves (`stands`), as the owner found it running on
+    the spot, half again as tough as a slime, at
     least five treats (a boss has a `least` of lives, so it is no pushover for a child alone),
     and cross halfway. It teases by hopping crossly and chasing its own tail (`tail`), never
     by kicking grass with its back to the heroes, which the owner found odd. It is won over with treats, as the story has it: the tab says "Godbid"

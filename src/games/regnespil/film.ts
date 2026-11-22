@@ -118,7 +118,7 @@ const dog = (doing: Partial<Figure>): Figure =>
   figure('dog', dogAt, 'left', {
     big: dogFrames,
     size: copperDogSize,
-    doing: 'bouncing',
+    doing: 'standing',
     ...doing,
   });
 
@@ -279,7 +279,7 @@ const atTree = (figures: readonly Figure[], effects: readonly Effect[] = []): Sc
 const friend = (doing: Partial<Figure>): Figure =>
   figure('dog', { x: holeAt.x - 2, y: holeAt.y + 20 }, 'up', {
     big: dogFrames,
-    doing: 'bouncing',
+    doing: 'standing',
     ...doing,
   });
 

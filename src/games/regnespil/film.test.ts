@@ -46,6 +46,14 @@ describe('the films', () => {
     }
   });
 
+  it('let the dog stand still, running only as it moves', () => {
+    for (const shot of [...prologue, ...epilogue]) {
+      for (const figure of shot.scene(100, ['Knight']).figures) {
+        if (figure.sheet === 'dog') expect(figure.doing).toBe('standing');
+      }
+    }
+  });
+
   it('show the old woman’s pictures: the hollow tree and the three dogs', () => {
     const bubbles = prologue.flatMap((shot) => shot.bubbles);
     expect(bubbles).toHaveLength(2);

@@ -485,3 +485,5 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   larger white dots, what waits there hopping under a yellow marker pointing down, no ring, the
   heroes drawn twice their size, the boss's portrait at the end of the pips, the map in the
   middle of the screen.)
+- The dog runs all the time, also when it stands still. (Fixed: it stands on its first frame,
+  and runs only as it moves.)

@@ -102,7 +102,7 @@ function roadDots(from: Step, to: Step, state: RoadState): Thing[] {
 /** A chest, shut and open, from its two frames. */
 const chests = { shut: cut(0, 0, 16, 14), open: cut(16, 0, 16, 14) } as const;
 
-type Token = Pick<Figure, 'sheet' | 'big' | 'size'>;
+type Token = Pick<Figure, 'sheet' | 'big' | 'size'> & Partial<Pick<Figure, 'doing'>>;
 
 /**
  * How each monster waits on the map, small enough for it, a boss twice its size; and a tougher
@@ -111,7 +111,10 @@ type Token = Pick<Figure, 'sheet' | 'big' | 'size'>;
 const tokens: Readonly<Record<Foe, { calm: Token; tough: Token }>> = {
   slime: { calm: { sheet: 'slime' }, tough: { sheet: 'slimeRage', size: 2 } },
   giantSlime: { calm: { sheet: 'slime', size: 3 }, tough: { sheet: 'slimeRage', size: 3 } },
-  copperDog: { calm: { sheet: 'dog', big: dogFrames }, tough: { sheet: 'dog', big: dogFrames } },
+  copperDog: {
+    calm: { sheet: 'dog', big: dogFrames, doing: 'standing' },
+    tough: { sheet: 'dog', big: dogFrames, doing: 'standing' },
+  },
 };
 
 /** Whether a step's fight is a tougher one than most: twice the lives or more. */
@@ -265,7 +268,7 @@ export function mapScene(
         sheet: 'dog',
         ...friendAt(there),
         facing: 'right',
-        doing: 'bouncing',
+        doing: 'standing',
         big: dogFrames,
         acts: from(friendAt),
       },

@@ -457,6 +457,8 @@ export interface Foe {
   look: string;
   big?: Big | undefined;
   size?: number | undefined;
+  /** Whether it stands, as a dog does, running only as it moves, rather than bouncing. */
+  stands?: boolean | undefined;
   bush: boolean;
   shielded: boolean;
 }
@@ -523,7 +525,13 @@ export function clearing(
         ...staging.bench?.[one.id],
       })),
       { sheet: party.front, ...heroAt, facing: 'right', doing: 'standing', ...staging.hero },
-      { sheet: foe.look, ...place, facing: 'left', doing: 'bouncing', ...staging.monster },
+      {
+        sheet: foe.look,
+        ...place,
+        facing: 'left',
+        doing: foe.stands === true ? 'standing' : 'bouncing',
+        ...staging.monster,
+      },
     ],
     effects: [...(foe.shielded ? [shieldHeld] : []), ...(staging.effects ?? [])],
   };

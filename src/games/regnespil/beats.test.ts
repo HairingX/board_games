@@ -257,6 +257,33 @@ describe('the fight’s beats', () => {
     expect(after.effects?.some((effect) => effect.sheet === 'flag')).toBe(false);
   });
 
+  it('keeps the dog still where it stands, running through its frames only as it moves', () => {
+    const dogIn = (staging: Parameters<typeof clearing>[0]) =>
+      clearing(
+        staging,
+        { front: 'Knight', bench: [] },
+        {
+          look: 'dog',
+          big: copperDog.big,
+          size: 2,
+          stands: copperDog.stands,
+          bush: false,
+          shielded: false,
+        },
+      );
+    const frames = (scene: ReturnType<typeof clearing>, from: number) =>
+      new Set(
+        Array.from(
+          { length: 12 },
+          (_, step) =>
+            drawScene(scene, from + step / 20).find((draw) => draw.sheet === 'dog')?.cut.x,
+        ),
+      );
+    expect(frames(dogIn({}), 3)).toEqual(new Set([0]));
+    const charging = dogIn({ monster: { acts: [{ kind: 'charge', at: 3, reach: 40 }] } });
+    expect(frames(charging, 3.05).size).toBe(2);
+  });
+
   it('stages a fight by the hollow tree, its hole at its foot', () => {
     const inClearing = clearing(
       {},
