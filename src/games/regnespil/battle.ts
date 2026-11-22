@@ -38,7 +38,10 @@ export const strikeBackEvery = 3;
 /** How many coins each player gets for a victory, to pick up and keep in their purse. */
 export const coinsEach = 3;
 
-/** How many right answers in a row make a power stroke: the last of them, if it is a stroke. */
+/**
+ * How many right answers in a row make a power stroke, without a treasure that makes it
+ * fewer: the last of them, if it is a stroke.
+ */
 export const powerAfter = 3;
 
 /** How many lives a power stroke takes. */
@@ -73,7 +76,8 @@ export type Blow =
   | 'hit'
   | 'fed'
   | 'shielded'
-  | 'shattered';
+  | 'shattered'
+  | 'guarded';
 
 export interface Fight {
   /** The hero's health left, in half hearts. */
@@ -104,7 +108,28 @@ export interface Fight {
   shieldAt: number;
   shield: number;
   shieldRaised: boolean;
+  /** The heroes' health when whole, in half hearts: more with a heart jar. */
+  maxHealth: number;
+  /** How many right answers in a row make a power stroke: fewer with a power ring. */
+  powerAt: number;
+  /** How many blows that would cost hearts a charm still turns aside in this fight. */
+  guards: number;
 }
+
+/**
+ * What the heroes carry, from the treasures they found on their way (`treasures.ts`), as it
+ * changes a fight: hearts more, in half hearts; right answers in a row for a power stroke;
+ * blows turned aside in each fight; and what each coin of a victory is worth.
+ */
+export interface Gear {
+  hearts: number;
+  powerAfter: number;
+  guards: number;
+  coinWorth: number;
+}
+
+/** No treasures: the fight as it is without them. */
+export const noGear: Gear = { hearts: 0, powerAfter, guards: 0, coinWorth: 1 };
 
 /**
  * How a monster's fight goes, by the share of its lives left: when it grows enraged, and when
@@ -122,9 +147,12 @@ export const slimePlan: Plan = { rage: 1 / 2, shield: 0, bush: true };
 /** How many strokes a shield takes before it breaks; a power stroke breaks it at once. */
 export const shieldPieces = 3;
 
-export function startFight(lives: number, plan: Plan = slimePlan): Fight {
+export function startFight(lives: number, plan: Plan = slimePlan, gear: Gear = noGear): Fight {
   return {
-    health: fullHealth,
+    health: fullHealth + gear.hearts,
+    maxHealth: fullHealth + gear.hearts,
+    powerAt: gear.powerAfter,
+    guards: gear.guards,
     lives,
     outcome: 'fighting',
     last: undefined,
@@ -203,11 +231,11 @@ function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
   }
   if (verdict === 'right' && fight.shield > 0) {
     // The stroke lands on the shield, breaking a piece off, or all of it with a power stroke.
-    const shield = fight.combo + 1 >= powerAfter ? 0 : fight.shield - 1;
+    const shield = fight.combo + 1 >= fight.powerAt ? 0 : fight.shield - 1;
     return { ...fight, shield, last: shield === 0 ? 'shattered' : 'shielded' };
   }
   if (verdict === 'right') {
-    const power = fight.combo + 1 >= powerAfter;
+    const power = fight.combo + 1 >= fight.powerAt;
     const lives = Math.max(0, fight.lives - (power ? powerStroke : 1));
     return {
       ...fight,
@@ -222,12 +250,14 @@ function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
 
 /** The combo after the answer: one more for a right one, gone after one far off or a power stroke. */
 function comboAfter(fight: Fight, verdict: Verdict, last: Blow | undefined): number {
-  const powered = verdict === 'right' && fight.combo + 1 >= powerAfter;
+  const powered = verdict === 'right' && fight.combo + 1 >= fight.powerAt;
   if (verdict === 'far' || last === 'smashed' || (powered && last === 'shattered')) return 0;
-  return verdict === 'right' ? Math.min(powerAfter, fight.combo + 1) : fight.combo;
+  return verdict === 'right' ? Math.min(fight.powerAt, fight.combo + 1) : fight.combo;
 }
 
+/** The hero hurt for `cost`, unless a charm turns the blow aside, as it does while it can. */
 function hurt(fight: Fight, cost: number, last: Blow): Fight {
+  if (cost > 0 && fight.guards > 0) return { ...fight, guards: fight.guards - 1, last: 'guarded' };
   const health = Math.max(0, fight.health - cost);
   return { ...fight, health, last, outcome: health === 0 ? 'lost' : 'fighting' };
 }

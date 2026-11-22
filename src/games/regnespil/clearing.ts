@@ -379,6 +379,17 @@ export const shieldUp = (at: number): Effect => ({
   at,
 });
 
+/** A golden shield glowing around the hero as a charm turns a blow aside; frames side by side. */
+export const charmGlow = (at: number): Effect => ({
+  sheet: 'guard',
+  width: 24,
+  height: 26,
+  frames: 6,
+  x: heroAt.x - 4,
+  y: heroAt.y - 6,
+  at,
+});
+
 /**
  * A coin springing out of where the slime was, in an arc to where it lands, spinning; there it
  * becomes a coin to pick up, over the scene.

@@ -429,6 +429,21 @@
 }
 
 /* Right answers in a row: the player's weapon, lit one by one; at the third, a power stroke. */
+/* The guard charm by the hearts, grey once it has taken a blow in this fight. */
+.rs-charm {
+  position: absolute;
+  top: calc(var(--space-2) + var(--px) * 15);
+  left: var(--space-2);
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+  image-rendering: pixelated;
+}
+
+.rs-charm[data-used='true'] {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
 .rs-combo {
   position: absolute;
   top: var(--space-2);

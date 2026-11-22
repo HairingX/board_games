@@ -7,10 +7,12 @@ import {
   powerAfter,
   powerStroke,
   shieldPieces,
+  slimePlan,
   startFight,
   strikeBackEvery,
   type Fight,
 } from './battle';
+import { gearOf } from './treasures';
 import { monsterLives } from './swords';
 import type { Verdict } from './tasks';
 
@@ -36,9 +38,27 @@ describe('a fight', () => {
       shieldAt: 0,
       shield: 0,
       shieldRaised: false,
+      maxHealth: fullHealth,
+      powerAt: powerAfter,
+      guards: 0,
     });
     expect(monsterLives(['træ'])).toBe(2);
     expect(monsterLives(['flamme', 'træ'])).toBe(6);
+  });
+
+  it('lets treasures help: a heart more, a power stroke sooner, a blow turned aside', () => {
+    const gear = gearOf(['heartJar', 'powerRing', 'guardCharm']);
+    const helped = startFight(4, slimePlan, gear);
+    expect(helped).toMatchObject({ health: fullHealth + 2, maxHealth: fullHealth + 2, guards: 1 });
+    const twice = answerFight(answerFight(helped, 'right', 'jern'), 'right', 'jern');
+    expect(twice).toMatchObject({ last: 'smashed', lives: 1, combo: 0 });
+    // The charm takes the first blow that would cost hearts, and then no more.
+    const turned = answerFight(helped, 'far', 'jern');
+    expect(turned).toMatchObject({ last: 'guarded', health: fullHealth + 2, guards: 0 });
+    expect(answerFight(turned, 'far', 'jern')).toMatchObject({ last: 'bumped' });
+    // A parry that costs nothing leaves the charm for a blow that does.
+    expect(answerFight(helped, 'close', 'træ')).toMatchObject({ last: 'parried', guards: 1 });
+    expect(reachedHero(helped, 'flamme')).toMatchObject({ last: 'guarded', guards: 0 });
   });
 
   it('strikes the monster on a right answer, and is won when it has no lives left', () => {

@@ -30,11 +30,27 @@ describe('reviveFight', () => {
     expect(reviveFight(unseeded)).toEqual({ ...saved, seed: 0 });
   });
 
+  it('upgrades a fight saved before treasures, with none to help', () => {
+    const older: Record<string, unknown> = { ...saved.fight, combo: 2 };
+    for (const added of ['maxHealth', 'powerAt', 'guards']) Reflect.deleteProperty(older, added);
+    expect(reviveFight({ ...saved, fight: older })?.fight).toEqual({ ...saved.fight, combo: 2 });
+  });
+
   it('keeps a fight as it was saved', () => {
     expect(reviveFight(structuredClone(saved))).toEqual(saved);
     const threatened = { ...saved, fight: { ...saved.fight, round: 2, threat: true } };
     expect(reviveFight(structuredClone(threatened))).toEqual(threatened);
     expect(reviveFight({ ...saved, task: { ...saved.task, answer: { n: 1, d: 2 } } })).toBeTruthy();
+    // A boss's shield struck or shattered, and a blow a charm turned aside, are kept too.
+    for (const last of ['shielded', 'shattered', 'guarded'] as const) {
+      const struck = { ...saved, fight: { ...saved.fight, last } };
+      expect(reviveFight(structuredClone(struck))).toEqual(struck);
+    }
+    const helped = {
+      ...saved,
+      fight: { ...saved.fight, maxHealth: 12, health: 12, powerAt: 2, combo: 2, guards: 1 },
+    };
+    expect(reviveFight(structuredClone(helped))).toEqual(helped);
   });
 
   it.each([
@@ -55,6 +71,11 @@ describe('reviveFight', () => {
     ['a shield beyond its pieces', { ...saved, fight: { ...saved.fight, shield: 9 } }],
     ['a shield beyond its lives', { ...saved, fight: { ...saved.fight, shieldAt: 9 } }],
     ['a raised shield no yes or no', { ...saved, fight: { ...saved.fight, shieldRaised: 1 } }],
+    ['hearts beyond the most', { ...saved, fight: { ...saved.fight, maxHealth: 99 } }],
+    ['hearts beyond its own most', { ...saved, fight: { ...saved.fight, maxHealth: 6 } }],
+    ['a power stroke beyond three', { ...saved, fight: { ...saved.fight, powerAt: 4 } }],
+    ['a combo beyond its power', { ...saved, fight: { ...saved.fight, powerAt: 2, combo: 3 } }],
+    ['blows turned aside not counted', { ...saved, fight: { ...saved.fight, guards: -1 } }],
     ['no player', { ...saved, activeId: 3 }],
     ['no task', { ...saved, task: null }],
     ['a task without its sum', { ...saved, task: { ...saved.task, sum: 'x' } }],

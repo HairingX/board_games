@@ -13,13 +13,13 @@ import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { useWakeLock } from '../../lib/wakeLock';
 import {
   answerFight,
-  fullHealth,
   coinsEach,
-  powerAfter,
+  noGear,
   shieldPieces,
   reachedHero,
   startFight,
   type Blow,
+  type Gear,
 } from './battle';
 import { hud, swordPictures, topFrames } from './art';
 import { heroFaces } from './heroes';
@@ -33,6 +33,7 @@ import {
   teases,
   teasing,
   strikes,
+  guarded,
   phaseEntered,
   phases,
   phaseSeconds,
@@ -63,6 +64,7 @@ import { pick } from './sums';
 import { TaskAnswers } from './TaskAnswers';
 import { freshFor, judge, makeTask, sumKey, type Task } from './tasks';
 import { text } from './text';
+import { treasurePictures } from './treasures';
 import type { Value } from './values';
 import './regnespil.css';
 
@@ -160,6 +162,8 @@ interface Props {
   onSave: (fight: SavedFight) => void;
   /** Which monster a new fight is against; a saved fight goes on against its own. */
   foe?: Foe;
+  /** What the heroes carry from the treasures they found, as it changes a fight. */
+  gear?: Gear;
   /** Puts coins in the players' purses, as many as each is given, in the players' order. */
   onCoins: (gains: readonly number[]) => void;
   /** Shown at the right of the header: the sound's levels. */
@@ -197,6 +201,7 @@ export function Fight({
   onSave,
   onCoins,
   foe = 'slime',
+  gear = noGear,
   aside,
   random = Math.random,
   sound = defaultSound,
@@ -213,7 +218,7 @@ export function Fight({
     const against = monsters[foe];
     const lives = Math.ceil(monsterLives(settings.map((one) => one.sword)) * against.toughness);
     return {
-      fight: startFight(lives, against.plan),
+      fight: startFight(lives, against.plan, gear),
       lives,
       activeId: first.id,
       task: makeTask(own(0).level, random, recent),
@@ -462,17 +467,21 @@ export function Fight({
     const at = now();
     const { knocked } = motionTokens.act;
     const next = reachedHero(fight, own(active).sword);
-    const pounced = next !== fight;
+    // A charm may turn the blow aside, and the monster only roars.
+    const pounced = next !== fight && next.last !== 'guarded';
     setWalking(false);
     setWalks(walks + 1);
     setBack(glare + motionTokens.act.return.seconds);
-    if (pounced) {
+    if (next !== fight) {
       keep({ ...save, fight: next });
       setView((before) => ({ ...before, fight: next }));
+    }
+    if (pounced) {
       const moment = { at, walked: 0, others: [], lost: next.outcome === 'lost', middle };
       perform(reachedBeats.pounce(moment, approachOf(walk)));
     } else {
-      perform(reachedBeats.roar(at, approachOf(walk)));
+      const roar = reachedBeats.roar(at, approachOf(walk));
+      perform(next === fight ? roar : guarded(roar, at, 0));
     }
     const rested = pounced ? knocked.fall + knocked.down + knocked.rise : 0;
     setWalk(
@@ -568,7 +577,7 @@ export function Fight({
     sound.chime(chimes[verdict], random, reveal);
     if (next.outcome === 'won') {
       // The coins go in the purses at once, so none is lost; picking them up shows them.
-      onCoins(players.map(() => coinsEach));
+      onCoins(players.map(() => coinsEach * gear.coinWorth));
       setLoot({
         at: at + reveal,
         landed: 0,
@@ -621,9 +630,9 @@ export function Fight({
       <span
         className="rs-hearts"
         role="img"
-        aria-label={t.hearts(shown.health / 2, fullHealth / 2)}
+        aria-label={t.hearts(shown.health / 2, shown.maxHealth / 2)}
       >
-        {Array.from({ length: fullHealth / 2 }, (_, index) => (
+        {Array.from({ length: shown.maxHealth / 2 }, (_, index) => (
           <span
             key={index}
             className="fight-heart"
@@ -632,14 +641,22 @@ export function Fight({
           />
         ))}
       </span>
+      {gear.guards > 0 && (
+        <img
+          src={treasurePictures.guardCharm}
+          className="rs-charm"
+          alt={t.charm(shown.guards)}
+          data-used={shown.guards === 0}
+        />
+      )}
       {shown.outcome !== 'won' && (
         <span
           className="rs-combo"
           role="img"
-          aria-label={t.combo(shown.combo, powerAfter)}
-          data-full={shown.combo >= powerAfter - 1}
+          aria-label={t.combo(shown.combo, shown.powerAt)}
+          data-full={shown.combo >= shown.powerAt - 1}
         >
-          {Array.from({ length: powerAfter }, (_, index) => (
+          {Array.from({ length: shown.powerAt }, (_, index) => (
             <img
               key={index}
               src={swordPictures[sword]}
@@ -656,7 +673,8 @@ export function Fight({
             {players.map((player, index) => {
               const count =
                 (loot.before[index] as number) +
-                [...loot.taken].filter((coin) => coin % players.length === index).length;
+                [...loot.taken].filter((coin) => coin % players.length === index).length *
+                  gear.coinWorth;
               return (
                 <li
                   key={player.id}

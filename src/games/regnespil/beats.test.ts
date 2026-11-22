@@ -269,6 +269,21 @@ describe('the fight’s beats', () => {
     });
   });
 
+  it('shows a charm turning a blow aside, as a dodge with a golden glow and a clang', () => {
+    const fight = { ...startFight(4), threat: true };
+    const ways = { strike: 'spit', evasion: 'sink' } as const;
+    const turned = { ...fight, last: 'guarded' } as const;
+    for (const beat of [
+      answerBeat(turned, fight, moment, ways, 3),
+      answerBeat(turned, { ...fight, threat: false }, moment, ways, 3),
+      answerBeat(turned, { ...fight, threat: false }, moment, ways, 3, true),
+    ]) {
+      expect(beat.staging.effects?.at(-1)?.sheet).toBe('guard');
+      expect(beat.cues).toContainEqual({ sound: 'clang', after: reveal });
+      expect(beat.staging.hero?.acts?.some((act) => act.kind === 'knocked')).toBe(false);
+    }
+  });
+
   it('keeps a hero out of hearts lying down to rest, also when the fight is opened again', () => {
     const lost = { ...moment, lost: true };
     for (const beat of [attacks.bumped(lost), strikes.charge.hit(lost)]) {

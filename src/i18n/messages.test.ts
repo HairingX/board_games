@@ -97,6 +97,8 @@ describe('the messages that are made from values', () => {
     );
     expect(r.grumpy(r.foes.copperDog.the, 2)).toBe('The copper dog is grumpy: 2');
     expect(r.befriended('Scruffy Patch')).toBe('Scruffy Patch is your friend now!');
+    expect(r.charm(1)).toBe('The guard charm is ready');
+    expect(r.charm(0)).toBe('The guard charm took a blow');
     expect(regnespilText.da.grumpy(regnespilText.da.foes.copperDog.the, 2)).toBe(
       'Kobberhunden er sur: 2',
     );

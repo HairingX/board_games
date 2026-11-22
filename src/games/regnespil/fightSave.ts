@@ -47,7 +47,10 @@ type Added =
   | 'hungry'
   | 'shieldAt'
   | 'shield'
-  | 'shieldRaised';
+  | 'shieldRaised'
+  | 'maxHealth'
+  | 'powerAt'
+  | 'guards';
 
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
 const blows: readonly (string | undefined)[] = [
@@ -59,8 +62,15 @@ const blows: readonly (string | undefined)[] = [
   'dodged',
   'hit',
   'fed',
+  'shielded',
+  'shattered',
+  'guarded',
   undefined,
 ];
+
+/** The most health and blows turned aside a fight can hold, however many treasures help. */
+const mostHealth = fullHealth * 2;
+const mostGuards = 9;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -73,7 +83,8 @@ const isCount = (value: unknown, most: number): value is number =>
  * fight saved before turns to defend came is upgraded: its turns counted from none, and no
  * blow announced; one saved before monsters grew enraged is not yet enraged, and grows so at
  * half its lives; one saved before combos has none; one saved before monsters had seeds gets
- * the first; one saved before the berry bush finds it full, and the monster not hungry.
+ * the first; one saved before the berry bush finds it full, and the monster not hungry; one
+ * saved before treasures has none to help.
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
@@ -82,7 +93,10 @@ export function reviveFight(saved: unknown): SavedFight | null {
     isCount(lives, Number.MAX_SAFE_INTEGER) &&
     lives > 0 &&
     isRecord(fight) &&
-    isCount(fight.health, fullHealth) &&
+    (fight.maxHealth === undefined || isCount(fight.maxHealth, mostHealth)) &&
+    isCount(fight.health, fight.maxHealth ?? fullHealth) &&
+    (fight.powerAt === undefined || isCount(fight.powerAt, powerAfter)) &&
+    (fight.guards === undefined || isCount(fight.guards, mostGuards)) &&
     isCount(fight.lives, lives) &&
     outcomes.includes(fight.outcome as string) &&
     blows.includes(fight.last as string | undefined) &&
@@ -90,7 +104,7 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (fight.threat === undefined || typeof fight.threat === 'boolean') &&
     (fight.rageAt === undefined || isCount(fight.rageAt, lives)) &&
     (fight.enraged === undefined || typeof fight.enraged === 'boolean') &&
-    (fight.combo === undefined || isCount(fight.combo, powerAfter)) &&
+    (fight.combo === undefined || isCount(fight.combo, fight.powerAt ?? powerAfter)) &&
     (fight.full === undefined || fight.full === lives) &&
     (fight.berries === undefined || isCount(fight.berries, bush.berries)) &&
     (fight.hungry === undefined || typeof fight.hungry === 'boolean') &&
@@ -131,6 +145,9 @@ export function reviveFight(saved: unknown): SavedFight | null {
       shieldAt: kept.fight.shieldAt ?? 0,
       shield: kept.fight.shield ?? 0,
       shieldRaised: kept.fight.shieldRaised ?? false,
+      maxHealth: kept.fight.maxHealth ?? fullHealth,
+      powerAt: kept.fight.powerAt ?? powerAfter,
+      guards: kept.fight.guards ?? 0,
     },
   };
 }

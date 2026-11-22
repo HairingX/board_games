@@ -23,6 +23,7 @@ import {
   flagLands,
   flagPlanted,
   shieldFlash,
+  charmGlow,
   treatThrown,
   type Doing,
   type Staging,
@@ -593,6 +594,7 @@ export function answerBeat(
 ): Beat {
   if (before.threat) {
     const strike = strikes[ways.strike];
+    if (next.last === 'guarded') return guarded(strike.dodged(moment), moment.at, reveal);
     return next.last === 'dodged' ? strike.dodged(moment) : strike.hit(moment);
   }
   if (next.last === 'fed') return attacks.fed(moment);
@@ -601,6 +603,16 @@ export function answerBeat(
   }
   if (next.last === 'bumped') return attacks.bumped(moment);
   const power = next.last === 'smashed';
+  if (next.last === 'guarded') {
+    // A charm turned the blow aside: as a dodge, the charm glowing about the hero.
+    return guarded(
+      befriends
+        ? attacks.missed(moment, ways.evasion, false)
+        : attacks.evaded(moment, ways.evasion, false),
+      moment.at,
+      reveal,
+    );
+  }
   const nicked = next.last === 'nicked';
   if (befriends) {
     if (next.last !== 'struck' && !power) return attacks.missed(moment, ways.evasion, nicked);
@@ -614,6 +626,17 @@ export function answerBeat(
       : attacks.stroke(moment, power);
   }
   return attacks.evaded(moment, ways.evasion, nicked);
+}
+
+/**
+ * A beat begun at `at` with a charm turning a blow aside `after` seconds in: a golden shield
+ * glowing about the hero, and a clang, so it is seen what the treasure did.
+ */
+export function guarded(beat: Beat, at: number, after: number): Beat {
+  return {
+    staging: { ...beat.staging, effects: [...(beat.staging.effects ?? []), charmGlow(at + after)] },
+    cues: [...beat.cues, sound('clang', after)],
+  };
 }
 
 /** How long the monster glares at the hero it has walked up to, before it turns back. */

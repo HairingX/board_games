@@ -12,7 +12,8 @@ import { giantSlime, type Foe } from './monsters';
 import { Fight } from './Fight';
 import { monsterName } from './names';
 import { text } from './text';
-import { startFight } from './battle';
+import { startFight, type Gear } from './battle';
+import { gearOf } from './treasures';
 import type { SavedFight } from './fightSave';
 import type { PlayerSettings } from './players';
 import { hits, sounds, victoryLength } from './sounds';
@@ -39,6 +40,7 @@ function open(
   players: readonly Profile[] = [mille],
   saved: SavedFight | null = null,
   foe?: Foe,
+  gear?: Gear,
 ) {
   const settings = chosen.map((one): PlayerSettings => ({ hero: 'Knight', coins: 0, ...one }));
   const onCoins = vi.fn<(gains: readonly number[]) => void>();
@@ -57,6 +59,7 @@ function open(
       onSave={onSave}
       onCoins={onCoins}
       {...(foe ? { foe } : {})}
+      {...(gear ? { gear } : {})}
       onBack={onBack}
       random={() => 0}
       sound={engine}
@@ -321,6 +324,9 @@ describe('Fight', () => {
         shieldAt: 0,
         shield: 0,
         shieldRaised: false,
+        maxHealth: 10,
+        powerAt: 3,
+        guards: 0,
       },
       lives: 3,
       activeId: 'mille',
@@ -402,6 +408,41 @@ describe('Fight', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Helten er træt og hviler sig.');
     await pause(30);
     expect(hearts('0')).toBeInTheDocument();
+  });
+
+  it('lets the treasures help: a heart more, a charm that turns a blow aside, coins worth two', async () => {
+    const gear = gearOf(['heartJar', 'guardCharm', 'goldPouch']);
+    const { played, onCoins } = open([{ level: 7, sword: 'jern' }], [mille], null, 'slime', gear);
+    const sixHearts = (left: string) =>
+      screen.getByRole('img', { name: `Heltens hjerter: ${left} af 6` });
+    expect(sixHearts('6')).toBeInTheDocument();
+    expect(screen.getByAltText('Skjoldamuletten er klar')).toBeInTheDocument();
+    await choose('12');
+    expect(sixHearts('6')).toBeInTheDocument();
+    expect(screen.getByAltText('Skjoldamuletten har taget et slag')).toBeInTheDocument();
+    expect(played()).toContainEqual([sounds.clang.url, sounds.clang.gain, reveal]);
+    await next(wrong);
+    await choose('12');
+    expect(sixHearts('5')).toBeInTheDocument();
+    for (let turn = 0; turn < 8 && !screen.queryByText(won); turn++) {
+      await next(wrong);
+      await choose('24');
+    }
+    expect(onCoins).toHaveBeenCalledWith([6]);
+    await pause(2);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Saml mønten op' })[0] as HTMLElement);
+    expect(screen.getByRole('img', { name: 'Milles pung: 2 mønter' })).toBeInTheDocument();
+  });
+
+  it('lets the charm turn aside the blow of a monster that reaches the hero in time', async () => {
+    const { played } = open([{ level: 1, sword: 'flamme' }], [mille], null, 'slime', {
+      ...gearOf(['guardCharm']),
+    });
+    await pause(16);
+    expect(hearts('5')).toBeInTheDocument();
+    expect(played()).toContainEqual([sounds.clang.url, sounds.clang.gain, 0]);
+    await pause(19);
+    expect(hearts('4')).toBeInTheDocument();
   });
 
   it('sends the slime home when an answer comes, and keeps the player’s pace for the next walk', async () => {

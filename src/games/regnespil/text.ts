@@ -2,6 +2,7 @@ import { capital, formatNumber, genitive, plural } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
 import type { Hero } from './heroes';
 import type { Foe } from './monsters';
+import type { Treasure } from './treasures';
 import type { Sword } from './swords';
 import type { Operator } from './tasks';
 
@@ -113,6 +114,16 @@ const da = {
     `Rigtige i træk: ${formatNumber('da', count)} af ${formatNumber('da', of)}`,
   won: (name: string) => `${name} er besejret!`,
   befriended: (name: string) => `${name} er blevet jeres ven!`,
+  /** Whether the guard charm still turns a blow aside in this fight. */
+  charm: (left: number): string =>
+    left > 0 ? 'Skjoldamuletten er klar' : 'Skjoldamuletten har taget et slag',
+  /** The treasures, each with what it does, said plainly. */
+  treasures: {
+    heartJar: { name: 'Hjertekrukken', does: 'Et hjerte mere i hver kamp' },
+    powerRing: { name: 'Kraftringen', does: 'Kraftslag allerede efter to rigtige i træk' },
+    goldPouch: { name: 'Guldpungen', does: 'Hver mønt er to værd' },
+    guardCharm: { name: 'Skjoldamuletten', does: 'Første slag i hver kamp preller af' },
+  } satisfies Record<Treasure, { name: string; does: string }>,
   /** The two pools each kind of monster's names are made from (`names.ts`). */
   names: {
     slime: {
@@ -244,6 +255,13 @@ export const text: Translations<typeof da> = {
       `Right in a row: ${formatNumber('en', count)} of ${formatNumber('en', of)}`,
     won: (name) => `${name} is beaten!`,
     befriended: (name) => `${name} is your friend now!`,
+    charm: (left) => (left > 0 ? 'The guard charm is ready' : 'The guard charm took a blow'),
+    treasures: {
+      heartJar: { name: 'Heart jar', does: 'One heart more in every fight' },
+      powerRing: { name: 'Power ring', does: 'A power stroke after just two right in a row' },
+      goldPouch: { name: 'Gold pouch', does: 'Every coin is worth two' },
+      guardCharm: { name: 'Guard charm', does: 'The first blow in every fight glances off' },
+    },
     names: {
       slime: {
         describe: [
