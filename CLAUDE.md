@@ -240,8 +240,7 @@ game builds on them, and everything must stay smooth on a phone.
   shield comes, sparks of energy fly in from around the stage and gather on it (`energy`), and
   the shield forms in a flash with a clang and a roar, hidden until it has. A saved fight keeps
   the monster it is against (`foe`), and one against another monster
-  is begun afresh. Still to come: monsters with more lives further on, as the run takes
-  shape.
+  is begun afresh.
 - Monsters and bosses are generated, as the owner decided (section 5.7 of
   `docs/regnespil-design.md`): hand-made families tagged by what they are; moves, phases and
   quirks from pools, each saying what it needs, so a slime never spits lava and a wolf never
@@ -250,10 +249,55 @@ game builds on them, and everything must stay smooth on a phone.
   per run; story bosses made by hand. Built so far: the names (`names.ts`, the pools in
   `text.ts`, mostly alliterating, "Boblende Bob"), made in each language from a seed saved with
   the fight (`seeded` in `src/lib/random.ts`), so a reopened fight meets the same monster.
-- The story is not decided: `docs/regnespil-story.md` is a researched proposal (building on
-  H.C. Andersen's _Fyrtøjet_, public domain) for the owner to decide on. Only public-domain
-  tales may give plot, names or characters; modern franchises only lessons in how to tell.
-- The stage is the forest clearing (`forest.ts`, `clearing.ts`), ten tiles by nine.
+- The story is _Fyrtøjet_, as the owner asked for it to be made (`docs/regnespil-story.md`,
+  concept A, our own retelling of H.C. Andersen's public-domain tale): the dogs are grumpy,
+  not wicked, and are won over, not beaten. Only public-domain tales may give plot, names or
+  characters; modern franchises only lessons in how to tell. Its later chapters (the silver
+  and gold dogs, the old woman's cold stove) are still the proposal's, to be decided.
+- The adventure, as the owner asked, so the players are drawn in as games do it: "Start
+  eventyret" on the setup begins a journey (`journey.ts`, saved per group of players under
+  `regnespil/eventyr/rejse/…` after every step, its fights under `regnespil/eventyr/kamp/…`
+  with the step they are at), and the setup then offers "Fortsæt eventyret" and "Start
+  eventyret forfra", which asks first; "En hurtig kamp" and the giant slime stay there to try.
+  The adventure's steps share one address (`#/spil/regnespil/<players>/eventyr`): a story goes
+  one way, so the back gesture leaves it for the setup, and it opens again where it stands.
+  - First a film of about half a minute (`film.ts`, `Film.tsx`), skippable at any time, told
+    in shots on the puppet theatre's stage with picture bubbles, babble and sound, each shot
+    told in words to screen readers: the heroes march in ("én, to!"); an old woman in a pointed
+    hat (the pack's `NinjaMageOrange`) shows a hollow tree with a spark down in it, riches,
+    and three dogs; a bark, and the copper dog bursts out, grumpy.
+  - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
+    dog drawn twice its size, mirrored to face the heroes, half again as tough as a slime and
+    cross halfway. It is won over with treats, as the story has it: a right answer throws it a
+    bone, which it catches with a heart; a close one flies past as it leaps aside; at the last
+    it spins for joy, barks and runs to the heroes, and stays their friend. No flag falls.
+  - Its chest (`Chest.tsx`): tapped, it springs open with a jingle and offers three treasures
+    the heroes do not have, the same from the journey's seed, each with the pack's icon, what
+    it does as pictures, and its name and what it does in words; one is chosen and kept for
+    the rest of the journey (`treasures.ts`): the heart jar (a heart more), the power ring (a
+    power stroke after two right in a row), the gold pouch (each coin of a victory worth two)
+    and the guard charm (the first blow in each fight that would cost hearts glances off, in a
+    golden glow, its icon by the hearts greying once used).
+  - Then the map (`map.ts`, `JourneyMap.tsx`), as the owner asked, so it is plain the
+    adventure is under way, where it goes and how far it is: the forest from the road up to
+    the hollow tree, a monster waiting at each step, roads between them (walked ones whole),
+    a flag where a monster was beaten, the heroes and their friend the dog walking from step to
+    step, and pips over it for the steps done and left. The steps ahead bounce under an arrow.
+    At a fork the main road goes on to one fight, and a detour, shown by a sign with a chest,
+    as the owner described, leads past a tougher slime (drawn cross) to a chest and loops back
+    to the main road. Monsters further on have more lives (`toughness` per step).
+  - At the hollow tree the giant slime; beaten, a film shows the heroes and the dog jumping
+    down the hole, where eyes glint in the dark, and "Kapitel 1 er klaret!" shows the
+    treasures found and offers the chapter again (`JourneyEnd.tsx`).
+  - Each screen has its music, chosen by the game (`Regnespil.tsx`): the film the pack's
+    "1 - Adventure Begin", the map and chests "23 - Road", fights "17 - Fight", the end
+    "13 - Mystical", chosen by their titles, for the owner to hear.
+- The stage is the forest clearing (`forest.ts`, `clearing.ts`), ten tiles by nine. A big
+  monster stands with its front where the slime's is and its feet on the same ground, however
+  many times its size it is drawn (`foeAt`, `foeMiddle`).
+- A fight keeps the screen on while it goes on (`useWakeLock`), and lets it go dark once it is
+  won or the hero rests, as the owner chose. A hero out of hearts lies resting where they fell,
+  also when a lost fight is opened again.
 - The fight looks like a game, as the owner chose from a mock-up (`Fight.tsx`): always dark,
   in the pack's colours (the `--pixel-*` tokens). A top bar outside the scene, framed in the
   look of where the fight is (wood in the forest, `topFrames` in `art.ts`), holds the way
@@ -465,6 +509,10 @@ game builds on them, and everything must stay smooth on a phone.
   four rows. Figures act one act after another (attack on the sheet's fifth row with a lunge,
   hurt as a blink, cheer as a jump, vanish), show signs over their heads (the pack's
   `Ui/Emote` balloons), and effects such as a sword's sweep or a puff play over the stage.
+  A figure can be drawn a whole number of times larger (`size`, about its feet), a big sheet
+  that faces one way is mirrored to face the other (`big.faces`), a step may take its own
+  time (`lasts`, as heroes walking on the map), and one lies down for good (`lie`). One paint
+  transform grows, mirrors and turns a draw (`paint` in `SceneCanvas.tsx`).
   Times are on the page's clock, so a screen starts an act the moment it happens; with
   reduced motion nothing moves, but what vanished stays gone.
 

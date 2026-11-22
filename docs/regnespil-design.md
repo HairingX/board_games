@@ -296,12 +296,13 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
    screen, the monster engine.
 3. A typeface for children's reading (section 9).
 4. Mood-following music (section 8).
-5. The story (`docs/regnespil-story.md`).
+5. Decided (owner): the story is _Fyrtøjet_ (`docs/regnespil-story.md`, concept A); its first
+   chapter is built. The later chapters are still the proposal's.
 6. Built: the combo; a close answer keeps it, one far off breaks it. To tune once played.
 7. Decided (owner): each player has a purse of their own, kept for good, never real money, and
-   no random loot; coins are picked up by tapping them (built). A chest (tap to open, choose
-   one of two or three things) waits for the adventure's map, so what it holds means
-   something. The shop is still to be decided.
+   no random loot; coins are picked up by tapping them (built). Built with the map: a chest,
+   tapped open, offers three treasures to choose one, kept for the journey. The shop is still
+   to be decided.
 8. When the game suggests a higher math level to a child, and how it says so kindly.
 
 ## 11. The owner's ideas, as raised
@@ -420,3 +421,21 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   should not just pop up; it should be made something of, so you feel more resistance is
   coming now. (Built: rage is a spin, a swell with a roar and a shrink; the shield gathers
   sparks of energy and forms in a flash.)
+- The screen may go dark when the fight is won; the hero should stay lying down when a fight
+  was lost. (Built, both.)
+- Make the story and build it so there is a stretch to play through, starting with the
+  first: how the game begins, as a little play where you see some of the adventure, then
+  something happens, then the next piece, so you are drawn in, the way best practice for
+  games draws players in. Verify it, and have it reviewed through the eyes of several agents,
+  critics of the game among them, to find out when it is good enough: start the game from
+  new, see a little film of what you are playing, fight the first boss, and be under way.
+  (Built: the film, the copper dog, its chest, the map; reviewed by four critics.)
+- The first boss beaten should give a chest where you can choose something, a kind of fight
+  category or something to do, so you feel you got something from the first intro. (Built:
+  the copper dog's chest, three treasures that change the fights.)
+- A kind of map that shows we are under way and where we are going, so you can see how long
+  this stretch is. (Built: the map, with pips for the steps done and left.)
+- Let the player make choices on the way, which direction to go, while the adventure still
+  plays out; some roads a loop that comes back to the main story; a sign on the way with an
+  icon of a chest, or something, that makes you want to take a detour. (Built: the fork, the
+  detour past a tougher slime to a chest and back, the sign with a chest.)

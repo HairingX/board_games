@@ -1,7 +1,11 @@
 # Regnespil: a story for the adventure
 
 A proposal for the story of the math game's adventure, written in November 2026 for the owner
-to decide on. Nothing here is decided until it is written into `CLAUDE.md`. Asset paths are
+to decide on. Nothing here is decided until it is written into `CLAUDE.md`. The owner has since
+asked for the story to be made: concept A, _Fyrtøjet_, is decided, and its first chapter is
+built (the film, the copper dog on the road, the forest to the hollow tree), as `CLAUDE.md`
+describes; it moved the copper dog from the first hall up onto the road, so the first boss
+comes at once. The rest is still a proposal. Asset paths are
 relative to `assets/ninja-adventure/`.
 
 ## Findings

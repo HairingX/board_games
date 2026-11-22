@@ -1051,9 +1051,19 @@
   image-rendering: pixelated;
 }
 
-/* The film's panel holds only the way to skip it, low, where the thumbs are. */
+/*
+ * The film is shown as at the cinema: the stage in the middle of the dark, and below it only
+ * the way to skip, low, where the thumbs are.
+ */
+.rs-film .rs-stage {
+  margin-block: auto;
+}
+
 .rs-film-panel {
+  flex: 0 0 auto;
   justify-content: flex-end;
+  background: transparent;
+  border: 0;
 }
 
 .rs-skip {
@@ -1213,7 +1223,7 @@
 
 .rs-treasures {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
   margin: 0;
   padding: 0;
@@ -1284,8 +1294,11 @@
 }
 
 .rs-treasure-name {
-  font-size: 1rem;
+  max-width: 100%;
+  font-size: 0.95rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
+  hyphens: auto;
 }
 
 .rs-treasure-does {
