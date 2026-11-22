@@ -215,9 +215,18 @@ game builds on them, and everything must stay smooth on a phone.
   (`strikesInTime`, `reachedHero`), costing what far off does while the sum stays, so time
   counts only when it is chosen. An answer sends it hurrying home as the hero runs at it.
   With reduced motion it stays where it is, but still roars or strikes.
-- Agreed next: bosses that fight back
-  with the flame sword (a shield only a power stroke breaks, a warned attack, rage at half
-  life), and monsters with more lives further on.
+- A boss to try the fight's phases on, as the owner asked and chose (`giantSlime` in
+  `monsters.ts`, the pack's `Boss/GiantSlime`, drawn big from its own row of frames): reached
+  from the setup with "Mod kæmpeslimet" while the game is tried (the place `kamp/boss`), three
+  times the slime's lives (`toughness`), and its own plan (`Plan` in `battle.ts`): at two
+  thirds of its lives enraged, striking back every other turn, now and then with a body slam
+  (`slam`, a high jump that lands on the hero, warned like any blow and dodged by a right
+  answer); at a third a shield rises (`shieldAt`), drawn before it with its pieces in blue
+  over its life, and a right answer still always lands: on the shield, breaking a piece off
+  (`shieldPieces`, three), or shattering it at once with a power stroke. It has no berry
+  bush. A saved fight keeps the monster it is against (`foe`), and one against another monster
+  is begun afresh. Still to come: monsters with more lives further on, as the run takes
+  shape.
 - Monsters and bosses are generated, as the owner decided (section 5.7 of
   `docs/regnespil-design.md`): hand-made families tagged by what they are; moves, phases and
   quirks from pools, each saying what it needs, so a slime never spits lava and a wolf never
@@ -267,8 +276,9 @@ game builds on them, and everything must stay smooth on a phone.
   not written around, in four layers:
   - the rules (`battle.ts`): pure functions from a fight and an answer to the next fight, and
     what happened (`Blow`); they decide costs, lives, rage, combos and hunger;
-  - the monsters as data (`monsters.ts`): what a monster looks and sounds like, and which
-    ways of striking back, evasions and teases it has; a new monster is an entry there;
+  - the monsters as data (`monsters.ts`): what a monster looks and sounds like, how tough it
+    is, its plan (when it rages, when a shield rises, a berry bush), and which ways of striking
+    back (calm and enraged), evasions and teases it has; a new monster is an entry there;
   - the antics (`antics.ts`): which of its ways a monster uses at a turn, from the fight's
     seed;
   - the beats (`beats.ts`): for each thing that can happen, what is seen (the staging: acts,

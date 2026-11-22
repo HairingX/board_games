@@ -55,8 +55,8 @@ export const bush = { berries: 2, regrowEvery: 4 } as const;
  */
 export const appetite = { attack: 1, hunger: 4, whim: 0.5 } as const;
 
-/** The lives a monster has left when it grows enraged: half of those it began with. */
-export const rageAt = (lives: number) => Math.floor(lives / 2);
+/** The lives a monster has left when it grows enraged, by its plan: the slime's at half. */
+export const rageAt = (lives: number, plan: Plan = slimePlan) => Math.floor(lives * plan.rage);
 
 /**
  * What happened at the last answer, for the screen to show: smashed is a power stroke; nicked
@@ -64,7 +64,16 @@ export const rageAt = (lives: number) => Math.floor(lives / 2);
  * monster eating while the answer was wrong.
  */
 export type Blow =
-  'struck' | 'smashed' | 'parried' | 'nicked' | 'bumped' | 'dodged' | 'hit' | 'fed';
+  | 'struck'
+  | 'smashed'
+  | 'parried'
+  | 'nicked'
+  | 'bumped'
+  | 'dodged'
+  | 'hit'
+  | 'fed'
+  | 'shielded'
+  | 'shattered';
 
 export interface Fight {
   /** The hero's health left, in half hearts. */
@@ -88,9 +97,32 @@ export interface Fight {
   berries: number;
   /** Whether the monster has shown it goes to eat at the next answer. */
   hungry: boolean;
+  /**
+   * At how many lives left a shield rises before the monster (none at 0), and how many pieces
+   * of it are left; it rises once.
+   */
+  shieldAt: number;
+  shield: number;
+  shieldRaised: boolean;
 }
 
-export function startFight(lives: number): Fight {
+/**
+ * How a monster's fight goes, by the share of its lives left: when it grows enraged, and when
+ * a shield rises (never, at 0); and whether a berry bush stands by it.
+ */
+export interface Plan {
+  rage: number;
+  shield: number;
+  bush: boolean;
+}
+
+/** The slime's plan: enraged at half its lives, with a berry bush and no shield. */
+export const slimePlan: Plan = { rage: 1 / 2, shield: 0, bush: true };
+
+/** How many strokes a shield takes before it breaks; a power stroke breaks it at once. */
+export const shieldPieces = 3;
+
+export function startFight(lives: number, plan: Plan = slimePlan): Fight {
   return {
     health: fullHealth,
     lives,
@@ -98,12 +130,15 @@ export function startFight(lives: number): Fight {
     last: undefined,
     round: 0,
     threat: false,
-    rageAt: rageAt(lives),
+    rageAt: rageAt(lives, plan),
     enraged: false,
     combo: 0,
     full: lives,
-    berries: bush.berries,
+    berries: plan.bush ? bush.berries : 0,
     hungry: false,
+    shieldAt: Math.floor(lives * plan.shield),
+    shield: 0,
+    shieldRaised: false,
   };
 }
 
@@ -121,11 +156,14 @@ export function answerFight(
   const done = answered(fight, verdict, sword);
   const round = fight.round + 1;
   const regrown = round % bush.regrowEvery === 0 && done.berries < bush.berries ? 1 : 0;
+  // A shield rises once, as the monster is struck down to its share of lives.
+  const rises = !done.shieldRaised && done.outcome === 'fighting' && done.lives <= done.shieldAt;
   const after = {
     ...done,
     round,
     combo: comboAfter(fight, verdict, done.last),
     berries: done.berries + regrown,
+    ...(rises ? { shield: shieldPieces, shieldRaised: true } : {}),
   };
   // Once enraged, it stays so, though it eats a life back.
   const enraged = after.outcome === 'fighting' && (fight.enraged || after.lives <= fight.rageAt);
@@ -163,6 +201,11 @@ function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
     const lives = Math.min(fight.full, fight.lives + 1);
     return { ...fight, lives, berries: fight.berries - 1, last: 'fed' };
   }
+  if (verdict === 'right' && fight.shield > 0) {
+    // The stroke lands on the shield, breaking a piece off, or all of it with a power stroke.
+    const shield = fight.combo + 1 >= powerAfter ? 0 : fight.shield - 1;
+    return { ...fight, shield, last: shield === 0 ? 'shattered' : 'shielded' };
+  }
   if (verdict === 'right') {
     const power = fight.combo + 1 >= powerAfter;
     const lives = Math.max(0, fight.lives - (power ? powerStroke : 1));
@@ -179,7 +222,8 @@ function answered(fight: Fight, verdict: Verdict, sword: Sword): Fight {
 
 /** The combo after the answer: one more for a right one, gone after one far off or a power stroke. */
 function comboAfter(fight: Fight, verdict: Verdict, last: Blow | undefined): number {
-  if (verdict === 'far' || last === 'smashed') return 0;
+  const powered = verdict === 'right' && fight.combo + 1 >= powerAfter;
+  if (verdict === 'far' || last === 'smashed' || (powered && last === 'shattered')) return 0;
   return verdict === 'right' ? Math.min(powerAfter, fight.combo + 1) : fight.combo;
 }
 

@@ -8,12 +8,16 @@ import { SoundMenu } from '../../ui/SoundMenu';
 import { Fight, fightMusic } from './Fight';
 import { fightSaveKey, reviveFight } from './fightSave';
 import { Listening } from './Listening';
+import type { Foe } from './monsters';
 import { reviveSettings, suggest, type PlayerSettings } from './players';
 import { Setup } from './Setup';
 import { music } from './sounds';
 
 /** The game's place while the fight is on; its start is choosing levels and swords. */
 export const fightPlace = 'kamp';
+
+/** The fight's own place when it is against the giant slime boss, while the game is tried. */
+export const bossPlace = 'boss';
 
 /** The game's place for comparing sounds, while its sounds are being chosen. */
 export const listeningPlace = 'lyde';
@@ -51,17 +55,23 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
   };
 
   switch (place[0]) {
-    case fightPlace:
+    case fightPlace: {
+      const foe: Foe = place[1] === bossPlace ? 'giantSlime' : 'slime';
       return (
         <Fight
           players={players}
           settings={settings}
           // A save whose player is no longer at the table is begun afresh.
+          // A save against another monster, or whose player is no longer at the table, is
+          // begun afresh.
           saved={
-            savedFight && players.some((player) => player.id === savedFight.activeId)
+            savedFight &&
+            savedFight.foe === foe &&
+            players.some((player) => player.id === savedFight.activeId)
               ? savedFight
               : null
           }
+          foe={foe}
           onSave={saveFight}
           onCoins={(gains) => {
             gains.forEach((gain, index) => {
@@ -73,6 +83,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
           aside={aside}
         />
       );
+    }
     case listeningPlace:
       return <Listening onBack={back} />;
     default:
@@ -82,9 +93,9 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
           settings={settings}
           onChange={change}
           aside={aside}
-          onStart={() => {
+          onStart={(foe) => {
             sound.music(music.fight.url, music.fight.gain);
-            go([fightPlace]);
+            go(foe === 'giantSlime' ? [fightPlace, bossPlace] : [fightPlace]);
           }}
           onListen={() => {
             go([listeningPlace]);

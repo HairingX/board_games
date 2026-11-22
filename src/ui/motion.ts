@@ -63,6 +63,11 @@ export const motionTokens = {
     approach: { seconds: 15 },
     /** Stepping into place from where the act says it was, as a hero whose turn it is now. */
     step: { seconds: 0.4 },
+    /**
+     * A body slam: a high jump the act's `reach` toward another figure, landing on it, a
+     * moment there, and a hop back.
+     */
+    pounce: { out: 0.45, hold: 0.25, back: 0.5, height: 22 },
     /** A high jump, clear of a stroke. */
     leap: { seconds: 0.55, height: 16 },
     /** Burrowing into the ground, a moment under it, and up again. */

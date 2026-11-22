@@ -142,6 +142,35 @@ describe('figures acting', () => {
     expect(one({ acts: [{ kind: 'charge', at }] }, at + out)?.x).toBe(20);
   });
 
+  it('draws a big figure from its row of frames, and lets it slam down on another', () => {
+    const giant = { big: { width: 60, height: 50, frames: 5 }, doing: 'bouncing' } as const;
+    const step = 1 / motionTokens.bounce.framesPerSecond;
+    expect(one(giant, 6 * step + eps)?.cut).toEqual({ x: 60, y: 0, width: 60, height: 50 });
+    expect(
+      one({ ...giant, acts: [{ kind: 'sink', at }] }, at + act.sink.down / 2)?.cut.height,
+    ).toBe(25);
+    const slam = { acts: [{ kind: 'pounce', at, reach: 30 }] } as const;
+    const { out, hold, back, height } = act.pounce;
+    expect(one(slam, at + out / 2)).toMatchObject({ x: 35, y: 20 - height });
+    expect(one(slam, at + out + hold / 2)).toMatchObject({ x: 50, y: 20 });
+    const after = at + out + hold + back + eps;
+    expect(one(slam, after)).toMatchObject({ x: 20, y: 20 - breathLift(after) });
+    expect(one({ acts: [{ kind: 'pounce', at }] }, at + out)?.x).toBe(20);
+    const signed = drawScene(
+      {
+        ...scene,
+        ground: [],
+        things: [],
+        figures: [
+          { sheet: 'boss', x: 0, y: 40, facing: 'left', ...giant, sign: { sheet: 'alert', at } },
+        ],
+      },
+      at,
+      true,
+    );
+    expect(signed[1]).toMatchObject({ sheet: 'alert', x: 23 });
+  });
+
   it('cheers again and again when the act repeats', () => {
     const dancing = { acts: [{ kind: 'cheer', at, repeat: 2 }] } as const;
     const high = one(dancing, at + act.cheer.seconds / 2)?.y;

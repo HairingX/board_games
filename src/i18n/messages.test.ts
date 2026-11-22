@@ -90,6 +90,7 @@ describe('the messages that are made from values', () => {
     expect(r.heroOf('Jonas')).toBe('Jonas’s hero');
     expect(r.won('Slimy Sid')).toBe('Slimy Sid is beaten!');
     expect(r.purse('Jonas', 1)).toBe('Jonas’s purse: 1 coin');
+    expect(r.shieldLeft(2)).toBe('Pieces of the shield: 2');
     expect(r.stakeWrong(1)).toBe('Wrong: 1 heart less');
     expect(regnespilText.da.stakeWrong(0.5)).toBe('Forkert: 0,5 hjerte mindre');
     expect(common.en.turn('Jonas')).toBe('It’s Jonas’s turn');

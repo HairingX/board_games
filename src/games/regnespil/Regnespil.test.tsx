@@ -4,7 +4,7 @@ import { far, mille } from '../../../tests/family';
 import { saves } from '../../lib/saves';
 import { sound } from '../../lib/sound/engine';
 import { soundSaveKey } from '../../lib/sound/settings';
-import Regnespil, { fightPlace, listeningPlace } from './Regnespil';
+import Regnespil, { bossPlace, fightPlace, listeningPlace } from './Regnespil';
 
 beforeEach(() => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -77,6 +77,34 @@ describe('Regnespil', () => {
     expect(fars).toHaveTextContent('Niveau 15for mestre');
     expect(within(fars).getByRole('button', { name: 'Sværere' })).toBeDisabled();
     expect(playerPart('Far').getByRole('radio', { name: /Mellem/ })).toBeChecked();
+  });
+
+  it('offers the giant slime, as a boss to try, from the setup', async () => {
+    const { go } = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Mod kæmpeslimet' }));
+    expect(go).toHaveBeenCalledWith([fightPlace, bossPlace]);
+  });
+
+  it('fights the boss in its place, beginning afresh from a save against another monster', async () => {
+    const task = { sum: [3, '+', 4], answer: 7, choices: [6, 7, 8], near: 2 };
+    await saves.write('regnespil/far', { level: 13, sword: 'flamme', hero: 'Knight', coins: 0 });
+    await saves.write('regnespil/mille', { level: 1, sword: 'træ', hero: 'Monkey', coins: 0 });
+    await saves.write('regnespil/kamp/far+mille', {
+      fight: { health: 4, lives: 1, outcome: 'fighting', last: 'struck' },
+      lives: 3,
+      activeId: 'mille',
+      task,
+      recent: [],
+    });
+    render(
+      <Regnespil
+        players={[far, mille]}
+        saveKey="regnespil"
+        place={[fightPlace, bossPlace]}
+        go={vi.fn()}
+      />,
+    );
+    expect(await screen.findByRole('img', { name: 'Slimets liv: 18' })).toBeInTheDocument();
   });
 
   it('starts the fight with its music from the tap', async () => {

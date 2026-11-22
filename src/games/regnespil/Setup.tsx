@@ -7,6 +7,7 @@ import { GameHeader } from '../../ui/GameHeader';
 import { clearingSheets } from './clearing';
 import { HeroPicker } from './HeroPicker';
 import { LevelStepper } from './LevelStepper';
+import type { Foe } from './monsters';
 import type { PlayerSettings } from './players';
 import { SwordPicker } from './SwordPicker';
 import { text } from './text';
@@ -17,7 +18,8 @@ interface Props {
   /** Each player's level and sword, in the players' order. */
   settings: readonly PlayerSettings[];
   onChange: (index: number, settings: PlayerSettings) => void;
-  onStart: () => void;
+  /** Begins a fight against the slime, or, while the game is tried, the giant slime boss. */
+  onStart: (foe: Foe) => void;
   /** Opens the sounds to compare, while the game's sounds are being chosen. */
   onListen: () => void;
   /** Shown at the right of the header: the sound's levels. */
@@ -82,8 +84,23 @@ export function Setup({ players, settings, onChange, onStart, onListen, aside }:
           );
         })}
       </ul>
-      <button type="button" className="btn btn-primary btn-block" onClick={onStart}>
+      <button
+        type="button"
+        className="btn btn-primary btn-block"
+        onClick={() => {
+          onStart('slime');
+        }}
+      >
         {t.toFight}
+      </button>
+      <button
+        type="button"
+        className="btn btn-quiet btn-block"
+        onClick={() => {
+          onStart('giantSlime');
+        }}
+      >
+        {t.boss}
       </button>
       <button type="button" className="btn btn-quiet btn-block rs-listen" onClick={onListen}>
         {t.listen.title}

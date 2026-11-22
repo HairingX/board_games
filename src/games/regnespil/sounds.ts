@@ -8,6 +8,7 @@ import knock from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Imp
 import bump from '../../../assets/ninja-adventure/Audio/Sounds/Jump & Bounce/Bounce2.m4a';
 import choose from '../../../assets/ninja-adventure/Audio/Sounds/Menu/Accept4.m4a';
 import coin from '../../../assets/ninja-adventure/Audio/Sounds/Bonus/Coin2.m4a';
+import clang from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Impact.m4a';
 import spit from '../../../assets/ninja-adventure/Audio/Sounds/Elemental/Bubble2.m4a';
 import splash from '../../../assets/ninja-adventure/Audio/Sounds/Elemental/Water2.m4a';
 import slash from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
@@ -42,6 +43,7 @@ export const sounds = {
   choose: mixed(choose, -16, loudness.tap),
   slash: mixed(slash, -19.9, loudness.action),
   bump: mixed(bump, -12.3, loudness.action),
+  clang: mixed(clang, -10.6, loudness.action),
   spit: mixed(spit, -15.2, loudness.action),
   coin: mixed(coin, -15.3, loudness.action),
   splash: mixed(splash, -14.8, loudness.action),

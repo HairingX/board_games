@@ -8,6 +8,7 @@ import { sound, SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
 import { motionTokens } from '../../ui/motion';
 import { faces } from './art';
+import { giantSlime, type Foe } from './monsters';
 import { Fight } from './Fight';
 import { monsterName } from './names';
 import { text } from './text';
@@ -37,6 +38,7 @@ function open(
   ],
   players: readonly Profile[] = [mille],
   saved: SavedFight | null = null,
+  foe?: Foe,
 ) {
   const settings = chosen.map((one): PlayerSettings => ({ hero: 'Knight', coins: 0, ...one }));
   const onCoins = vi.fn<(gains: readonly number[]) => void>();
@@ -54,6 +56,7 @@ function open(
       saved={saved}
       onSave={onSave}
       onCoins={onCoins}
+      {...(foe ? { foe } : {})}
       onBack={onBack}
       random={() => 0}
       sound={engine}
@@ -294,12 +297,16 @@ describe('Fight', () => {
         full: 3,
         berries: 2,
         hungry: false,
+        shieldAt: 0,
+        shield: 0,
+        shieldRaised: false,
       },
       lives: 3,
       activeId: 'mille',
       task,
       recent: [],
       seed: 3,
+      foe: 'slime',
     });
     expect(hearts('1,5')).toBeInTheDocument();
     expect(screen.getByText(monsterName(text.da.names.slime, 3))).toBeInTheDocument();
@@ -418,6 +425,7 @@ describe('Fight', () => {
       task,
       recent: [],
       seed: 0,
+      foe: 'slime',
     };
     const jumped = open([{ level: 1, sword: 'jern' }], [mille], saved);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
@@ -444,10 +452,54 @@ describe('Fight', () => {
       task,
       recent: [],
       seed: 3,
+      foe: 'slime',
     });
     await choose('1');
     expect(hearts('4,5')).toBeInTheDocument();
     expect(played()).toContainEqual([sounds.slash.url, sounds.slash.gain, reveal]);
+  });
+
+  it('fights the giant slime, three times as tough, its portrait at the top', () => {
+    const { container } = open([{ level: 1, sword: 'træ' }], [mille], null, 'giantSlime');
+    expect(lives(6)).toBeInTheDocument();
+    expect(container.querySelector('.rs-foe-face')).toHaveAttribute('src', giantSlime.face.calm);
+  });
+
+  it('has the boss’s shield take the strokes, a piece at a time, and slam down when enraged', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 } as const;
+    const shielded: SavedFight = {
+      fight: {
+        ...startFight(6, giantSlime.plan),
+        lives: 2,
+        enraged: true,
+        shield: 3,
+        shieldRaised: true,
+        round: 3,
+      },
+      lives: 6,
+      activeId: 'mille',
+      task,
+      recent: [],
+      seed: 0,
+      foe: 'giantSlime',
+    };
+    const first = open([{ level: 1, sword: 'træ' }], [mille], shielded);
+    expect(screen.getByRole('img', { name: 'Skjoldets stykker: 3' })).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Rigtigt: dit slag rammer skjoldet og slår et stykke af'),
+    ).toBeInTheDocument();
+    await choose('2');
+    expect(screen.getByRole('img', { name: 'Skjoldets stykker: 2' })).toBeInTheDocument();
+    expect(lives(2)).toBeInTheDocument();
+    expect(first.played()).toContainEqual([sounds.clang.url, sounds.clang.gain, reveal]);
+    first.unmount();
+    // Enraged, it strikes back with a body slam (the seed 0 has it slam at this turn).
+    open([{ level: 1, sword: 'træ' }], [mille], {
+      ...shielded,
+      fight: { ...shielded.fight, round: 4, threat: true },
+    });
+    click('1');
+    expect(lives(2)).toHaveAttribute('data-away', 'true');
   });
 
   it('defends: the slime warns, the panel turns blue, and a right answer dodges', async () => {
@@ -484,6 +536,7 @@ describe('Fight', () => {
       task,
       recent: [],
       seed: 1,
+      foe: 'slime',
     });
     expect(lives(1)).toHaveAttribute('data-away', 'false');
     click('1');

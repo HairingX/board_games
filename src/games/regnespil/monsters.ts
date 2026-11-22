@@ -1,24 +1,44 @@
+import giantFace from '../../../assets/ninja-adventure/Actor/Boss/GiantSlime/Faceset.png';
 import type { Voice } from '../../lib/sound/babble';
 import { voices } from '../../lib/sound/voices';
 import { faces } from './art';
+import { slimePlan, type Plan } from './battle';
 import type { Evasion, StrikeName, Tease } from './beats';
 
 /*
  * The monsters as data, as the design has it (section 5.6 of `docs/regnespil-design.md`): a
- * monster is what it looks and sounds like and which of the fight's beats (`beats.ts`) it
- * uses, so a new monster, or a new trick for one, is an entry here, not a change to the fight.
- * Its lives come from the players' swords; how it weighs its moves is in `battle.ts`.
+ * monster is what it looks and sounds like, how tough it is, how its fight goes (its plan),
+ * and which of the fight's beats (`beats.ts`) it uses, so a new monster, or a new trick for
+ * one, is an entry here, not a change to the fight.
  */
+
+/** The monsters there are, by kind; a fight is saved with the kind it is against. */
+export const foes = ['slime', 'giantSlime'] as const;
+export type Foe = (typeof foes)[number];
+
+export function isFoe(value: unknown): value is Foe {
+  return foes.includes(value as Foe);
+}
 
 export interface Monster {
   /** Its kind, whose name pools (in `text.ts`) its names are made from. */
-  kind: 'slime';
+  kind: Foe;
   /** Its sprite sheets in the scene, by name, calm and enraged, and its portraits. */
   look: { calm: string; enraged: string };
   face: { calm: string; enraged: string };
+  /**
+   * A big monster's frames, side by side in one row, if it is not drawn as the pack's small
+   * figures are; it stands with its feet where a small one's would be.
+   */
+  big?: { width: number; height: number; frames: number };
   voice: Voice;
-  /** How it strikes back, gets out of the way of a stroke, and teases the heroes. */
+  /** How many times the players' swords' lives it has. */
+  toughness: number;
+  /** When it grows enraged, when a shield rises, and whether a berry bush stands by it. */
+  plan: Plan;
+  /** How it strikes back, and once enraged; how it gets out of the way; how it teases. */
   strikes: readonly StrikeName[];
+  enragedStrikes: readonly StrikeName[];
   evasions: readonly Evasion[];
   teases: readonly Tease[];
 }
@@ -29,7 +49,33 @@ export const slime: Monster = {
   look: { calm: 'slime', enraged: 'slimeRage' },
   face: { calm: faces.slime, enraged: faces.slimeRage },
   voice: voices.slime,
+  toughness: 1,
+  plan: slimePlan,
   strikes: ['charge', 'spit'],
+  enragedStrikes: ['charge', 'spit'],
   evasions: ['leap', 'sink', 'sidestep'],
   teases: ['taunt', 'pebbles', 'sand', 'spear'],
 };
+
+/**
+ * The giant slime, a boss to try the fight's phases on, as the owner asked: three times as
+ * tough; at two thirds of its lives enraged, striking back more often and with a body slam,
+ * warned and dodged like any blow; at a third a shield rises, which every right answer breaks
+ * a piece off and a power stroke shatters at once. It has no berry bush.
+ */
+export const giantSlime: Monster = {
+  kind: 'giantSlime',
+  look: { calm: 'giantSlime', enraged: 'giantSlime' },
+  face: { calm: giantFace, enraged: giantFace },
+  big: { width: 62, height: 52, frames: 5 },
+  voice: voices.giant,
+  toughness: 3,
+  plan: { rage: 2 / 3, shield: 1 / 3, bush: false },
+  strikes: ['charge', 'spit'],
+  enragedStrikes: ['slam', 'spit', 'slam'],
+  evasions: ['leap', 'sidestep'],
+  teases: ['taunt', 'pebbles'],
+};
+
+/** Each monster by its kind. */
+export const monsters: Readonly<Record<Foe, Monster>> = { slime, giantSlime };

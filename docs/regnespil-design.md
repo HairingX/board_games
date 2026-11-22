@@ -402,3 +402,7 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - The flag only waved for 10–12 seconds before it froze; a held flag frozen looked bad. Of the
   proposals (a flag planted in the ground, a flag in the hand, a victory dance), the owner chose
   the victory dance. (Built: the heroes hop and cheer again and again under a gold cup.)
+- Try a harder boss to get more fight, to see the phases the slime never reaches. (Decided and
+  built as proposed: the giant slime, three times as tough; at two thirds enraged with a
+  warned body slam; at a third a shield that right answers break a piece at a time and a power
+  stroke shatters; chosen on the setup while the game is tried.)

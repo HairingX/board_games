@@ -61,6 +61,11 @@ export interface Figure {
   doing: 'standing' | 'bouncing';
   /** What it does, one after another; the latest begun is the one it does now. */
   acts?: readonly Act[];
+  /**
+   * A big figure's frames, side by side in one row of its sheet, whichever way it faces, if it
+   * is not one of the pack's 16-pixel figures; it stands on the ground at `y` + its height.
+   */
+  big?: { width: number; height: number; frames: number };
   /** A sign over its head, from a sheet of its own, shown for a while from `at`. */
   sign?: { sheet: string; at: number };
 }
@@ -134,6 +139,13 @@ const since = (seconds: number, at: number) => seconds - at;
 function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | undefined {
   const { act } = motionTokens;
   const column = facings.indexOf(figure.facing);
+  const { big } = figure;
+  const tall = big?.height ?? tile;
+  /** The cut of the figure's frame in this row, or a big figure's in this place in its row. */
+  const cutOf = (row: number): Cut =>
+    big
+      ? { x: (row % big.frames) * big.width, y: 0, width: big.width, height: big.height }
+      : frame(column, row);
   const begun = (figure.acts ?? []).filter((one) => one.at <= seconds);
   const current = begun.reduce<Act | undefined>(
     (latest, one) => (latest && latest.at > one.at ? latest : one),
@@ -146,10 +158,12 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
   if (vanished && still) return undefined;
   if (kind === 'vanish' && into >= act.vanish.seconds) return undefined;
   if (still) {
-    return { sheet: figure.sheet, cut: frame(column, 0), x: figure.x, y: figure.y };
+    return { sheet: figure.sheet, cut: cutOf(0), x: figure.x, y: figure.y };
   }
   let row =
-    figure.doing === 'bouncing' ? Math.floor(seconds * motionTokens.bounce.framesPerSecond) % 4 : 0;
+    figure.doing === 'bouncing'
+      ? Math.floor(seconds * motionTokens.bounce.framesPerSecond) % (big?.frames ?? 4)
+      : 0;
   let x = figure.x;
   let y = figure.y - (figure.doing === 'standing' ? breathLift(seconds) : 0);
   const toward = figure.facing === 'left' ? -1 : figure.facing === 'right' ? 1 : 0;
@@ -187,6 +201,14 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     x += toward * Math.round(reach * Math.max(0, share));
     walking(share > 0 && share < 1);
   }
+  if (kind === 'pounce') {
+    const { out, hold, back, height } = act.pounce;
+    const reach = current?.reach ?? 0;
+    const share = into < out ? into / out : into < out + hold ? 1 : 1 - (into - out - hold) / back;
+    x += toward * Math.round(reach * Math.max(0, share));
+    const flying = into < out ? into / out : into >= out + hold ? (into - out - hold) / back : 0;
+    y -= Math.round(height * Math.sin(Math.PI * Math.min(1, flying)));
+  }
   if (kind === 'knocked') {
     const { push, fall, down, rise, drop } = act.knocked;
     const reach = current?.reach ?? 0;
@@ -202,7 +224,7 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     if (lying) {
       return {
         sheet: figure.sheet,
-        cut: frame(column, 0),
+        cut: cutOf(0),
         x,
         y: figure.y + drop,
         turn: toward < 0 ? 1 : -1,
@@ -224,20 +246,15 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
         : into < down + under
           ? 0
           : Math.min(1, (into - down - under) / up);
-    const height = Math.round(tile * share);
+    const height = Math.round(tall * share);
     if (height === 0) return undefined;
-    return {
-      sheet: figure.sheet,
-      cut: { x: column * tile, y: row * tile, width: tile, height },
-      x,
-      y: y + tile - height,
-    };
+    return { sheet: figure.sheet, cut: { ...cutOf(row), height }, x, y: y + tall - height };
   }
   if (kind === 'cheer' && into < act.cheer.seconds) {
     y -= Math.round(Math.sin((into / act.cheer.seconds) * Math.PI) * act.cheer.height);
   }
   if (kind === 'vanish' && Math.floor(into / act.hurt.blink) % 2 === 0) return undefined;
-  return { sheet: figure.sheet, cut: frame(column, row), x, y };
+  return { sheet: figure.sheet, cut: cutOf(row), x, y };
 }
 
 function frame(column: number, row: number): Cut {
@@ -252,7 +269,7 @@ function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined 
   return {
     sheet: figure.sign.sheet,
     cut: size,
-    x: figure.x + Math.round((tile - size.width) / 2),
+    x: figure.x + Math.round(((figure.big?.width ?? tile) - size.width) / 2),
     y: figure.y - size.height - 1,
   };
 }
@@ -309,7 +326,7 @@ export function drawScene(scene: Scene, seconds: number, still = false): Draw[] 
     ...scene.things.map((thing) => ({ draw: thing, foot: thing.y + thing.cut.height })),
     ...scene.figures.map((figure) => ({
       draw: drawFigure(figure, seconds, still),
-      foot: figure.y + tile,
+      foot: figure.y + (figure.big?.height ?? tile),
     })),
   ].sort((a, b) => a.foot - b.foot);
   const signs = scene.figures.map((figure) => drawSign(figure, seconds, signSize));

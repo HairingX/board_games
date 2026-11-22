@@ -4,6 +4,7 @@ import { motionTokens } from '../../ui/motion';
 import {
   coinDrop,
   coinSpots,
+  dust,
   fireworks,
   grassKick,
   pebbleThrow,
@@ -179,19 +180,47 @@ export type Evasion = keyof typeof evasions;
 
 /** What can happen when the hero attacks, by what the answer did. */
 export const attacks = {
-  /** A right answer: the stroke lands; `rage` if the monster grew enraged at it. */
-  stroke: (moment: Moment, power: boolean, rage: boolean): Beat => {
+  /**
+   * A right answer: the stroke lands; `rage` if the monster grew enraged at it, `shield` if a
+   * shield rose before it, which comes up with a clang and a roar.
+   */
+  stroke: (moment: Moment, power: boolean, rage: boolean, shield = false): Beat => {
     const shown = moment.at + reveal;
+    const roars = rage || shield;
     return {
       staging: {
         hero: { acts: strike(moment) },
         monster: {
           acts: [...hurry(moment), { kind: 'hurt', at: shown + victory.vanish }],
-          ...(rage ? { sign: { sheet: 'angry', at: shown + moments.rage } } : {}),
+          ...(roars ? { sign: { sheet: 'angry', at: shown + moments.rage } } : {}),
         },
         effects: cuts(shown, power),
       },
-      cues: [...landing(power), ...(rage ? [voice('monster', 8, reveal + moments.rage)] : [])],
+      cues: [
+        ...landing(power),
+        ...(roars ? [voice('monster', 8, reveal + moments.rage)] : []),
+        ...(shield ? [sound('clang', reveal + moments.rage)] : []),
+      ],
+    };
+  },
+  /**
+   * A right answer while the monster holds a shield: the stroke lands on it with a clang and
+   * breaks a piece off, or, `broken`, the last of it, in a puff, and the monster yelps.
+   */
+  shielded: (moment: Moment, broken: boolean): Beat => {
+    const shown = moment.at + reveal;
+    return {
+      staging: {
+        hero: { acts: strike(moment) },
+        monster: { acts: hurry(moment) },
+        effects: [sweep(shown), ...(broken ? [puff(shown + victory.vanish)] : [])],
+      },
+      cues: [
+        shout,
+        sound('clang', reveal),
+        ...(broken ? [sound('hit', reveal + moments.second)] : []),
+        voice('monster', broken ? 5 : 2, reveal + moments.squeal),
+      ],
     };
   },
   /** The last stroke: the monster vanishes in a puff, coins spring out, the heroes cheer. */
@@ -334,6 +363,29 @@ export const strikes = {
       ],
     }),
   },
+  /**
+   * A body slam, a big monster's, once enraged: it jumps high at the hero and lands with a
+   * thud, the hero running back out of the way, or squashed flat and knocked over.
+   */
+  slam: {
+    leaves: true,
+    dodged: (moment) => ({
+      staging: {
+        monster: { acts: [{ kind: 'pounce', at: moment.at, reach: reach.slime }] },
+        hero: { acts: [{ kind: 'charge', at: moment.at + moments.evade, reach: -reach.sidestep }] },
+        effects: [dust(moment.at + reveal)],
+      },
+      cues: [voice('monster', 6), sound('bump', reveal), voice('hero', 2, reveal + moments.ouch)],
+    }),
+    hit: (moment) => ({
+      staging: {
+        monster: { acts: [{ kind: 'pounce', at: moment.at, reach: reach.slime }] },
+        hero: knockedOver(moment, moment.at + reveal),
+        effects: [dust(moment.at + reveal)],
+      },
+      cues: [voice('monster', 6), sound('bump', reveal), voice('hero', 2, reveal + moments.ouch)],
+    }),
+  },
 } as const satisfies Record<string, Strike>;
 export type StrikeName = keyof typeof strikes;
 
@@ -427,12 +479,20 @@ export function answerBeat(
     return next.last === 'dodged' ? strike.dodged(moment) : strike.hit(moment);
   }
   if (next.last === 'fed') return attacks.fed(moment);
+  if (next.last === 'shielded' || next.last === 'shattered') {
+    return attacks.shielded(moment, next.last === 'shattered');
+  }
   if (next.last === 'bumped') return attacks.bumped(moment);
   const power = next.last === 'smashed';
   if (next.last === 'struck' || power) {
     return next.outcome === 'won'
       ? attacks.victory(moment, power, coins)
-      : attacks.stroke(moment, power, next.enraged && !before.enraged);
+      : attacks.stroke(
+          moment,
+          power,
+          next.enraged && !before.enraged,
+          next.shieldRaised && !before.shieldRaised,
+        );
   }
   return attacks.evaded(moment, ways.evasion, next.last === 'nicked');
 }

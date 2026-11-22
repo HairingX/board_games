@@ -760,6 +760,15 @@
   box-shadow: none;
 }
 
+/* A boss's shield, in pieces of blue over its life, breaking off as the heroes strike it. */
+.rs-shield-pieces {
+  margin-bottom: 2px;
+}
+
+.rs-shield-pieces .rs-life-piece[data-left='true'] {
+  background: var(--pixel-defend);
+}
+
 /* A stroke shakes the bar, as if the blow went through it. */
 .rs-life-pieces[data-hit='true'] {
   animation: rs-struck var(--duration-struck) ease-out;

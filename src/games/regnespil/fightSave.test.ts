@@ -11,6 +11,7 @@ const saved: SavedFight = {
   task: makeTask(1, () => 0),
   recent: ['[1,"+",1]'],
   seed: 7,
+  foe: 'slime',
 };
 
 describe('fightSaveKey', () => {
@@ -25,7 +26,7 @@ describe('reviveFight', () => {
   it('upgrades a fight saved before turns to defend, rage and seeds, with none announced', () => {
     const { health, lives, outcome, last } = saved.fight;
     const older = { health, lives, outcome, last };
-    const unseeded = { ...saved, fight: older, seed: undefined };
+    const unseeded = { ...saved, fight: older, seed: undefined, foe: undefined };
     expect(reviveFight(unseeded)).toEqual({ ...saved, seed: 0 });
   });
 
@@ -50,6 +51,10 @@ describe('reviveFight', () => {
     ['a rage that is no yes or no', { ...saved, fight: { ...saved.fight, enraged: 1 } }],
     ['a combo beyond a power stroke', { ...saved, fight: { ...saved.fight, combo: 4 } }],
     ['a seed that is no whole number', { ...saved, seed: 1.5 }],
+    ['a monster the game has not', { ...saved, foe: 'dragon' }],
+    ['a shield beyond its pieces', { ...saved, fight: { ...saved.fight, shield: 9 } }],
+    ['a shield beyond its lives', { ...saved, fight: { ...saved.fight, shieldAt: 9 } }],
+    ['a raised shield no yes or no', { ...saved, fight: { ...saved.fight, shieldRaised: 1 } }],
     ['no player', { ...saved, activeId: 3 }],
     ['no task', { ...saved, task: null }],
     ['a task without its sum', { ...saved, task: { ...saved.task, sum: 'x' } }],

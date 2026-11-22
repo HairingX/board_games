@@ -1,5 +1,6 @@
 import type { Profile } from '../../family/family';
-import { bush, fullHealth, powerAfter, rageAt, type Fight } from './battle';
+import { bush, fullHealth, powerAfter, rageAt, shieldPieces, type Fight } from './battle';
+import { isFoe, type Foe } from './monsters';
 import type { Task } from './tasks';
 
 /*
@@ -19,6 +20,8 @@ export interface SavedFight {
   recent: readonly string[];
   /** What the monster was made from, such as its name, so it is the same when reopened. */
   seed: number;
+  /** Which monster the heroes fight, by its kind. */
+  foe: Foe;
 }
 
 /** The largest seed: any whole number that fits in 32 bits. */
@@ -33,7 +36,18 @@ export function fightSaveKey(saveKey: string, players: readonly Profile[]): stri
 }
 
 /** What a fight came to hold after it was first saved. */
-type Added = 'round' | 'threat' | 'rageAt' | 'enraged' | 'combo' | 'full' | 'berries' | 'hungry';
+type Added =
+  | 'round'
+  | 'threat'
+  | 'rageAt'
+  | 'enraged'
+  | 'combo'
+  | 'full'
+  | 'berries'
+  | 'hungry'
+  | 'shieldAt'
+  | 'shield'
+  | 'shieldRaised';
 
 const outcomes: readonly string[] = ['fighting', 'won', 'lost'];
 const blows: readonly (string | undefined)[] = [
@@ -63,7 +77,7 @@ const isCount = (value: unknown, most: number): value is number =>
  */
 export function reviveFight(saved: unknown): SavedFight | null {
   if (!isRecord(saved)) return null;
-  const { fight, lives, activeId, task, recent, seed } = saved;
+  const { fight, lives, activeId, task, recent, seed, foe } = saved;
   const known =
     isCount(lives, Number.MAX_SAFE_INTEGER) &&
     lives > 0 &&
@@ -80,6 +94,10 @@ export function reviveFight(saved: unknown): SavedFight | null {
     (fight.full === undefined || fight.full === lives) &&
     (fight.berries === undefined || isCount(fight.berries, bush.berries)) &&
     (fight.hungry === undefined || typeof fight.hungry === 'boolean') &&
+    (fight.shieldAt === undefined || isCount(fight.shieldAt, lives)) &&
+    (fight.shield === undefined || isCount(fight.shield, shieldPieces)) &&
+    (fight.shieldRaised === undefined || typeof fight.shieldRaised === 'boolean') &&
+    (foe === undefined || isFoe(foe)) &&
     typeof activeId === 'string' &&
     isRecord(task) &&
     Array.isArray(task.sum) &&
@@ -91,13 +109,15 @@ export function reviveFight(saved: unknown): SavedFight | null {
     recent.every((key) => typeof key === 'string') &&
     (seed === undefined || isCount(seed, seeds - 1));
   if (!known) return null;
-  const kept = saved as unknown as Omit<SavedFight, 'fight' | 'seed'> & {
+  const kept = saved as unknown as Omit<SavedFight, 'fight' | 'seed' | 'foe'> & {
     fight: Omit<Fight, Added> & Partial<Pick<Fight, Added>>;
     seed?: number;
+    foe?: Foe;
   };
   return {
     ...kept,
     seed: kept.seed ?? 0,
+    foe: kept.foe ?? 'slime',
     fight: {
       ...kept.fight,
       round: kept.fight.round ?? 0,
@@ -108,6 +128,9 @@ export function reviveFight(saved: unknown): SavedFight | null {
       full: kept.lives,
       berries: kept.fight.berries ?? bush.berries,
       hungry: kept.fight.hungry ?? false,
+      shieldAt: kept.fight.shieldAt ?? 0,
+      shield: kept.fight.shield ?? 0,
+      shieldRaised: kept.fight.shieldRaised ?? false,
     },
   };
 }

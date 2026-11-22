@@ -15,6 +15,7 @@ import {
   fullHealth,
   coinsEach,
   powerAfter,
+  shieldPieces,
   reachedHero,
   startFight,
   type Blow,
@@ -35,6 +36,7 @@ import {
 } from './beats';
 import {
   benchAt,
+  bigFront,
   clearing,
   clearingSheets,
   coinSpots,
@@ -44,7 +46,7 @@ import {
   type Party,
   type Staging,
 } from './clearing';
-import { slime } from './monsters';
+import { monsters, type Foe } from './monsters';
 import type { PlayerSettings } from './players';
 import { evasionFor, strikeFor, teaseFor } from './antics';
 import { seeds, type SavedFight } from './fightSave';
@@ -74,9 +76,6 @@ const purseTop = (index: number) => 4 + index * 14;
 
 /** How wide the life bar under the monster is, in the stage's pixels. */
 const lifeWidth = 24;
-
-/** The monster the heroes fight: for now the slime of the clearing. */
-const monster = slime;
 
 /** How long the monster waits before it begins to walk up to the hero, in seconds. */
 const settle = 1;
@@ -154,6 +153,8 @@ interface Props {
   saved: SavedFight | null;
   /** Saves the fight, after every answer and when a new one begins. */
   onSave: (fight: SavedFight) => void;
+  /** Which monster a new fight is against; a saved fight goes on against its own. */
+  foe?: Foe;
   /** Puts coins in the players' purses, as many as each is given, in the players' order. */
   onCoins: (gains: readonly number[]) => void;
   /** Shown at the right of the header: the sound's levels. */
@@ -190,6 +191,7 @@ export function Fight({
   saved,
   onSave,
   onCoins,
+  foe = 'slime',
   aside,
   random = Math.random,
   sound = defaultSound,
@@ -203,14 +205,16 @@ export function Fight({
   const first = players[0] as Profile;
   /** A new fight, the first player's turn, its sum none of those shown lately. */
   const fresh = (recent: readonly string[]): SavedFight => {
-    const lives = monsterLives(settings.map((one) => one.sword));
+    const against = monsters[foe];
+    const lives = monsterLives(settings.map((one) => one.sword)) * against.toughness;
     return {
-      fight: startFight(lives),
+      fight: startFight(lives, against.plan),
       lives,
       activeId: first.id,
       task: makeTask(own(0).level, random, recent),
       recent,
       seed: Math.floor(random() * seeds),
+      foe,
     };
   };
   /** The fight as it stands and goes on, as saved. */
@@ -229,6 +233,10 @@ export function Fight({
   });
   const { lives } = save;
   const fight = save.fight;
+  /** The monster the heroes fight. */
+  const monster = monsters[save.foe];
+  /** Where the middle of the monster is on the stage, for its life bar and what floats over it. */
+  const middle = monster.big ? slimeAt.x - bigFront + monster.big.width / 2 : slimeAt.x + 8;
   const shown = view.fight;
   const task = view.task;
   const active = Math.max(
@@ -510,7 +518,11 @@ export function Fight({
     const others = players.filter((one) => one.id !== view.activeId).map((one) => one.id);
     // How the monster acts at this turn, as the fight's seed has it, and the beat it plays.
     const ways = {
-      strike: strikeFor(save.seed, fight.round, monster.strikes),
+      strike: strikeFor(
+        save.seed,
+        fight.round,
+        fight.enraged ? monster.enragedStrikes : monster.strikes,
+      ),
       evasion: evasionFor(save.seed, fight.round, monster.evasions),
     };
     setLeaves(fight.threat && strikes[ways.strike].leaves);
@@ -566,7 +578,12 @@ export function Fight({
         }
       : staging,
     party,
-    shown.enraged ? monster.look.enraged : monster.look.calm,
+    {
+      look: shown.enraged ? monster.look.enraged : monster.look.calm,
+      big: monster.big,
+      bush: monster.plan.bush,
+      shielded: shown.shield > 0,
+    },
     shown.berries,
   );
 
@@ -667,7 +684,7 @@ export function Fight({
           key={`damage-${String(answers)}`}
           className="rs-damage"
           aria-hidden="true"
-          style={{ left: px(slimeAt.x + 8), top: px(slimeAt.y - 6) }}
+          style={{ left: px(middle), top: px(slimeAt.y - 6) }}
           data-heal={damage < 0}
         >
           {damage < 0 ? '+' : '−'}
@@ -689,7 +706,7 @@ export function Fight({
           data-back={back > 0}
           style={
             {
-              left: px(slimeAt.x + 8),
+              left: px(middle),
               top: px(slimeAt.y + 17),
               width: px(lifeWidth),
               '--away': `${String(charge.out + charge.hold + charge.back)}s`,
@@ -705,6 +722,20 @@ export function Fight({
               <span key={index} className="rs-life-piece" data-left={index < shown.lives} />
             ))}
           </span>
+          {shown.shield > 0 && (
+            // The shield's pieces over the life bar, breaking off as it is struck.
+            <span
+              key={`shield-${String(shown.shield)}`}
+              className="rs-life-pieces rs-shield-pieces"
+              role="img"
+              aria-label={t.shieldLeft(shown.shield)}
+              data-hit={shown.last === 'shielded'}
+            >
+              {Array.from({ length: shieldPieces }, (_, index) => (
+                <span key={index} className="rs-life-piece" data-left={index < shown.shield} />
+              ))}
+            </span>
+          )}
         </span>
       )}
       {players.length > 1 && shown.outcome === 'fighting' && (
@@ -775,14 +806,22 @@ export function Fight({
                   <img src={hud.guard} alt="" className="rs-stake-guard" />
                 </span>
               ) : (
-                <span className="rs-stake" data-good="true" aria-label={t.stakeRight}>
+                <span
+                  className="rs-stake"
+                  data-good="true"
+                  aria-label={shown.shield > 0 ? t.stakeShield : t.stakeRight}
+                >
                   <span aria-hidden="true">✓</span>
                   <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
                   <span aria-hidden="true">→</span>
-                  <span
-                    className="rs-stake-slime"
-                    style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
-                  />
+                  {shown.shield > 0 ? (
+                    <img src={hud.guard} alt="" className="rs-stake-guard" />
+                  ) : (
+                    <span
+                      className="rs-stake-slime"
+                      style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
+                    />
+                  )}
                 </span>
               )}
               {view.hungry ? (

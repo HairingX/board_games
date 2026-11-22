@@ -6,6 +6,7 @@ import {
   fullHealth,
   powerAfter,
   powerStroke,
+  shieldPieces,
   startFight,
   strikeBackEvery,
   type Fight,
@@ -32,6 +33,9 @@ describe('a fight', () => {
       full: 5,
       berries: bush.berries,
       hungry: false,
+      shieldAt: 0,
+      shield: 0,
+      shieldRaised: false,
     });
     expect(monsterLives(['træ'])).toBe(2);
     expect(monsterLives(['flamme', 'træ'])).toBe(6);
@@ -127,6 +131,33 @@ describe('a fight', () => {
     const full = { ...bare, berries: bush.berries };
     expect(answerFight(full, 'close', 'jern', () => 0).berries).toBe(bush.berries);
     expect(answerFight({ ...bare, round: 0 }, 'close', 'jern', () => 0).berries).toBe(0);
+  });
+
+  it('raises a boss’s shield at its share of lives, which right answers break and a power stroke shatters', () => {
+    const plan = { rage: 2 / 3, shield: 1 / 3, bush: false };
+    const boss = startFight(9, plan);
+    expect(boss).toMatchObject({ rageAt: 6, shieldAt: 3, berries: 0, shield: 0 });
+    const low = { ...boss, lives: 4, rageAt: 0 };
+    const raised = answerFight(low, 'right', 'jern', () => 0);
+    expect(raised).toMatchObject({ lives: 3, shield: shieldPieces, shieldRaised: true });
+    const chipped = answerFight({ ...raised, threat: false }, 'right', 'jern', () => 0);
+    expect(chipped).toMatchObject({ lives: 3, shield: shieldPieces - 1, last: 'shielded' });
+    const last = { ...chipped, shield: 1, threat: false, combo: 0 };
+    expect(answerFight(last, 'right', 'jern', () => 0)).toMatchObject({
+      shield: 0,
+      last: 'shattered',
+      combo: 1,
+    });
+    const powered = { ...chipped, threat: false, combo: powerAfter - 1 };
+    expect(answerFight(powered, 'right', 'jern', () => 0)).toMatchObject({
+      shield: 0,
+      lives: 3,
+      last: 'shattered',
+      combo: 0,
+    });
+    // The shield rises once only.
+    const broken = { ...raised, shield: 0, threat: false };
+    expect(answerFight(broken, 'right', 'jern', () => 0)).toMatchObject({ lives: 2, shield: 0 });
   });
 
   it('lets a right answer dodge the blow, and any other take what far off costs', () => {

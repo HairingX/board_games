@@ -79,6 +79,9 @@ const da = {
   stakeDodge: 'Rigtigt: du undviger slimets angreb',
   stakeRight: 'Rigtigt: dit slag rammer slimet',
   stakeFed: 'Forkert: slimet spiser bær og får et liv tilbage',
+  stakeShield: 'Rigtigt: dit slag rammer skjoldet og slår et stykke af',
+  shieldLeft: (count: number) => `Skjoldets stykker: ${formatNumber('da', count)}`,
+  boss: 'Mod kæmpeslimet',
   pickUp: 'Saml mønten op',
   purse: (name: string, count: number) =>
     `${genitive('da', name)} pung: ${formatNumber('da', count)} ${plural('da', count, { one: 'mønt', other: 'mønter' })}`,
@@ -107,6 +110,10 @@ const da = {
         'Grinende',
       ],
       name: ['Bob', 'Svend', 'Sylvester', 'Bertil', 'Gustav', 'Klatten', 'Pip', 'Gerda', 'Kurt'],
+    },
+    giantSlime: {
+      describe: ['Kæmpestore', 'Vældige', 'Tunge', 'Mægtige', 'Brølende', 'Bobbede', 'Gumlende'],
+      name: ['Klatten', 'Bjarne', 'Bølle', 'Valdemar', 'Tykke Tove', 'Mogens', 'Gumme'],
     },
   },
   lost: 'Helten er træt og hviler sig.',
@@ -187,6 +194,9 @@ export const text: Translations<typeof da> = {
     stakeDodge: 'Right: you dodge the slime’s attack',
     stakeRight: 'Right: your stroke hits the slime',
     stakeFed: 'Wrong: the slime eats berries and gets a life back',
+    stakeShield: 'Right: your stroke hits the shield and breaks a piece off',
+    shieldLeft: (count) => `Pieces of the shield: ${formatNumber('en', count)}`,
+    boss: 'Fight the giant slime',
     pickUp: 'Pick up the coin',
     purse: (name, count) =>
       `${genitive('en', name)} purse: ${formatNumber('en', count)} ${plural('en', count, { one: 'coin', other: 'coins' })}`,
@@ -214,6 +224,10 @@ export const text: Translations<typeof da> = {
           'Bouncy',
         ],
         name: ['Bob', 'Sid', 'Sam', 'Bert', 'Gus', 'Wendy', 'Gloria', 'Billy', 'Molly', 'Pip'],
+      },
+      giantSlime: {
+        describe: ['Giant', 'Mighty', 'Massive', 'Rumbling', 'Wobbling', 'Grand', 'Gulping'],
+        name: ['Gloop', 'Moe', 'Rex', 'Wally', 'Gus', 'Big Bertha', 'Monty'],
       },
     },
     lost: 'The hero is tired and rests.',

@@ -17,9 +17,18 @@ import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRoc
 import grass from '../../../assets/ninja-adventure/FX/Particle/Grass.png';
 import lance from '../../../assets/ninja-adventure/Items/Weapons/Lance/Sprite.png';
 import cup from '../../../assets/ninja-adventure/Items/Treasure/GoldCup.png';
+import giantSlime from '../../../assets/ninja-adventure/Actor/Boss/GiantSlime/Idle.png';
+import guard from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetYellow.png';
 import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpark.png';
 import sparkle from '../../../assets/ninja-adventure/FX/Magic/Spark/SpriteSheet.png';
-import type { Act, Cut, Effect, Facing, Scene } from '../../lib/scene/scene';
+import {
+  tile,
+  type Act,
+  type Cut,
+  type Effect,
+  type Facing,
+  type Scene,
+} from '../../lib/scene/scene';
 import { motionTokens } from '../../ui/motion';
 import { forest, forestSheets } from './forest';
 import { heroSheets, type Hero } from './heroes';
@@ -50,6 +59,8 @@ export const clearingSheets = {
   grass,
   lance,
   cup,
+  giantSlime,
+  guard,
   ring,
   sparkle,
 } as const;
@@ -184,6 +195,17 @@ export const spearHeld = (at: number): Effect => ({
   lasts: motionTokens.act.leap.seconds,
 });
 
+/** Dust thrown up where the hero stood, as a body slam lands; frames side by side. */
+export const dust = (at: number): Effect => ({
+  sheet: 'smoke',
+  width: 32,
+  height: 32,
+  frames: 6,
+  x: heroAt.x - 8,
+  y: heroAt.y - 12,
+  at,
+});
+
 /** A gold cup over the heroes' heads after a victory, floating gently up and down, for good. */
 export const trophy = (at: number): Effect => ({
   sheet: 'cup',
@@ -300,18 +322,45 @@ export interface Party {
   bench: readonly { id: string; hero: Hero }[];
 }
 
+/** How far in from its frame's edge a big monster's front is, in pixels. */
+export const bigFront = 11;
+
+/** How the monster stands on the stage: its sheet, its size if big, its bush and shield. */
+export interface Foe {
+  look: string;
+  big?: { width: number; height: number; frames: number } | undefined;
+  bush: boolean;
+  shielded: boolean;
+}
+
+/** A shield the monster holds up before it, glinting, while it has one. */
+const shieldHeld: Effect = {
+  sheet: 'guard',
+  width: 24,
+  height: 26,
+  frames: 6,
+  x: slimeAt.x - 10,
+  y: slimeAt.y - 12,
+  at: 0,
+  lasts: Number.POSITIVE_INFINITY,
+};
+
 /**
  * The clearing with the heroes and a monster facing each other, as staged: the hero whose turn
  * it is in front, the others behind; the monster as it looks now (a sheet's name); and the
  * berry bush with the berries it has.
  */
-export function clearing(staging: Staging, party: Party, look: string, berries = 2): Scene {
+export function clearing(staging: Staging, party: Party, foe: Foe, berries = 2): Scene {
   const places = benchAt(party.bench.length);
   // The bush holds from none to two berries, each with a cut.
   const berryBush = { sheet: 'nature', cut: bushes[berries] as Cut, ...bushAt };
+  // A big monster stands with its feet where a small one's would be, its front where its is.
+  const place = foe.big
+    ? { x: slimeAt.x - bigFront, y: slimeAt.y + tile - foe.big.height, big: foe.big }
+    : slimeAt;
   return {
     ...forest,
-    things: [...forest.things, berryBush],
+    things: foe.bush ? [...forest.things, berryBush] : forest.things,
     figures: [
       ...party.bench.map((one, index) => ({
         sheet: one.hero,
@@ -321,8 +370,8 @@ export function clearing(staging: Staging, party: Party, look: string, berries =
         ...staging.bench?.[one.id],
       })),
       { sheet: party.front, ...heroAt, facing: 'right', doing: 'standing', ...staging.hero },
-      { sheet: look, ...slimeAt, facing: 'left', doing: 'bouncing', ...staging.monster },
+      { sheet: foe.look, ...place, facing: 'left', doing: 'bouncing', ...staging.monster },
     ],
-    effects: staging.effects ?? [],
+    effects: [...(foe.shielded ? [shieldHeld] : []), ...(staging.effects ?? [])],
   };
 }
