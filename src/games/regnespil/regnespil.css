@@ -1083,29 +1083,20 @@
   margin-bottom: env(safe-area-inset-bottom);
 }
 
-/* The roads between the steps: walked ones whole, the others in dashes. */
-.rs-roads {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  shape-rendering: crispEdges;
-}
-
-.rs-roads line {
-  stroke: var(--pixel-road);
-  stroke-width: 3;
-  stroke-dasharray: 3 3;
-}
-
-.rs-roads line[data-walked='true'] {
-  stroke: var(--pixel-road-walked);
-  stroke-dasharray: none;
-}
-
 .rs-sign {
   padding: calc(var(--px) * 2);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.rs-sign {
+  animation: rs-beckon-sign var(--duration-beckon) ease-in-out infinite alternate;
+}
+
+@keyframes rs-beckon-sign {
+  to {
+    transform: translate(-50%, calc(-100% - var(--px) * 6));
+  }
 }
 
 .rs-sign-chest {

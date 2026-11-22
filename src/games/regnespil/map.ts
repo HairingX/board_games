@@ -1,5 +1,4 @@
 import chest from '../../../assets/ninja-adventure/Items/Treasure/BigTreasureChest.png';
-import element from '../../../assets/ninja-adventure/Backgrounds/Tilesets/TilesetElement.png';
 import type { Cut, Effect, Figure, Scene, Thing } from '../../lib/scene/scene';
 import { clearingSheets } from './clearing';
 import type { Hero } from './heroes';
@@ -8,14 +7,15 @@ import { dogFrames, type Foe } from './monsters';
 
 /*
  * The journey's map: the forest seen from above, ten tiles by fifteen, from the road at the
- * bottom to the hollow tree at the top, drawn on the puppet theatre's stage. A monster waits
+ * bottom to the hollow tree at the top, drawn on the puppet theatre's stage, its roads dotted
+ * on the ground between the steps, under all that stands there. A monster waits
  * at each step not yet done, a chest at each chest, a flag waves where a monster was beaten
  * and a chest stands open where one was opened; the heroes, with their friend the dog, stand
  * at their step and walk the road to the next.
  */
 
 /** The pictures the map is drawn from. */
-export const mapSheets = { ...clearingSheets, chest, element } as const;
+export const mapSheets = { ...clearingSheets, chest } as const;
 
 const cut = (x: number, y: number, width: number, height: number): Cut => ({ x, y, width, height });
 
@@ -56,8 +56,37 @@ const hollowTree: readonly Thing[] = [
   { sheet: 'nature', cut: cut(112, 208, 16, 16), x: 72, y: 36 },
 ];
 
-/** A signpost, from the pack's elements. */
-const signpost = cut(96, 48, 16, 32);
+/** A wooden sign pointing the way, from the nature tiles. */
+const signpost = cut(80, 128, 16, 16);
+
+/** The roads' dots, from the floor tiles: earth ahead, light sand where the heroes walked. */
+const dots = { ahead: cut(84, 124, 3, 3), walked: cut(20, 20, 3, 3) } as const;
+
+/**
+ * How far apart a road's dots are, in pixels, and how far from the middle of a step they stop,
+ * so no road runs over a monster, a chest or the heroes.
+ */
+const dotting = { apart: 6, clear: 12 } as const;
+
+/** The dots of a road from one step to another, on the ground. */
+function roadDots(from: Step, to: Step, walked: boolean): Thing[] {
+  const start = { x: from.x + 8, y: from.y + 8 };
+  const end = { x: to.x + 8, y: to.y + 8 };
+  const length = Math.hypot(end.x - start.x, end.y - start.y);
+  const room = length - 2 * dotting.clear;
+  const count = Math.max(0, Math.floor(room / dotting.apart) + 1);
+  // The dots centred between the two ends.
+  const first = dotting.clear + (room - (count - 1) * dotting.apart) / 2;
+  return Array.from({ length: count }, (_, index) => {
+    const share = (first + index * dotting.apart) / length;
+    return {
+      sheet: 'floor',
+      cut: walked ? dots.walked : dots.ahead,
+      x: Math.round(start.x + (end.x - start.x) * share) - 1,
+      y: Math.round(start.y + (end.y - start.y) * share) - 1,
+    };
+  });
+}
 
 /** A chest, shut and open, from its two frames. */
 const chests = { shut: cut(0, 0, 16, 14), open: cut(16, 0, 16, 14) } as const;
@@ -184,7 +213,8 @@ export function mapScene(
     things: [
       ...trees,
       ...hollowTree,
-      ...chapter.signs.map((sign) => ({ sheet: 'element', cut: signpost, x: sign.x, y: sign.y })),
+      ...roads(journey, chapter).flatMap((road) => roadDots(road.from, road.to, road.walked)),
+      ...chapter.signs.map((sign) => ({ sheet: 'nature', cut: signpost, x: sign.x, y: sign.y })),
       ...parts.flatMap((part) => part.things),
     ],
     figures: [

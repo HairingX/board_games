@@ -474,3 +474,8 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   plays out; some roads a loop that comes back to the main story; a sign on the way with an
   icon of a chest, or something, that makes you want to take a detour. (Built: the fork, the
   detour past a tougher slime to a chest and back, the sign with a chest.)
+- The story is not understandable at all, but fine enough. The dog seemed to stand with its
+  rump to the hero at one point. On the map, what is the mailbox for? It cannot be tapped.
+  (Fixed: the dog chases its tail instead of kicking grass with its back turned; the sign is a
+  wooden one pointing down the detour, and can be tapped to go that way; the roads are dotted
+  on the ground, no longer drawn over the monsters. Still open: a film a child understands.)

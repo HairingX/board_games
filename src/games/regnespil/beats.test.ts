@@ -46,13 +46,20 @@ function heard(beat: Beat): boolean {
 
 describe('the fight’s beats', () => {
   it('has every tease a monster may use draw something and play its sounds', () => {
-    for (const how of slime.teases) {
+    for (const how of [...slime.teases, ...copperDog.teases]) {
       const beat = teases[how](moment.at);
       expect(drawn(beat)).toBeGreaterThan(0);
       expect(heard(beat)).toBe(true);
       expect(beat.cues.length).toBeGreaterThan(0);
     }
-    expect(Object.keys(teases).sort()).toEqual([...slime.teases].sort());
+    // Every tease is some monster's.
+    expect(Object.keys(teases).sort()).toEqual(
+      [...new Set([...slime.teases, ...copperDog.teases])].sort(),
+    );
+    // The dog never turns its back on the heroes to tease them.
+    for (const how of copperDog.teases) {
+      expect(teases[how](moment.at).staging.monster?.facing).toBeUndefined();
+    }
     expect(teasing.seconds).toBeGreaterThan(teasing.apart * 2);
   });
 

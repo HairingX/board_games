@@ -52,6 +52,22 @@ describe('the map', () => {
     );
   });
 
+  it('dots the roads on the ground, clear of the steps, those walked in light sand', () => {
+    const things = (journey: Journey) =>
+      mapScene(journey, ['Knight']).things.filter((thing) => thing.cut.width === 3);
+    const ahead = things(onRoad);
+    expect(ahead.length).toBeGreaterThan(20);
+    expect(ahead.every((dot) => dot.cut.x === 84)).toBe(true);
+    const walked = things({ ...atFork, done: ['hund', 'sti', 'krat'], at: 'krat' });
+    expect(walked.filter((dot) => dot.cut.x === 20).length).toBeGreaterThan(4);
+    // None comes within reach of a step's middle.
+    for (const dot of ahead) {
+      for (const step of Object.values(copperChapter.steps)) {
+        expect(Math.hypot(dot.x + 1 - step.x - 8, dot.y + 1 - step.y - 8)).toBeGreaterThan(9);
+      }
+    }
+  });
+
   it('draws the roads, those walked whole', () => {
     const walked = roads({ ...atFork, done: ['hund', 'sti', 'krat'], at: 'krat' }).filter(
       (road) => road.walked,

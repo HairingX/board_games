@@ -95,8 +95,8 @@ export const giantSlime: Monster = {
 /**
  * The copper dog, the story's first dog, with eyes as big as teacups, as the story has it
  * (`docs/regnespil-story.md`): the first boss, grumpy, not wicked, won over with treats rather
- * than beaten. Drawn twice its size from the pack's running dog, it charges and hops crossly
- * and kicks grass, grows grumpier halfway, and becomes the heroes' friend.
+ * than beaten. Drawn twice its size from the pack's running dog, it charges, hops crossly and
+ * chases its own tail, grows grumpier halfway, and becomes the heroes' friend.
  */
 /** The pack's running dog: two frames side by side, facing right, its nose at the front. */
 export const dogFrames: Big = { width: 18, height: 16, frames: 2, faces: 'right', front: 1 };
@@ -118,7 +118,7 @@ export const copperDog: Monster = {
   strikes: ['charge'],
   enragedStrikes: ['charge'],
   evasions: ['leap', 'sidestep'],
-  teases: ['taunt', 'sand'],
+  teases: ['taunt', 'tail'],
 };
 
 /** Each monster by its kind. */

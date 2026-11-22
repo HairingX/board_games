@@ -73,7 +73,7 @@ export const copperChapter: Chapter = {
       next: [],
     },
   },
-  signs: [{ x: 96, y: 160, to: 'krat', shows: 'chest' }],
+  signs: [{ x: 98, y: 176, to: 'krat', shows: 'chest' }],
 };
 
 /** Where the adventure of these players is saved, beside the game's other saves. */

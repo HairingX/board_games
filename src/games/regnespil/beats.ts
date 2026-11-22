@@ -548,6 +548,26 @@ export const teases = {
     cues: [voice('monster', 4), voice('hero', 3, teasing.ducks * 2)],
   }),
   /**
+   * A dog's: it chases its own tail round and round, and barks; the hero looks on, puzzled.
+   * It never turns its back on the heroes for long, as kicking grass at them would.
+   */
+  tail: (at: number): Beat => {
+    const round = motionTokens.act.spin.seconds;
+    return {
+      staging: {
+        monster: {
+          acts: [
+            { kind: 'spin', at },
+            { kind: 'spin', at: at + round },
+          ],
+          sign: { sheet: 'star', at: at + round },
+        },
+        hero: { sign: { sheet: 'question', at: at + teasing.ducks } },
+      },
+      cues: [voice('monster', 4), sound('bark', round)],
+    };
+  },
+  /**
    * It runs off behind the bushes and comes back waving a spear, angry; the hero stands ready.
    * Only for show: a spear that makes it hit harder belongs to a monster's phases.
    */

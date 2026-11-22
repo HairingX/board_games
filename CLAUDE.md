@@ -271,7 +271,8 @@ game builds on them, and everything must stay smooth on a phone.
   - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
     dog drawn twice its size, mirrored to face the heroes, half again as tough as a slime, at
     least five treats (a boss has a `least` of lives, so it is no pushover for a child alone),
-    and cross halfway. It is won over with treats, as the story has it: the tab says "Godbid"
+    and cross halfway. It teases by hopping crossly and chasing its own tail (`tail`), never
+    by kicking grass with its back to the heroes, which the owner found odd. It is won over with treats, as the story has it: the tab says "Godbid"
     with a bone; a right answer throws it one, which it catches with a heart; a close one flies
     past as it leaps aside; at the last it spins for joy, barks and runs to the heroes, and
     stays their friend. No flag falls.
@@ -286,12 +287,15 @@ game builds on them, and everything must stay smooth on a phone.
     shop, as coins have nothing to buy yet. A chest with nothing new is left with "Videre".
   - Then the map (`map.ts`, `JourneyMap.tsx`), as the owner asked, so it is plain the
     adventure is under way, where it goes and how far it is: the forest from the road up to
-    the hollow tree, a monster waiting at each step, roads between them (walked ones whole),
+    the hollow tree, a monster waiting at each step, roads dotted on the ground between them,
+    under all that stands there (earth ahead, light sand where the heroes walked),
     a flag where a monster was beaten, every player's hero and their friend the dog walking
     from step to step, and pips over it for the steps done and left. The steps ahead bounce
     under an arrow, and give a sound when tapped. At a fork the main road goes on to one
-    fight, and a detour, shown by a sign with a chest, as the owner described, leads past a
-    tougher slime (drawn cross and twice its size) to a chest and loops back to the main road.
+    fight, and a detour, shown by a wooden sign pointing down it with a chest over it, as the
+    owner described, leads past a tougher slime (drawn cross and twice its size) to a chest and
+    loops back to the main road. While its road lies ahead, the sign can be tapped and leads
+    the heroes down it, as the owner found a sign that could not be tapped puzzling.
     Monsters further on have more lives (`toughness` per step).
   - At the hollow tree the giant slime, fought by the tree (the `tree` scenery in
     `forest.ts`); beaten, a film shows the heroes and the dog jumping down the hole, where eyes

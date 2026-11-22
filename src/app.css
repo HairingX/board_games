@@ -138,9 +138,6 @@
   --pixel-close: #f2c94c;
   --pixel-bad: #f29a80;
   --pixel-life: #e43b44;
-  /* The map's roads: ahead in dashes, walked in a lighter, whole line. */
-  --pixel-road: #8a5a3c;
-  --pixel-road-walked: #e8c170;
 
   font-family: var(--font-body);
   font-optical-sizing: auto;

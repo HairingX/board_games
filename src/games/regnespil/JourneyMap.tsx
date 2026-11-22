@@ -8,7 +8,7 @@ import { common } from '../../ui/text';
 import { topFrames } from './art';
 import type { Hero } from './heroes';
 import { ahead, copperChapter, stepsLeft, type Chapter, type Journey, type Step } from './journey';
-import { heroesAt, isTough, mapScene, mapSheets, roads, walkSeconds, type Walk } from './map';
+import { heroesAt, isTough, mapScene, mapSheets, walkSeconds, type Walk } from './map';
 import { sounds } from './sounds';
 import { text } from './text';
 import './regnespil.css';
@@ -33,7 +33,7 @@ const pageClock = () => performance.now() / 1000;
 /**
  * The journey's map, as the owner asked, so it is plain the adventure is under way, where the
  * heroes are going and how far it is: the forest from the road to the hollow tree, the roads
- * between the steps, those walked drawn whole, a flag where a monster was beaten, and a sign
+ * between the steps, those walked in light sand, a flag where a monster was beaten, and a sign
  * at the fork showing a chest down the detour. The steps the heroes can go to bounce under an
  * arrow; tapped, the heroes walk there, and its fight or chest begins. Over the map, how many
  * steps are left to the hollow tree.
@@ -82,35 +82,45 @@ export function JourneyMap({
     return isTough(step) ? t.map.tough(called.strong) : t.map.fight(called.the);
   };
 
+  /** The heroes setting out for a step ahead, with a sound under the finger. */
+  const go = (id: string): void => {
+    void sound.effect(sounds.choose.url, sounds.choose.gain);
+    const step = chapter.steps[id] as Step;
+    setWalk({ to: id, at: now(), lasts: walkSeconds(heroesAt(here), heroesAt(step)) });
+  };
+
   const overlay = (
     <div className="rs-hud">
-      <svg
-        className="rs-roads"
-        viewBox={`0 0 ${String(scene.columns * 16)} ${String(scene.rows * 16)}`}
-        aria-hidden="true"
-      >
-        {roads(journey, chapter).map(({ from, to, walked }) => (
-          <line
-            key={`${String(from.x)},${String(from.y)}>${String(to.x)},${String(to.y)}`}
-            x1={from.x + 8}
-            y1={from.y + 8}
-            x2={to.x + 8}
-            y2={to.y + 8}
-            data-walked={walked}
-          />
-        ))}
-      </svg>
-      {chapter.signs.map((sign) => (
-        <p
-          key={sign.to}
-          className="rs-bubble rs-sign"
-          role="img"
-          aria-label={t.map.sign}
-          style={{ left: px(sign.x + 8), top: px(sign.y) }}
-        >
-          <img src={littleChest} alt="" className="rs-sign-chest" />
-        </p>
-      ))}
+      {chapter.signs.map((sign) => {
+        const place = { left: px(sign.x + 8), top: px(sign.y) };
+        const shows = <img src={littleChest} alt="" className="rs-sign-chest" />;
+        // While its road lies ahead, the sign leads the heroes down it, as the step does.
+        return ahead(journey, chapter).includes(sign.to) ? (
+          <button
+            key={sign.to}
+            type="button"
+            className="rs-bubble rs-sign"
+            aria-label={`${t.map.sign}. ${goTo(chapter.steps[sign.to] as Step)}`}
+            disabled={walk !== undefined}
+            style={place}
+            onClick={() => {
+              go(sign.to);
+            }}
+          >
+            {shows}
+          </button>
+        ) : (
+          <p
+            key={sign.to}
+            className="rs-bubble rs-sign"
+            role="img"
+            aria-label={t.map.sign}
+            style={place}
+          >
+            {shows}
+          </p>
+        );
+      })}
       {ahead(journey, chapter).map((id) => {
         const step = chapter.steps[id] as Step;
         return (
@@ -122,8 +132,7 @@ export function JourneyMap({
             disabled={walk !== undefined}
             style={{ left: px(step.x + 8), top: px(step.y + 8) }}
             onClick={() => {
-              void sound.effect(sounds.choose.url, sounds.choose.gain);
-              setWalk({ to: id, at: now(), lasts: walkSeconds(heroesAt(here), heroesAt(step)) });
+              go(id);
             }}
           >
             {walk === undefined && <img src={arrow} alt="" className="rs-step-arrow" />}
