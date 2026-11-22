@@ -479,3 +479,9 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   (Fixed: the dog chases its tail instead of kicking grass with its back turned; the sign is a
   wooden one pointing down the detour, and can be tapped to go that way; the roads are dotted
   on the ground, no longer drawn over the monsters. Still open: a film a child understands.)
+- Highlight the roads the hero can take. The marker on the next destination does not look like
+  a marker; it looks like an arrow pointing up by the circle, so I thought I stood in the
+  circle, and could not see the hero. Make the map better in general. (Built: the open roads in
+  larger white dots, what waits there hopping under a yellow marker pointing down, no ring, the
+  heroes drawn twice their size, the boss's portrait at the end of the pips, the map in the
+  middle of the screen.)

@@ -60,8 +60,8 @@ export const copperChapter: Chapter = {
     },
     sti: { kind: 'fight', foe: 'slime', toughness: 1, x: 72, y: 176, next: ['eng', 'krat'] },
     eng: { kind: 'fight', foe: 'slime', toughness: 1.5, x: 30, y: 132, next: ['lysning'] },
-    krat: { kind: 'fight', foe: 'slime', toughness: 2, x: 118, y: 148, next: ['kiste'] },
-    kiste: { kind: 'chest', x: 118, y: 108, next: ['lysning'] },
+    krat: { kind: 'fight', foe: 'slime', toughness: 2, x: 118, y: 152, next: ['kiste'] },
+    kiste: { kind: 'chest', x: 118, y: 96, next: ['lysning'] },
     lysning: { kind: 'fight', foe: 'slime', toughness: 1.5, x: 72, y: 96, next: ['træet'] },
     træet: {
       kind: 'boss',

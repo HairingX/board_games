@@ -1,5 +1,12 @@
-import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from 'react';
-import arrow from '../../../assets/ninja-adventure/Ui/Arrow.png';
+import {
+  Fragment,
+  useEffect,
+  useEffectEvent,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import littleChest from '../../../assets/ninja-adventure/Items/Treasure/LittleTreasureChest.png';
 import { useMessages } from '../../i18n/I18n';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
@@ -8,7 +15,8 @@ import { common } from '../../ui/text';
 import { topFrames } from './art';
 import type { Hero } from './heroes';
 import { ahead, copperChapter, stepsLeft, type Chapter, type Journey, type Step } from './journey';
-import { heroesAt, isTough, mapScene, mapSheets, walkSeconds, type Walk } from './map';
+import { heroesAt, isTough, mapScene, mapSheets, markOver, walkSeconds, type Walk } from './map';
+import { monsters } from './monsters';
 import { sounds } from './sounds';
 import { text } from './text';
 import './regnespil.css';
@@ -34,9 +42,11 @@ const pageClock = () => performance.now() / 1000;
  * The journey's map, as the owner asked, so it is plain the adventure is under way, where the
  * heroes are going and how far it is: the forest from the road to the hollow tree, the roads
  * between the steps, those walked in light sand, a flag where a monster was beaten, and a sign
- * at the fork showing a chest down the detour. The steps the heroes can go to bounce under an
- * arrow; tapped, the heroes walk there, and its fight or chest begins. Over the map, how many
- * steps are left to the hollow tree.
+ * at the fork pointing down the detour, with a chest over it. The heroes are drawn large, so
+ * they are seen at once; the roads they can take now are dotted in white, and what waits at
+ * their ends hops under a marker pointing down at it, as the owner asked; tapped, the heroes
+ * walk there, and its fight or chest begins. Over the map, a pip for each step done and each
+ * left, the last the boss's portrait.
  */
 export function JourneyMap({
   journey,
@@ -72,6 +82,11 @@ export function JourneyMap({
   }, [walk]);
 
   const left = stepsLeft(journey, chapter);
+  /** The chapter's last step, its boss. */
+  const last = Object.values(chapter.steps).find(
+    (step): step is Extract<Step, { foe: unknown }> =>
+      step.next.length === 0 && step.kind !== 'chest',
+  ) as Extract<Step, { foe: unknown }>;
   const here = chapter.steps[journey.at] as Step;
 
   /** What going to a step means, said to whoever cannot see it. */
@@ -123,20 +138,35 @@ export function JourneyMap({
       })}
       {ahead(journey, chapter).map((id) => {
         const step = chapter.steps[id] as Step;
+        const mark = markOver(step);
+        // The button covers what stands at the step, from the marker's tip to its feet.
+        const middle = (mark.y + step.y + 16) / 2;
         return (
-          <button
-            key={id}
-            type="button"
-            className="rs-step"
-            aria-label={goTo(step)}
-            disabled={walk !== undefined}
-            style={{ left: px(step.x + 8), top: px(step.y + 8) }}
-            onClick={() => {
-              go(id);
-            }}
-          >
-            {walk === undefined && <img src={arrow} alt="" className="rs-step-arrow" />}
-          </button>
+          <Fragment key={id}>
+            {walk === undefined && (
+              <span
+                className="rs-step-mark"
+                aria-hidden="true"
+                style={{ left: px(mark.x), top: px(mark.y) }}
+              />
+            )}
+            <button
+              type="button"
+              className="rs-step"
+              aria-label={goTo(step)}
+              disabled={walk !== undefined}
+              style={
+                {
+                  left: px(mark.x),
+                  top: px(middle),
+                  '--reach': px(step.y + 16 - mark.y),
+                } as CSSProperties
+              }
+              onClick={() => {
+                go(id);
+              }}
+            />
+          </Fragment>
         );
       })}
     </div>
@@ -152,9 +182,11 @@ export function JourneyMap({
           {journey.done.map((id) => (
             <span key={id} className="rs-progress-pip" data-done="true" />
           ))}
-          {Array.from({ length: left }, (_, index) => (
-            <span key={index} className="rs-progress-pip" data-last={index === left - 1} />
+          {Array.from({ length: left - 1 }, (_, index) => (
+            <span key={index} className="rs-progress-pip" />
           ))}
+          {/* The last step, the chapter's boss, by its portrait. */}
+          <img src={monsters[last.foe].face.calm} alt="" className="rs-progress-boss" />
         </p>
         {aside}
       </header>

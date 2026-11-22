@@ -1077,10 +1077,10 @@
   border-radius: var(--radius-sm);
 }
 
-/* The map fills the height the top bar leaves. */
+/* The map fills the height the top bar leaves, in the middle of what is left. */
 .rs-map-stage {
   flex: 1 1 auto;
-  margin-bottom: env(safe-area-inset-bottom);
+  margin-block: auto env(safe-area-inset-bottom);
 }
 
 .rs-sign {
@@ -1107,38 +1107,39 @@ button.rs-sign {
   image-rendering: pixelated;
 }
 
-/* A step the heroes can go to: a ring to tap, bouncing under an arrow. */
+/* A step the heroes can go to: what stands there can be tapped, a marker over it. */
 .rs-step {
   position: absolute;
-  width: max(var(--touch-lg), calc(var(--px) * 26));
-  height: max(var(--touch-lg), calc(var(--px) * 26));
+  width: max(var(--touch-lg), calc(var(--px) * 24));
+  height: max(var(--touch-lg), var(--reach));
   padding: 0;
   cursor: pointer;
   background: transparent;
-  border: calc(var(--px) * 1) solid var(--pixel-text);
-  border-radius: 50%;
+  border: 0;
+  border-radius: var(--radius-sm);
   transform: translate(-50%, -50%);
-  animation: rs-beckon var(--duration-beckon) ease-in-out infinite alternate;
 }
 
-.rs-step:disabled {
-  visibility: hidden;
+.rs-step:focus-visible {
+  outline: 3px solid var(--pixel-close);
 }
 
-.rs-step-arrow {
+/* A marker pointing down at where the heroes can go, bobbing so it is seen. */
+.rs-step-mark {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
-  width: calc(var(--px) * 9);
-  height: calc(var(--px) * 9);
-  image-rendering: pixelated;
-  transform: translateX(-50%) rotate(180deg);
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 8);
+  pointer-events: none;
+  background: var(--pixel-close);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  filter: drop-shadow(0 calc(var(--px) * 1) 0 var(--pixel-ink));
+  transform: translate(-50%, calc(-100% - var(--px) * 2));
+  animation: rs-point var(--duration-beckon) ease-in-out infinite alternate;
 }
 
-@keyframes rs-beckon {
+@keyframes rs-point {
   to {
-    border-color: var(--pixel-close);
-    transform: translate(-50%, -50%) scale(1.1);
+    transform: translate(-50%, calc(-100% - var(--px) * 6));
   }
 }
 
@@ -1163,10 +1164,13 @@ button.rs-sign {
   border-color: var(--pixel-ink);
 }
 
-.rs-progress-pip[data-last='true'] {
-  width: 16px;
-  height: 16px;
-  background: var(--pixel-attack);
+.rs-progress-boss {
+  width: 28px;
+  height: 28px;
+  margin-left: var(--space-1);
+  image-rendering: pixelated;
+  border: 2px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
 }
 
 /* The chest: big, in the middle, bouncing until it is tapped open. */

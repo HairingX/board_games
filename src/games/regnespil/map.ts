@@ -2,7 +2,7 @@ import chest from '../../../assets/ninja-adventure/Items/Treasure/BigTreasureChe
 import type { Cut, Effect, Figure, Scene, Thing } from '../../lib/scene/scene';
 import { clearingSheets } from './clearing';
 import type { Hero } from './heroes';
-import { copperChapter, type Chapter, type Journey, type Step } from './journey';
+import { ahead, copperChapter, type Chapter, type Journey, type Step } from './journey';
 import { dogFrames, type Foe } from './monsters';
 
 /*
@@ -59,8 +59,18 @@ const hollowTree: readonly Thing[] = [
 /** A wooden sign pointing the way, from the nature tiles. */
 const signpost = cut(80, 128, 16, 16);
 
-/** The roads' dots, from the floor tiles: earth ahead, light sand where the heroes walked. */
-const dots = { ahead: cut(84, 124, 3, 3), walked: cut(20, 20, 3, 3) } as const;
+/**
+ * The roads' dots, from the floor tiles: white and larger on the roads the heroes can take now,
+ * so they stand out; light sand where they walked; earth on the others.
+ */
+const dots = {
+  open: cut(20, 236, 4, 4),
+  walked: cut(20, 20, 3, 3),
+  ahead: cut(84, 124, 3, 3),
+} as const;
+
+/** What a road is to the heroes now: one they can take, one they walked, or one further on. */
+export type RoadState = keyof typeof dots;
 
 /**
  * How far apart a road's dots are, in pixels, and how far from the middle of a step they stop,
@@ -69,7 +79,7 @@ const dots = { ahead: cut(84, 124, 3, 3), walked: cut(20, 20, 3, 3) } as const;
 const dotting = { apart: 6, clear: 12 } as const;
 
 /** The dots of a road from one step to another, on the ground. */
-function roadDots(from: Step, to: Step, walked: boolean): Thing[] {
+function roadDots(from: Step, to: Step, state: RoadState): Thing[] {
   const start = { x: from.x + 8, y: from.y + 8 };
   const end = { x: to.x + 8, y: to.y + 8 };
   const length = Math.hypot(end.x - start.x, end.y - start.y);
@@ -79,11 +89,12 @@ function roadDots(from: Step, to: Step, walked: boolean): Thing[] {
   const first = dotting.clear + (room - (count - 1) * dotting.apart) / 2;
   return Array.from({ length: count }, (_, index) => {
     const share = (first + index * dotting.apart) / length;
+    const dot = dots[state];
     return {
       sheet: 'floor',
-      cut: walked ? dots.walked : dots.ahead,
-      x: Math.round(start.x + (end.x - start.x) * share) - 1,
-      y: Math.round(start.y + (end.y - start.y) * share) - 1,
+      cut: dot,
+      x: Math.round(start.x + (end.x - start.x) * share - dot.width / 2),
+      y: Math.round(start.y + (end.y - start.y) * share - dot.height / 2),
     };
   });
 }
@@ -106,15 +117,20 @@ const tokens: Readonly<Record<Foe, { calm: Token; tough: Token }>> = {
 /** Whether a step's fight is a tougher one than most: twice the lives or more. */
 export const isTough = (step: Step): boolean => step.kind === 'fight' && step.toughness >= 2;
 
-/** Where the heroes stand at a step, beside where its monster was, and their friend the dog. */
-export const heroesAt = (step: { x: number; y: number }) => ({ x: step.x - 6, y: step.y + 6 });
+/**
+ * How many times their size the heroes are drawn on the map, so the players always see where
+ * they are, as the owner could not; where they stand at a step, beside where its monster was;
+ * and their friend the dog, its own size, at their feet.
+ */
+export const heroSize = 2;
+export const heroesAt = (step: { x: number; y: number }) => ({ x: step.x - 18, y: step.y + 4 });
+const friendAt = (step: { x: number; y: number }) => ({ x: step.x + 2, y: step.y + 12 });
 
 /** Where each hero after the first walks, behind and beside the one in front, in pixels. */
 const behind = (index: number) => ({
-  x: (index % 2 === 0 ? 1 : -1) * 6 * Math.ceil(index / 2),
-  y: 5 * index,
+  x: (index % 2 === 0 ? 1 : -1) * 12 * Math.ceil(index / 2),
+  y: 8 * index,
 });
-const friendAt = (step: { x: number; y: number }) => ({ x: step.x - 26, y: step.y + 10 });
 
 /** How fast the heroes walk the road, in pixels a second, and the shortest walk, in seconds. */
 export const walking = { speed: 45, least: 0.6 } as const;
@@ -131,10 +147,27 @@ export interface Walk {
   lasts: number;
 }
 
-/** What stands at a step: its monster, its chest, or, once done, a flag or an open chest. */
+/** How often a monster the heroes can go to next hops, to say "here", in seconds. */
+const beckoning = 1.1;
+
+/**
+ * Where the marker over a step the heroes can go to points down at: the top of what stands
+ * there, in the middle, as large as it is drawn.
+ */
+export function markOver(step: Step): { x: number; y: number } {
+  if (step.kind === 'chest') return { x: step.x + 8, y: step.y };
+  const size = tokens[step.foe][isTough(step) ? 'tough' : 'calm'].size ?? 1;
+  return { x: step.x + 8, y: step.y + 16 - 16 * size };
+}
+
+/**
+ * What stands at a step: its monster, hopping if the heroes can go there next, its chest, or,
+ * once done, a flag or an open chest.
+ */
 function atStep(
   step: Step,
   done: boolean,
+  next: boolean,
 ): { things: Thing[]; figures: Figure[]; effects: Effect[] } {
   const place = { x: step.x, y: step.y };
   if (step.kind === 'chest') {
@@ -172,7 +205,15 @@ function atStep(
   const token = tokens[step.foe][isTough(step) ? 'tough' : 'calm'];
   return {
     things: [],
-    figures: [{ ...place, facing: 'down', doing: 'bouncing', ...token }],
+    figures: [
+      {
+        ...place,
+        facing: 'down',
+        doing: 'bouncing',
+        ...token,
+        ...(next ? { acts: [{ kind: 'cheer', at: 0, repeat: beckoning }] } : {}),
+      },
+    ],
     effects: [],
   };
 }
@@ -188,8 +229,9 @@ export function mapScene(
   walk?: Walk,
   chapter: Chapter = copperChapter,
 ): Scene {
+  const next = ahead(journey, chapter);
   const parts = Object.entries(chapter.steps).map(([id, step]) =>
-    atStep(step, journey.done.includes(id)),
+    atStep(step, journey.done.includes(id), walk === undefined && next.includes(id)),
   );
   const here = chapter.steps[journey.at] as Step;
   const there = walk ? (chapter.steps[walk.to] as Step) : here;
@@ -213,7 +255,7 @@ export function mapScene(
     things: [
       ...trees,
       ...hollowTree,
-      ...roads(journey, chapter).flatMap((road) => roadDots(road.from, road.to, road.walked)),
+      ...roads(journey, chapter, walk).flatMap((road) => roadDots(road.from, road.to, road.state)),
       ...chapter.signs.map((sign) => ({ sheet: 'nature', cut: signpost, x: sign.x, y: sign.y })),
       ...parts.flatMap((part) => part.things),
     ],
@@ -232,26 +274,43 @@ export function mapScene(
           const lead = heroesAt(step);
           return { x: lead.x + behind(index).x, y: lead.y + behind(index).y };
         };
-        return { sheet: hero, ...place(there), facing: 'up', doing: 'standing', acts: from(place) };
+        return {
+          sheet: hero,
+          ...place(there),
+          facing: 'up',
+          doing: 'standing',
+          size: heroSize,
+          acts: from(place),
+        };
       }),
     ],
     effects: parts.flatMap((part) => part.effects),
   };
 }
 
-/** The roads between the steps, each with whether the heroes have walked it. */
+/**
+ * The roads between the steps, each as it is to the heroes now: those from their step to the
+ * steps they can go to next open, unless they are already on their way; those they walked;
+ * the others further on.
+ */
 export function roads(
   journey: Journey,
   chapter: Chapter = copperChapter,
-): readonly { from: Step; to: Step; walked: boolean }[] {
+  walk?: Walk,
+): readonly { from: Step; to: Step; state: RoadState }[] {
   const walked = new Set(
     journey.done.slice(1).map((id, index) => `${journey.done[index] as string}>${id}`),
   );
+  const open = walk === undefined ? ahead(journey, chapter) : [];
   return Object.entries(chapter.steps).flatMap(([id, step]) =>
     step.next.map((to) => ({
       from: step,
       to: chapter.steps[to] as Step,
-      walked: walked.has(`${id}>${to}`),
+      state: walked.has(`${id}>${to}`)
+        ? 'walked'
+        : id === journey.at && open.includes(to)
+          ? 'open'
+          : 'ahead',
     })),
   );
 }
