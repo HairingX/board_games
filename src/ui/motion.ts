@@ -54,6 +54,11 @@ export const motionTokens = {
      * then up and back home.
      */
     knocked: { push: 6, fall: 0.12, down: 0.7, rise: 0.4, drop: 3 },
+    /**
+     * Lying down to rest where it is, for good, as a hero whose hearts are all gone, turned on
+     * its side and as far down as one knocked over.
+     */
+    lie: { drop: 3 },
     /** Walking home from where the act's `reach` took the figure. */
     return: { seconds: 0.4 },
     /**

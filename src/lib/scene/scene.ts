@@ -235,6 +235,15 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
       };
     }
   }
+  if (kind === 'lie') {
+    return {
+      sheet: figure.sheet,
+      cut: cutOf(0),
+      x: x + toward * (current?.reach ?? 0),
+      y: figure.y + act.lie.drop,
+      turn: toward < 0 ? 1 : -1,
+    };
+  }
   if (kind === 'hurt' && into < act.hurt.seconds && Math.floor(into / act.hurt.blink) % 2 === 0) {
     return undefined;
   }

@@ -252,6 +252,15 @@ describe('figures acting', () => {
     expect(one(knocked, at + fall + down + rise + eps)?.x).toBe(20);
   });
 
+  it('lies down to rest where it is, for good', () => {
+    const lying = { acts: [{ kind: 'lie', at, reach: 4 }] } as const;
+    for (const later of [eps, 60]) {
+      expect(one(lying, at + later)).toMatchObject({ x: 24, y: 20 + act.lie.drop, turn: -1 });
+    }
+    expect(one({ ...lying, facing: 'left' }, at + eps)).toMatchObject({ x: 16, turn: 1 });
+    expect(one({ acts: [{ kind: 'lie', at }] }, at + eps)?.x).toBe(20);
+  });
+
   it('strikes where a run took it, stays there, and walks home', () => {
     const struck = {
       acts: [

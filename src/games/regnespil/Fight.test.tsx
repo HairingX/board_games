@@ -202,6 +202,23 @@ describe('Fight', () => {
     expect(screen.getByRole('button', { name: '2' })).toBeEnabled();
   });
 
+  it('keeps the screen on while the fight goes on, and lets it go dark once it is won', async () => {
+    const release = vi.fn(() => Promise.resolve());
+    const request = vi.fn(() => Promise.resolve({ release } as unknown as WakeLockSentinel));
+    Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request } });
+    open([{ level: 1, sword: 'træ' }]);
+    await pause(0);
+    expect(request).toHaveBeenCalledWith('screen');
+    await choose('2');
+    await next(right);
+    await choose('2');
+    await pause(right);
+    await choose('2');
+    expect(screen.getByRole('status')).toHaveTextContent(won);
+    expect(release).toHaveBeenCalledOnce();
+    Reflect.deleteProperty(navigator, 'wakeLock');
+  });
+
   it('loses a heart for an answer far off, and lets the hero rest when none are left', async () => {
     const { played, chimed } = open([{ level: 7, sword: 'flamme' }]);
     expect(lives(4)).toBeInTheDocument();

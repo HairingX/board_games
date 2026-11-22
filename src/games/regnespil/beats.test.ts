@@ -196,6 +196,16 @@ describe('the fight’s beats', () => {
     expect(aftermath(startFight(2), 5, [], 108)).toEqual({});
   });
 
+  it('keeps a hero out of hearts lying down to rest, also when the fight is opened again', () => {
+    const lost = { ...moment, lost: true };
+    for (const beat of [attacks.bumped(lost), strikes.charge.hit(lost)]) {
+      expect(beat.staging.hero?.acts?.at(-1)?.kind).toBe('lie');
+    }
+    expect(attacks.bumped(moment).staging.hero?.acts?.at(-1)?.kind).toBe('knocked');
+    const resting = aftermath({ ...startFight(2), health: 0, outcome: 'lost' }, 5, [], 108);
+    expect(resting.hero).toMatchObject({ acts: [{ kind: 'lie' }], sign: { sheet: 'sleepy' } });
+  });
+
   it('shows how an answer went as the hero or the monster arrives', () => {
     const landed = strikes.charge
       .hit(moment)

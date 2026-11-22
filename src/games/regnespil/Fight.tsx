@@ -10,6 +10,7 @@ import { voices } from '../../lib/sound/voices';
 import { nextTurn } from '../../lib/turns';
 import { motionTokens } from '../../ui/motion';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
+import { useWakeLock } from '../../lib/wakeLock';
 import {
   answerFight,
   fullHealth,
@@ -293,6 +294,10 @@ export function Fight({
       sound.stopMusic();
     };
   }, [sound]);
+
+  // The screen stays on while the fight goes on, as a child thinks over a sum; once it is won
+  // or the hero rests, it may go dark, as the owner chose.
+  useWakeLock(shown.outcome === 'fighting');
 
   // A fight shown won stops its music for the jingle, which gives way to the victory's music,
   // until a new fight begins.

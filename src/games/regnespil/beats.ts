@@ -149,11 +149,19 @@ const shout = voice('hero', 2);
 const hurry = (moment: Moment): readonly Act[] =>
   moment.walked > 0 ? [{ kind: 'return', at: moment.at, reach: moment.walked }] : [];
 
-/** The hero knocked over at `at`, where a run took them: their act, and the sign as they lie. */
-function knockedOver(moment: Moment, at: number, from = 0): Doing {
-  const { fall, down } = motionTokens.act.knocked;
+/**
+ * The hero knocked over at `at`, where a run took them (`from` pixels out, after the acts
+ * `before`): their acts, and the sign as they lie.
+ */
+function knockedOver(moment: Moment, at: number, from = 0, before: readonly Act[] = []): Doing {
+  const { fall, down, push } = motionTokens.act.knocked;
   return {
-    acts: [{ kind: 'knocked', at, reach: from }],
+    acts: [
+      ...before,
+      { kind: 'knocked', at, reach: from },
+      // Out of hearts, the hero stays down to rest where they fell.
+      ...(moment.lost ? [{ kind: 'lie', at: at + fall, reach: from - push } as const] : []),
+    ],
     sign: { sheet: moment.lost ? 'sleepy' : 'dizzy', at: at + fall + down },
   };
 }
@@ -278,13 +286,9 @@ export const attacks = {
     const shown = moment.at + reveal;
     return {
       staging: {
-        hero: {
-          ...knockedOver(moment, shown, reach.hero),
-          acts: [
-            { kind: 'charge', at: moment.at, reach: reach.hero },
-            { kind: 'knocked', at: shown, reach: reach.hero },
-          ],
-        },
+        hero: knockedOver(moment, shown, reach.hero, [
+          { kind: 'charge', at: moment.at, reach: reach.hero },
+        ]),
         monster: { acts: [...hurry(moment), { kind: 'cheer', at: shown - moments.hop }] },
       },
       cues: [
@@ -523,7 +527,7 @@ export const reached = {
 
 /**
  * How the stage stands when a fight is opened again at `at`, rather than played to where it
- * is: a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
+ * is: a hero out of hearts lies resting; a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
  * ones waiting behind, by their players' ids) dance by the flag where the monster stood (its
  * `middle`) while fireworks burst a little again.
  */
@@ -533,6 +537,15 @@ export function aftermath(
   others: readonly string[],
   middle: number,
 ): Staging {
+  if (fight.outcome === 'lost') {
+    // The hero rests where they lay down, out of hearts, sleepy.
+    return {
+      hero: {
+        acts: [{ kind: 'lie', at: Number.NEGATIVE_INFINITY }],
+        sign: { sheet: 'sleepy', at },
+      },
+    };
+  }
   return fight.outcome === 'won'
     ? {
         hero: { acts: [dance(at, 0)] },
