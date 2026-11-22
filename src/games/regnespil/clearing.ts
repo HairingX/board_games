@@ -24,6 +24,9 @@ import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpa
 import sparkle from '../../../assets/ninja-adventure/FX/Magic/Spark/SpriteSheet.png';
 import dog from '../../../assets/ninja-adventure/Actor/Animal/DogOrange/SpriteSheet.png';
 import bone from '../../../assets/ninja-adventure/Items/Weapons/Bone/Sprite.png';
+import question from '../../../assets/ninja-adventure/Ui/Emote/emote23.png';
+import worried from '../../../assets/ninja-adventure/Ui/Emote/emote17.png';
+import determined from '../../../assets/ninja-adventure/Ui/Emote/emote19.png';
 import {
   tile,
   type Act,
@@ -69,9 +72,13 @@ export const clearingSheets = {
   sparkle,
   dog,
   bone,
+  question,
+  worried,
+  determined,
 } as const;
 
-export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
+export type Sign =
+  'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry' | 'question' | 'worried' | 'determined';
 
 /**
  * Where the hero whose turn it is and the slime stand, facing each other, in the forest's

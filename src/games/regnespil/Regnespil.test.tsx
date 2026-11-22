@@ -4,7 +4,8 @@ import { far, mille } from '../../../tests/family';
 import { saves } from '../../lib/saves';
 import { sound } from '../../lib/sound/engine';
 import { soundSaveKey } from '../../lib/sound/settings';
-import Regnespil, { bossPlace, fightPlace, listeningPlace } from './Regnespil';
+import { startJourney, type Journey } from './journey';
+import Regnespil, { adventurePlace, bossPlace, fightPlace, listeningPlace } from './Regnespil';
 
 beforeEach(() => {
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
@@ -12,6 +13,11 @@ beforeEach(() => {
   vi.spyOn(sound, 'prepareEffects').mockResolvedValue(undefined);
   vi.spyOn(sound, 'prepareMusic').mockResolvedValue(undefined);
   vi.spyOn(sound, 'stopMusic').mockReturnValue(undefined);
+  vi.spyOn(sound, 'music').mockReturnValue(undefined);
+  for (const quiet of ['chime', 'babble'] as const) {
+    vi.spyOn(sound, quiet).mockReturnValue(undefined);
+  }
+  vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -24,6 +30,9 @@ function open(place: readonly string[] = []) {
   render(<Regnespil players={[far, mille]} saveKey="regnespil" place={place} go={go} />);
   return { go, music };
 }
+
+/** Where the journey of Far and Mille is saved. */
+const journeyKey = 'regnespil/eventyr/rejse/far+mille';
 
 /** One player's part of the setup screen. */
 const playerPart = (name: string) =>
@@ -107,9 +116,9 @@ describe('Regnespil', () => {
     expect(await screen.findByRole('img', { name: 'Kæmpeslimets liv: 18' })).toBeInTheDocument();
   });
 
-  it('starts the fight with its music from the tap', async () => {
+  it('starts a quick fight with its music from the tap', async () => {
     const { go, music } = open();
-    fireEvent.click(await screen.findByRole('button', { name: 'Til kamp!' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'En hurtig kamp' }));
     expect(music).toHaveBeenCalledOnce();
     expect(go).toHaveBeenCalledWith([fightPlace]);
   });
@@ -148,10 +157,6 @@ describe('Regnespil', () => {
       task,
       recent: [],
     });
-    for (const quiet of ['music', 'chime', 'babble'] as const) {
-      vi.spyOn(sound, quiet).mockReturnValue(undefined);
-    }
-    vi.spyOn(sound, 'effect').mockResolvedValue(undefined);
     render(<Regnespil players={[mille]} saveKey="regnespil" place={[fightPlace]} go={vi.fn()} />);
     fireEvent.click(await screen.findByRole('button', { name: '2' }));
     await waitFor(async () => {
@@ -197,5 +202,102 @@ describe('Regnespil', () => {
     expect(screen.getByText('Nu er det Fars tur')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
     expect(go).toHaveBeenCalledWith([]);
+  });
+
+  it('begins the adventure from the setup, with its music from the tap', async () => {
+    const { go, music } = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start eventyret' }));
+    expect(go).toHaveBeenCalledWith([adventurePlace]);
+    expect(music).toHaveBeenCalled();
+    await waitFor(async () => {
+      expect(await saves.read(journeyKey)).toMatchObject({ scene: 'film', at: 'hund' });
+    });
+  });
+
+  it('shows the film, then the copper dog, when the adventure is opened without a journey', async () => {
+    open([adventurePlace]);
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }));
+    expect(await screen.findByRole('img', { name: /Kobberhunden er sur/ })).toBeInTheDocument();
+  });
+
+  it('goes on with the adventure, or asks before beginning it again', async () => {
+    await saves.write(journeyKey, { ...startJourney(3), scene: 'map', done: ['hund'] });
+    const { go } = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start eventyret forfra' }));
+    expect(screen.getByRole('alertdialog')).toHaveTextContent('mønterne i pungene bliver');
+    fireEvent.click(screen.getByRole('button', { name: 'Annullér' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Fortsæt eventyret' }));
+    expect(go).toHaveBeenLastCalledWith([adventurePlace]);
+    fireEvent.click(screen.getByRole('button', { name: 'Start eventyret forfra' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ja, start forfra' }));
+    await waitFor(async () => {
+      expect(await saves.read(journeyKey)).toMatchObject({ scene: 'film', done: [] });
+    });
+  });
+
+  it('begins a journey anew from the setup once the last one has ended', async () => {
+    await saves.write(journeyKey, { ...startJourney(3), scene: 'end', at: 'træet' });
+    open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Start eventyret' }));
+    await waitFor(async () => {
+      expect(await saves.read(journeyKey)).toMatchObject({ scene: 'film', at: 'hund' });
+    });
+  });
+
+  it('opens the chest after the copper dog, and walks on from the map to the next fight', async () => {
+    await saves.write(journeyKey, { ...startJourney(3), scene: 'chest', done: ['hund'] });
+    open([adventurePlace]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Åbn kisten' }));
+    const [first] = screen
+      .getAllByRole('button', { name: /./, description: '' })
+      .filter((one) => one.classList.contains('rs-treasure'));
+    fireEvent.click(first as HTMLElement);
+    const step = await screen.findByRole(
+      'button',
+      { name: 'Gå videre og kæmp mod slimet' },
+      { timeout: 3000 },
+    );
+    fireEvent.click(step);
+    expect(
+      await screen.findByRole('img', { name: /Slimets liv/ }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    const saved = (await saves.read(journeyKey)) as Journey;
+    expect(saved).toMatchObject({ at: 'sti', scene: 'fight' });
+    expect(saved.treasures).toHaveLength(1);
+  });
+
+  it('goes on from a fight won on the journey, and ends the chapter at the hollow tree', async () => {
+    const task = { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 };
+    await saves.write('regnespil/mille', { level: 1, sword: 'træ', hero: 'Monkey', coins: 0 });
+    await saves.write(journeyKey.replace('far+mille', 'mille'), {
+      ...startJourney(3),
+      at: 'træet',
+      done: ['hund', 'sti', 'eng', 'lysning'],
+      treasures: ['goldPouch'],
+      scene: 'fight',
+    });
+    await saves.write('regnespil/eventyr/kamp/mille', {
+      fight: { health: 10, lives: 1, outcome: 'fighting', last: 'struck' },
+      lives: 6,
+      activeId: 'mille',
+      task,
+      recent: [],
+      foe: 'giantSlime',
+      step: 'træet',
+    });
+    render(
+      <Regnespil players={[mille]} saveKey="regnespil" place={[adventurePlace]} go={vi.fn()} />,
+    );
+    expect(await screen.findByRole('img', { name: 'Kæmpeslimets liv: 1' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '2' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Videre' }, { timeout: 3000 }));
+    // Each coin of the victory worth two, from the gold pouch.
+    await waitFor(async () => {
+      expect(await saves.read('regnespil/mille')).toMatchObject({ coins: 6 });
+    });
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }));
+    expect(screen.getByRole('heading', { name: 'Kapitel 1 er klaret!' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Spil kapitlet igen' }));
+    expect(await screen.findByRole('img', { name: 'Eventyrets film' })).toBeInTheDocument();
   });
 });

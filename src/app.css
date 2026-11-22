@@ -105,6 +105,9 @@
   --duration-coin-fly: 650ms;
   /* How long one beat of the combo's pulse lasts, when the next stroke is a power stroke. */
   --duration-ready: 700ms;
+  /* A step on the map bouncing under its arrow, and treasures rising from a chest. */
+  --duration-beckon: 900ms;
+  --duration-rise: 500ms;
   --press-scale: 0.96;
 
   /* The phone's notch and home indicator */
@@ -135,6 +138,9 @@
   --pixel-close: #f2c94c;
   --pixel-bad: #f29a80;
   --pixel-life: #e43b44;
+  /* The map's roads: ahead in dashes, walked in a lighter, whole line. */
+  --pixel-road: #8a5a3c;
+  --pixel-road-walked: #e8c170;
 
   font-family: var(--font-body);
   font-optical-sizing: auto;

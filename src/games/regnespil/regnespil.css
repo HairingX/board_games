@@ -999,3 +999,349 @@
 .rs-panel .fight-over p {
   color: var(--pixel-text);
 }
+
+/* Asking before the adventure starts over, as Parkort asks. */
+.rs-confirm {
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+}
+
+.rs-confirm p {
+  margin: 0 0 var(--space-4);
+}
+
+.rs-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+/* A picture bubble over someone's head, its tail pointing down at them. */
+.rs-bubble {
+  position: absolute;
+  display: flex;
+  gap: calc(var(--px) * 3);
+  align-items: center;
+  margin: 0;
+  padding: calc(var(--px) * 3) calc(var(--px) * 4);
+  background: var(--pixel-text);
+  border: calc(var(--px) * 1) solid var(--pixel-ink);
+  border-radius: calc(var(--px) * 4);
+  transform: translate(-50%, calc(-100% - var(--px) * 4));
+}
+
+.rs-bubble::after {
+  position: absolute;
+  bottom: calc(var(--px) * -4);
+  left: 50%;
+  width: calc(var(--px) * 6);
+  height: calc(var(--px) * 4);
+  content: '';
+  background: var(--pixel-ink);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform: translateX(-50%);
+}
+
+.rs-bubble-picture {
+  display: block;
+  flex-shrink: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The film's panel holds only the way to skip it, low, where the thumbs are. */
+.rs-film-panel {
+  justify-content: flex-end;
+}
+
+.rs-skip {
+  align-self: center;
+  min-height: var(--touch-lg);
+  padding: 0 var(--space-6);
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pixel-text);
+  cursor: pointer;
+  background: var(--pixel-plate);
+  border: 2px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+}
+
+/* The map fills the height the top bar leaves. */
+.rs-map-stage {
+  flex: 1 1 auto;
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* The roads between the steps: walked ones whole, the others in dashes. */
+.rs-roads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  shape-rendering: crispEdges;
+}
+
+.rs-roads line {
+  stroke: var(--pixel-road);
+  stroke-width: 3;
+  stroke-dasharray: 3 3;
+}
+
+.rs-roads line[data-walked='true'] {
+  stroke: var(--pixel-road-walked);
+  stroke-dasharray: none;
+}
+
+.rs-sign {
+  padding: calc(var(--px) * 2);
+}
+
+.rs-sign-chest {
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 16);
+  object-fit: cover;
+  object-position: left;
+  image-rendering: pixelated;
+}
+
+/* A step the heroes can go to: a ring to tap, bouncing under an arrow. */
+.rs-step {
+  position: absolute;
+  width: max(var(--touch-lg), calc(var(--px) * 26));
+  height: max(var(--touch-lg), calc(var(--px) * 26));
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: calc(var(--px) * 1) solid var(--pixel-text);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: rs-beckon var(--duration-beckon) ease-in-out infinite alternate;
+}
+
+.rs-step:disabled {
+  visibility: hidden;
+}
+
+.rs-step-arrow {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: calc(var(--px) * 9);
+  height: calc(var(--px) * 9);
+  image-rendering: pixelated;
+  transform: translateX(-50%) rotate(180deg);
+}
+
+@keyframes rs-beckon {
+  to {
+    border-color: var(--pixel-close);
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* How far it is to the hollow tree: a pip for each step done, and each left, the last a tree. */
+.rs-progress {
+  display: flex;
+  gap: var(--space-1);
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.rs-progress-pip {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--pixel-text);
+  border-radius: 50%;
+}
+
+.rs-progress-pip[data-done='true'] {
+  background: var(--pixel-good);
+  border-color: var(--pixel-ink);
+}
+
+.rs-progress-pip[data-last='true'] {
+  width: 16px;
+  height: 16px;
+  background: var(--pixel-attack);
+}
+
+/* The chest: big, in the middle, bouncing until it is tapped open. */
+.rs-chest-stage {
+  display: grid;
+  flex: 1 0 auto;
+  place-items: center;
+  min-height: 160px;
+}
+
+.rs-chest-box {
+  width: 128px;
+  height: 112px;
+  padding: 0;
+  cursor: pointer;
+  background-color: transparent;
+  background-position: 0 0;
+  background-size: 256px 112px;
+  border: 0;
+  image-rendering: pixelated;
+  animation: rs-beckon-chest var(--duration-beckon) ease-in-out infinite alternate;
+}
+
+.rs-chest-box[data-open='true'] {
+  cursor: default;
+  background-position: -128px 0;
+  animation: none;
+}
+
+@keyframes rs-beckon-chest {
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+.rs-chest-title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.rs-treasures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rs-treasures li {
+  animation: rs-rise var(--duration-rise) var(--ease-spring) backwards;
+}
+
+@keyframes rs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+.rs-treasure {
+  display: grid;
+  gap: var(--space-1);
+  justify-items: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-3) var(--space-1);
+  font-family: var(--font-body);
+  color: var(--pixel-text);
+  cursor: pointer;
+  background: var(--pixel-plate);
+  border: 3px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+  transition:
+    opacity var(--duration-press) ease,
+    transform var(--duration-press) var(--ease-spring);
+}
+
+.rs-treasure[data-chosen='true'] {
+  border-color: var(--pixel-close);
+  transform: scale(1.06);
+}
+
+.rs-treasure[data-other='true'] {
+  opacity: 0.35;
+}
+
+.rs-treasure-icon {
+  width: 72px;
+  height: 72px;
+  image-rendering: pixelated;
+}
+
+.rs-treasure-shows {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  min-height: 32px;
+  font-weight: 800;
+}
+
+.rs-treasure-shows img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.rs-treasure-shows .rs-purse-coin {
+  --px: 2px;
+}
+
+.rs-treasure-name {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.rs-treasure-does {
+  font-size: 0.85rem;
+  line-height: 1.25;
+  text-align: center;
+}
+
+/* The chapter's end: their friend the dog, what was done, and the chapter to play again. */
+.rs-end-panel {
+  gap: var(--space-3);
+  align-items: center;
+  text-align: center;
+}
+
+.rs-end-friend {
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated;
+  border: 3px solid var(--pixel-ink);
+  border-radius: var(--radius-sm);
+}
+
+.rs-end-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+}
+
+.rs-end-panel p,
+.rs-end-found {
+  margin: 0;
+}
+
+.rs-end-found {
+  font-size: 1rem;
+}
+
+.rs-end-treasures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.rs-end-treasures li {
+  display: grid;
+  justify-items: center;
+  font-weight: 700;
+}
+
+.rs-end-treasures img {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}

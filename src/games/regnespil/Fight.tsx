@@ -164,6 +164,15 @@ interface Props {
   foe?: Foe;
   /** What the heroes carry from the treasures they found, as it changes a fight. */
   gear?: Gear;
+  /** How many times its usual lives the monster has, as further on a journey. */
+  toughness?: number;
+  /** The step of the journey a fight is at, saved with it. */
+  step?: string;
+  /**
+   * On a journey, goes on once the fight is won, instead of offering a new one; a fight lost
+   * is tried again either way.
+   */
+  onDone?: () => void;
   /** Puts coins in the players' purses, as many as each is given, in the players' order. */
   onCoins: (gains: readonly number[]) => void;
   /** Shown at the right of the header: the sound's levels. */
@@ -202,6 +211,9 @@ export function Fight({
   onCoins,
   foe = 'slime',
   gear = noGear,
+  toughness = 1,
+  step,
+  onDone,
   aside,
   random = Math.random,
   sound = defaultSound,
@@ -216,7 +228,9 @@ export function Fight({
   /** A new fight, the first player's turn, its sum none of those shown lately. */
   const fresh = (recent: readonly string[]): SavedFight => {
     const against = monsters[foe];
-    const lives = Math.ceil(monsterLives(settings.map((one) => one.sword)) * against.toughness);
+    const lives = Math.ceil(
+      monsterLives(settings.map((one) => one.sword)) * against.toughness * toughness,
+    );
     return {
       fight: startFight(lives, against.plan, gear),
       lives,
@@ -225,6 +239,7 @@ export function Fight({
       recent,
       seed: Math.floor(random() * seeds),
       foe,
+      ...(step === undefined ? {} : { step }),
     };
   };
   /** The fight as it stands and goes on, as saved. */
@@ -903,9 +918,15 @@ export function Fight({
             <p role="status">
               {shown.outcome === 'lost' ? t.lost : befriends ? t.befriended(name) : t.won(name)}
             </p>
-            <button type="button" className="rs-button" onClick={restart}>
-              {shown.outcome === 'won' ? t.again : t.tryAgain}
-            </button>
+            {shown.outcome === 'won' && onDone ? (
+              <button type="button" className="rs-button" onClick={onDone}>
+                {t.adventure.onward}
+              </button>
+            ) : (
+              <button type="button" className="rs-button" onClick={restart}>
+                {shown.outcome === 'won' ? t.again : t.tryAgain}
+              </button>
+            )}
           </div>
         )}
       </div>

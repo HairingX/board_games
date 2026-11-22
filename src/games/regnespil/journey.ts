@@ -65,6 +65,17 @@ export const copperChapter: Chapter = {
   signs: [{ x: 96, y: 160, to: 'krat', shows: 'chest' }],
 };
 
+/** Where the adventure of these players is saved, beside the game's other saves. */
+export const adventureKey = (saveKey: string) => `${saveKey}/eventyr`;
+
+/** Where the journey of these players is saved: the same whatever order they were chosen in. */
+export function journeySaveKey(saveKey: string, players: readonly { id: string }[]): string {
+  return `${adventureKey(saveKey)}/rejse/${players
+    .map((player) => player.id)
+    .sort()
+    .join('+')}`;
+}
+
 /** What the journey shows: the film, the fight at its step, a chest, the map, or the end. */
 export type Scene = 'film' | 'fight' | 'chest' | 'map' | 'end';
 const scenes: readonly Scene[] = ['film', 'fight', 'chest', 'map', 'end'];
@@ -135,9 +146,10 @@ export function walkTo(journey: Journey, to: string, chapter: Chapter = copperCh
 }
 
 /** What the chest at the heroes' step offers, the same each time it is opened. */
-export function chestAt(journey: Journey): readonly Treasure[] {
-  const salt = [...journey.at].reduce((sum, letter) => sum * 31 + letter.charCodeAt(0), 7);
-  return chestOffers(journey.treasures, seeded((journey.seed + salt) % seeds));
+export function chestAt(journey: Journey, chapter: Chapter = copperChapter): readonly Treasure[] {
+  // Each step's chest is drawn from the journey's seed and the step's place on the map.
+  const salt = Object.keys(chapter.steps).indexOf(journey.at) + 1;
+  return chestOffers(journey.treasures, seeded((journey.seed + salt * 7919) % seeds));
 }
 
 /** The fewest steps left from the heroes' step to the chapter's last, counting it. */
@@ -182,7 +194,7 @@ export type Screen =
  */
 export function screenOf(journey: Journey, chapter: Chapter = copperChapter): Screen {
   const step = stepOf(journey, chapter);
-  const chest = { kind: 'chest', offers: chestAt(journey) } as const;
+  const chest = { kind: 'chest', offers: chestAt(journey, chapter) } as const;
   switch (journey.scene) {
     case 'chest':
       return chest;

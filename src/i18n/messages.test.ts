@@ -98,6 +98,14 @@ describe('the messages that are made from values', () => {
     expect(r.grumpy(r.foes.copperDog.the, 2)).toBe('The copper dog is grumpy: 2');
     expect(r.befriended('Scruffy Patch')).toBe('Scruffy Patch is your friend now!');
     expect(r.charm(1)).toBe('The guard charm is ready');
+    expect(r.map.left(1)).toBe('1 step to the hollow tree');
+    expect(r.map.left(3)).toBe('3 steps to the hollow tree');
+    expect(r.map.fight(r.foes.slime.the)).toBe('Go on and fight the slime');
+    expect(r.map.tough(r.foes.slime.strong)).toBe('Go on and fight a strong slime');
+    expect(r.map.boss(r.foes.giantSlime.the)).toBe(
+      'Go to the hollow tree and fight the giant slime',
+    );
+    expect(r.chest.took(r.treasures.powerRing.name)).toBe('You took the power ring');
     expect(r.charm(0)).toBe('The guard charm took a blow');
     expect(regnespilText.da.grumpy(regnespilText.da.foes.copperDog.the, 2)).toBe(
       'Kobberhunden er sur: 2',

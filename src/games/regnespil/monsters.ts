@@ -92,12 +92,18 @@ export const giantSlime: Monster = {
  * than beaten. Drawn twice its size from the pack's running dog, it charges and hops crossly
  * and kicks grass, grows grumpier halfway, and becomes the heroes' friend.
  */
+/** The pack's running dog: two frames side by side, facing right, its nose at the front. */
+export const dogFrames: Big = { width: 18, height: 16, frames: 2, faces: 'right', front: 1 };
+
+/** How many times its size the copper dog is drawn: as big as eyes like teacups need. */
+export const copperDogSize = 2;
+
 export const copperDog: Monster = {
   kind: 'copperDog',
   look: { calm: 'dog', enraged: 'dog' },
   face: { calm: dogFace, enraged: dogFace },
-  big: { width: 18, height: 16, frames: 2, faces: 'right', front: 1 },
-  size: 2,
+  big: dogFrames,
+  size: copperDogSize,
   voice: voices.dog,
   toughness: 1.5,
   befriends: true,

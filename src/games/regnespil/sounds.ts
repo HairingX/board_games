@@ -1,6 +1,11 @@
 import victoryJingle from '../../../assets/ninja-adventure/Audio/Jingles/LevelUp2.m4a';
 import fightMusic from '../../../assets/ninja-adventure/Audio/Musics/17 - Fight.m4a';
 import goodTime from '../../../assets/ninja-adventure/Audio/Musics/20 - Good Time.m4a';
+import adventureBegins from '../../../assets/ninja-adventure/Audio/Musics/1 - Adventure Begin.m4a';
+import mystical from '../../../assets/ninja-adventure/Audio/Musics/13 - Mystical.m4a';
+import road from '../../../assets/ninja-adventure/Audio/Musics/23 - Road.m4a';
+import secret from '../../../assets/ninja-adventure/Audio/Jingles/Secret1.m4a';
+import whoosh from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Whoosh.m4a';
 import hit from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit1.m4a';
 import thud from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit2.m4a';
 import thump from '../../../assets/ninja-adventure/Audio/Sounds/Hit & Impact/Hit8.m4a';
@@ -56,6 +61,9 @@ export const sounds = {
   /** A treat caught, and a dog's bark, for the dogs of the story, won over with treats. */
   treat: mixed(treat, -19.5, loudness.action),
   bark: mixed(bark, -15.4, loudness.action),
+  /** A chest opening, and a jump down into the dark. */
+  chest: mixed(secret, -17.4, loudness.celebration),
+  whoosh: mixed(whoosh, -26.1, loudness.action),
   victory: mixed(victoryJingle, -17.2, loudness.celebration),
 } as const;
 
@@ -74,6 +82,11 @@ export const music = {
   fight: mixed(fightMusic, -21.7, loudness.music),
   /** After a victory: happy, after the victory's jingle. */
   victory: mixed(goodTime, -20, loudness.music),
+  /** The story's films: as the adventure begins, and as the chapter ends, mysterious. */
+  begins: mixed(adventureBegins, -13.6, loudness.music),
+  ends: mixed(mystical, -13.6, loudness.music),
+  /** On the map, walking the road. */
+  road: mixed(road, -14.5, loudness.music),
 } as const;
 
 /** How long the victory's jingle lasts, in seconds, before the victory's music takes over. */

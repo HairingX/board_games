@@ -3,6 +3,7 @@ import type { Translations } from '../../i18n/locales';
 import type { Hero } from './heroes';
 import type { Foe } from './monsters';
 import type { Treasure } from './treasures';
+import type { Telling } from './film';
 import type { Sword } from './swords';
 import type { Operator } from './tasks';
 
@@ -73,7 +74,6 @@ const da = {
   setupTitle: 'Klar til eventyret',
   setupIntro:
     'Hver spiller har sit eget niveau til regnestykkerne og sit eget sværd til kampen: jo sværere sværd, jo stærkere monstre.',
-  toFight: 'Til kamp!',
   /** The monster fought, named at the top of the fight. */
   slime: 'Slimklatten',
   attack: 'Angreb',
@@ -83,14 +83,20 @@ const da = {
    * for screen readers.
    */
   foes: {
-    slime: { the: 'slimet', its: 'slimets', facing: 'et blåt slim' },
-    giantSlime: { the: 'kæmpeslimet', its: 'kæmpeslimets', facing: 'et kæmpestort slim' },
+    slime: { the: 'slimet', its: 'slimets', facing: 'et blåt slim', strong: 'et stærkt slim' },
+    giantSlime: {
+      the: 'kæmpeslimet',
+      its: 'kæmpeslimets',
+      facing: 'et kæmpestort slim',
+      strong: 'et stærkt kæmpeslim',
+    },
     copperDog: {
       the: 'kobberhunden',
       its: 'kobberhundens',
       facing: 'en sur hund med øjne så store som tekopper',
+      strong: 'en stærk kobberhund',
     },
-  } satisfies Record<Foe, { the: string; its: string; facing: string }>,
+  } satisfies Record<Foe, { the: string; its: string; facing: string; strong: string }>,
   stakeDodge: (its: string) => `Rigtigt: du undviger ${its} angreb`,
   stakeRight: (the: string) => `Rigtigt: dit slag rammer ${the}`,
   stakeTreat: (the: string) => `Rigtigt: ${the} får en godbid og bliver gladere`,
@@ -149,6 +155,52 @@ const da = {
       describe: ['Brummende', 'Gnavne', 'Pjuskede', 'Snusende', 'Knurrende', 'Kvikke', 'Tossede'],
       name: ['Bamse', 'Basse', 'Kobber', 'Kvik', 'Trofast', 'Tekop', 'Fiffi'],
     },
+  },
+  /** The adventure: its journey, film, map, chests and end. */
+  adventure: {
+    start: 'Start eventyret',
+    resume: 'Fortsæt eventyret',
+    restart: 'Start eventyret forfra',
+    restartQuestion:
+      'Vil I starte eventyret forfra? Skattene fra denne tur er væk, men mønterne i pungene bliver.',
+    yesRestart: 'Ja, start forfra',
+    quickFight: 'En hurtig kamp',
+    onward: 'Videre',
+  },
+  film: {
+    label: 'Eventyrets film',
+    skip: 'Spring over',
+    shots: {
+      road: 'Heltene går ad vejen gennem skoven: én, to! én, to! De møder en gammel kone med en spids hat.',
+      quest:
+        'Konen viser dem i billeder et hult træ, hvor der nede i hullet ligger et fyrtøj, og skatte af kobber, sølv og guld.',
+      dogs: 'Men dernede vogter tre hunde, den ene større end den anden. Heltene bliver lidt bange, og konen klapper dem.',
+      bark: 'Så lyder et gø, og den gamle kone skynder sig væk.',
+      dog: 'Kobberhunden med øjne så store som tekopper springer frem og knurrer. Heltene gør sig klar.',
+      tree: 'Heltene og deres ven kobberhunden kommer til det hule træ. Hunden snuser ved hullet, og nede i mørket lyser to øjne.',
+      down: 'Heltene tager mod til sig og springer ned i hullet, og hunden springer efter. Fortsættes …',
+    } satisfies Record<Telling, string>,
+  },
+  map: {
+    label: 'Kortet over skoven, fra vejen op til det hule træ.',
+    /** How many steps are left to the hollow tree, the fewest. */
+    left: (count: number) => `${formatNumber('da', count)} skridt til det hule træ`,
+    fight: (the: string) => `Gå videre og kæmp mod ${the}`,
+    tough: (strong: string) => `Gå videre og kæmp mod ${strong}`,
+    chest: 'Gå hen til kisten',
+    boss: (the: string) => `Gå til det hule træ og kæmp mod ${the}`,
+    sign: 'Et skilt: ad denne vej ligger en kiste',
+  },
+  chest: {
+    open: 'Åbn kisten',
+    choose: 'Vælg én skat',
+    took: (name: string) => `I tog ${name}`,
+  },
+  end: {
+    title: 'Kapitel 1 er klaret!',
+    text: 'Heltene er sprunget ned i det hule træ. Næste kapitel kommer snart.',
+    found: 'Skattene I fandt',
+    again: 'Spil kapitlet igen',
   },
   lost: 'Helten er træt og hviler sig.',
   again: 'Ny kamp',
@@ -221,17 +273,27 @@ export const text: Translations<typeof da> = {
     setupTitle: 'Ready for the adventure',
     setupIntro:
       'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',
-    toFight: 'To battle!',
     slime: 'The slime',
     attack: 'Attack',
     defend: 'Defend',
     foes: {
-      slime: { the: 'the slime', its: 'the slime’s', facing: 'a blue slime' },
-      giantSlime: { the: 'the giant slime', its: 'the giant slime’s', facing: 'a giant slime' },
+      slime: {
+        the: 'the slime',
+        its: 'the slime’s',
+        facing: 'a blue slime',
+        strong: 'a strong slime',
+      },
+      giantSlime: {
+        the: 'the giant slime',
+        its: 'the giant slime’s',
+        facing: 'a giant slime',
+        strong: 'a strong giant slime',
+      },
       copperDog: {
         the: 'the copper dog',
         its: 'the copper dog’s',
         facing: 'a grumpy dog with eyes as big as teacups',
+        strong: 'a strong copper dog',
       },
     },
     stakeDodge: (its) => `Right: you dodge ${its} attack`,
@@ -286,6 +348,51 @@ export const text: Translations<typeof da> = {
         describe: ['Grumpy', 'Growly', 'Scruffy', 'Sniffy', 'Huffy', 'Bouncy', 'Barky'],
         name: ['Biscuit', 'Buster', 'Copper', 'Patch', 'Rusty', 'Teacup', 'Bramble'],
       },
+    },
+    adventure: {
+      start: 'Start the adventure',
+      resume: 'Go on with the adventure',
+      restart: 'Start the adventure again',
+      restartQuestion:
+        'Start the adventure again? The treasures from this journey are gone, but the coins in the purses stay.',
+      yesRestart: 'Yes, start again',
+      quickFight: 'A quick fight',
+      onward: 'Onward',
+    },
+    film: {
+      label: 'The adventure’s film',
+      skip: 'Skip',
+      shots: {
+        road: 'The heroes march along the road through the forest: one, two! one, two! They meet an old woman in a pointed hat.',
+        quest:
+          'In pictures, she shows them a hollow tree with a tinderbox down in its hole, and treasures of copper, silver and gold.',
+        dogs: 'But down there, three dogs keep watch, each bigger than the last. The heroes grow a little scared, and the old woman pats them.',
+        bark: 'Then a bark is heard, and the old woman hurries away.',
+        dog: 'The copper dog, with eyes as big as teacups, bursts out, growling. The heroes make ready.',
+        tree: 'The heroes and their friend the copper dog come to the hollow tree. The dog sniffs at the hole, and down in the dark two eyes glint.',
+        down: 'The heroes take heart and jump down the hole, and the dog jumps after them. To be continued …',
+      },
+    },
+    map: {
+      label: 'The map of the forest, from the road up to the hollow tree.',
+      left: (count) =>
+        `${formatNumber('en', count)} ${plural('en', count, { one: 'step', other: 'steps' })} to the hollow tree`,
+      fight: (the) => `Go on and fight ${the}`,
+      tough: (strong) => `Go on and fight ${strong}`,
+      chest: 'Go to the chest',
+      boss: (the) => `Go to the hollow tree and fight ${the}`,
+      sign: 'A sign: a chest lies this way',
+    },
+    chest: {
+      open: 'Open the chest',
+      choose: 'Choose one treasure',
+      took: (name) => `You took the ${name.toLowerCase()}`,
+    },
+    end: {
+      title: 'Chapter 1 is done!',
+      text: 'The heroes have jumped down the hollow tree. The next chapter comes soon.',
+      found: 'The treasures you found',
+      again: 'Play the chapter again',
     },
     lost: 'The hero is tired and rests.',
     again: 'New fight',
