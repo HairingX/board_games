@@ -235,6 +235,29 @@ describe('Regnespil', () => {
     });
   });
 
+  it('goes on with a journey standing at a fight, its music begun from the tap', async () => {
+    await saves.write(journeyKey, { ...startJourney(5), scene: 'fight' });
+    const { music } = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Fortsæt eventyret' }));
+    expect(music).toHaveBeenCalledWith(expect.stringContaining('Fight'), expect.any(Number));
+  });
+
+  it('never goes on with a fight of a journey begun before', async () => {
+    await saves.write('regnespil/eventyr/kamp/far+mille', {
+      fight: { health: 10, lives: 0, outcome: 'won', last: 'struck' },
+      lives: 9,
+      activeId: 'far',
+      task: { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 },
+      recent: [],
+      foe: 'copperDog',
+      step: '3/hund',
+    });
+    await saves.write(journeyKey, { ...startJourney(4), scene: 'fight' });
+    open([adventurePlace]);
+    expect(await screen.findByRole('img', { name: /Kobberhunden er sur/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Videre' })).not.toBeInTheDocument();
+  });
+
   it('begins a journey anew from the setup once the last one has ended', async () => {
     await saves.write(journeyKey, { ...startJourney(3), scene: 'end', at: 'træet' });
     open();
@@ -283,7 +306,7 @@ describe('Regnespil', () => {
       task,
       recent: [],
       foe: 'giantSlime',
-      step: 'træet',
+      step: '3/træet',
     });
     render(
       <Regnespil players={[mille]} saveKey="regnespil" place={[adventurePlace]} go={vi.fn()} />,

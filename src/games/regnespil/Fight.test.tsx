@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeSoundBrowser, FakeOscillator } from '../../../tests/audio';
 import { far, mille } from '../../../tests/family';
@@ -656,7 +656,27 @@ describe('Fight', () => {
     if (choice) fireEvent.click(choice);
     await pause(reveal);
     expect(screen.getByRole('status')).not.toBeEmptyDOMElement();
-    expect(music).toHaveBeenCalledOnce();
+    // As the fight began, and again, going on, at the tap.
+    expect(music).toHaveBeenCalledTimes(2);
     expect(effect).toHaveBeenCalled();
+  });
+
+  it('plays the fight’s music as it begins, but not when it is opened again already won', async () => {
+    const { audios } = open();
+    expect(audios).toHaveLength(1);
+    cleanup();
+    const won = {
+      fight: { ...startFight(2), lives: 0, outcome: 'won', last: 'struck' },
+      lives: 2,
+      activeId: 'mille',
+      task: { sum: [1, '+', 1], answer: 2, choices: [1, 2, 3], near: 2 },
+      recent: [],
+      seed: 0,
+      foe: 'slime',
+    } as const satisfies SavedFight;
+    const again = open([{ level: 1, sword: 'jern' }], [mille], won);
+    expect(again.audios).toHaveLength(0);
+    await pause(victoryLength);
+    expect(again.audios).toHaveLength(1);
   });
 });

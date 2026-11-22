@@ -95,9 +95,12 @@ export function reviveFight(saved: unknown): SavedFight | null {
     isCount(lives, Number.MAX_SAFE_INTEGER) &&
     lives > 0 &&
     isRecord(fight) &&
-    (fight.maxHealth === undefined || isCount(fight.maxHealth, mostHealth)) &&
+    (fight.maxHealth === undefined ||
+      (isCount(fight.maxHealth, mostHealth) &&
+        fight.maxHealth >= 2 &&
+        fight.maxHealth % 2 === 0)) &&
     isCount(fight.health, fight.maxHealth ?? fullHealth) &&
-    (fight.powerAt === undefined || isCount(fight.powerAt, powerAfter)) &&
+    (fight.powerAt === undefined || (isCount(fight.powerAt, powerAfter) && fight.powerAt >= 1)) &&
     (fight.guards === undefined || isCount(fight.guards, mostGuards)) &&
     isCount(fight.lives, lives) &&
     outcomes.includes(fight.outcome as string) &&

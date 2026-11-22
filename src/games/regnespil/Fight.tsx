@@ -324,6 +324,15 @@ export function Fight({
   // or the hero rests, it may go dark, as the owner chose.
   useWakeLock(shown.outcome === 'fighting');
 
+  // A fight begun, or opened again while it goes on, plays its music; it goes on if it already
+  // plays, as when a tap began it.
+  const begin = useEffectEvent(() => {
+    if (save.fight.outcome === 'fighting') play(music.fight);
+  });
+  useEffect(() => {
+    begin();
+  }, []);
+
   // A fight shown won stops its music for the jingle, which gives way to the victory's music,
   // until a new fight begins.
   const outcome = shown.outcome;

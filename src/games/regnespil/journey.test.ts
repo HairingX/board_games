@@ -78,6 +78,20 @@ describe('the journey through the first chapter', () => {
     ).toBe('end');
   });
 
+  it('leaves a chest that has nothing the heroes do not have', () => {
+    const all = {
+      ...begun,
+      at: 'kiste',
+      scene: 'chest',
+      treasures: ['heartJar', 'powerRing', 'goldPouch', 'guardCharm'],
+    } as const;
+    expect(chestAt(all)).toEqual([]);
+    expect(treasureChosen(all, undefined)).toMatchObject({
+      scene: 'map',
+      treasures: all.treasures,
+    });
+  });
+
   it('shows the chest at a chest step, however it was saved', () => {
     expect(screenOf({ ...begun, at: 'kiste', scene: 'fight' }).kind).toBe('chest');
   });
@@ -85,6 +99,10 @@ describe('the journey through the first chapter', () => {
   it('is opened again as it was saved, or begun afresh from what it does not know', () => {
     const saved = treasureChosen(fightWon(filmSeen(begun)), 'powerRing');
     expect(reviveJourney(structuredClone(saved))).toEqual(saved);
+    const atChest = { ...saved, at: 'kiste', scene: 'chest' };
+    expect(reviveJourney(atChest)).toEqual(atChest);
+    const dogsChest = fightWon(filmSeen(begun));
+    expect(reviveJourney(dogsChest)).toEqual(dogsChest);
     for (const broken of [
       undefined,
       'rejse',
@@ -97,6 +115,9 @@ describe('the journey through the first chapter', () => {
       { ...saved, treasures: ['sværd'] },
       { ...saved, treasures: 'heartJar' },
       { ...saved, scene: 'kort' },
+      { ...saved, done: ['hund', 'hund'] },
+      { ...saved, at: 'sti', scene: 'chest' },
+      { ...saved, done: [], scene: 'chest' },
     ]) {
       expect(reviveJourney(broken)).toBeNull();
     }

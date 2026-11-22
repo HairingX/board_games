@@ -1,6 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fakeSoundBrowser } from '../../../tests/audio';
+import { SoundEngine } from '../../lib/sound/engine';
 import { startJourney, type Journey } from './journey';
+import { sounds } from './sounds';
 import { JourneyMap } from './JourneyMap';
 
 beforeEach(() => {
@@ -16,17 +19,20 @@ afterEach(() => {
 function open(journey: Journey) {
   const onGo = vi.fn();
   const onBack = vi.fn();
+  const engine = new SoundEngine(fakeSoundBrowser().browser);
+  const effect = vi.spyOn(engine, 'effect');
   const view = render(
     <JourneyMap
       journey={journey}
       hero="Knight"
       onGo={onGo}
       onBack={onBack}
+      sound={engine}
       now={() => Date.now() / 1000}
       load={() => new Promise(() => undefined)}
     />,
   );
-  return { ...view, onGo, onBack };
+  return { ...view, onGo, onBack, effect };
 }
 
 const atFork: Journey = { ...startJourney(1), at: 'sti', done: ['hund', 'sti'], scene: 'map' };
@@ -51,8 +57,9 @@ describe('JourneyMap', () => {
   });
 
   it('walks the heroes to the step tapped, and only then goes on', async () => {
-    const { onGo } = open(atFork);
+    const { onGo, effect } = open(atFork);
     fireEvent.click(screen.getByRole('button', { name: /et stærkt slim/ }));
+    expect(effect).toHaveBeenCalledWith(sounds.choose.url, sounds.choose.gain);
     expect(screen.getByRole('button', { name: /et stærkt slim/ })).toBeDisabled();
     expect(onGo).not.toHaveBeenCalled();
     await act(async () => {

@@ -82,6 +82,8 @@ export class SoundEngine {
   private buses?: Buses;
   private settings: SoundSettings = { music: 1, effects: 1 };
   private playing: Playing | undefined;
+  /** Whether the app is out of sight, its sound paused until it is back. */
+  private asleep = false;
   private readonly sounds = new Map<string, Promise<AudioBuffer>>();
   /** Music read into memory, by its address, so it plays without the internet. */
   private readonly prepared = new Map<string, string>();
@@ -93,6 +95,11 @@ export class SoundEngine {
   unlock(): Buses {
     const buses = this.prepare();
     if (buses.context.state !== 'running') void buses.context.resume();
+    // Music the phone would not start without a tap, as it came after one, starts with the
+    // next sound, most often a tap's.
+    if (!this.asleep && this.playing?.element.paused) {
+      void this.playing.element.play().catch(() => undefined);
+    }
     return buses;
   }
 
@@ -221,11 +228,8 @@ export class SoundEngine {
    */
   music(url: string, volume = 1): void {
     const { context, music } = this.unlock();
-    if (this.playing?.url === url) {
-      // The phone may have kept it paused after the app was away; a tap starts it again.
-      if (this.playing.element.paused) void this.playing.element.play().catch(() => undefined);
-      return;
-    }
+    // The same piece goes on; paused by the phone, the unlocking above started it again.
+    if (this.playing?.url === url) return;
     this.stopMusic();
     const element = this.browser.makeAudio(this.prepared.get(url) ?? url);
     element.loop = true;
@@ -243,6 +247,7 @@ export class SoundEngine {
    * silenced, which keeps the phone showing it as playing and spends its battery.
    */
   sleep(): void {
+    this.asleep = true;
     this.playing?.element.pause();
     if (this.buses?.context.state === 'running') void this.buses.context.suspend();
   }
@@ -252,6 +257,7 @@ export class SoundEngine {
    * Should the phone want a tap first, the next sound or piece of music played starts it.
    */
   wake(): void {
+    this.asleep = false;
     if (this.buses?.context.state === 'suspended') void this.buses.context.resume();
     if (this.playing?.element.paused) void this.playing.element.play().catch(() => undefined);
   }

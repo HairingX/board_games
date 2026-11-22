@@ -2,12 +2,14 @@ import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from 're
 import arrow from '../../../assets/ninja-adventure/Ui/Arrow.png';
 import littleChest from '../../../assets/ninja-adventure/Items/Treasure/LittleTreasureChest.png';
 import { useMessages } from '../../i18n/I18n';
+import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { common } from '../../ui/text';
 import { topFrames } from './art';
 import type { Hero } from './heroes';
 import { ahead, copperChapter, stepsLeft, type Chapter, type Journey, type Step } from './journey';
 import { heroesAt, isTough, mapScene, mapSheets, roads, walkSeconds, type Walk } from './map';
+import { sounds } from './sounds';
 import { text } from './text';
 import './regnespil.css';
 
@@ -20,6 +22,7 @@ interface Props {
   onBack: () => void;
   aside?: ReactNode;
   chapter?: Chapter;
+  sound?: SoundEngine;
   /** The page's clock in seconds; the tests give their own. */
   now?: () => number;
   load?: LoadPicture;
@@ -42,6 +45,7 @@ export function JourneyMap({
   onBack,
   aside,
   chapter = copperChapter,
+  sound = defaultSound,
   now = pageClock,
   load,
 }: Props) {
@@ -118,6 +122,7 @@ export function JourneyMap({
             disabled={walk !== undefined}
             style={{ left: px(step.x + 8), top: px(step.y + 8) }}
             onClick={() => {
+              void sound.effect(sounds.choose.url, sounds.choose.gain);
               setWalk({ to: id, at: now(), lasts: walkSeconds(heroesAt(here), heroesAt(step)) });
             }}
           >

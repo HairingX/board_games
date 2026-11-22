@@ -91,6 +91,12 @@ export interface Journey {
   scene: Scene;
 }
 
+/**
+ * Where a fight on the journey is: the journey, by its seed, and the step. Saved with the fight,
+ * so a journey begun anew never goes on with a fight of the one before.
+ */
+export const fightPlaceOf = (journey: Journey): string => `${String(journey.seed)}/${journey.at}`;
+
 /** A new journey: its film first, then the first step's fight. */
 export function startJourney(seed: number, chapter: Chapter = copperChapter): Journey {
   return { seed, at: chapter.first, done: [], treasures: [], scene: 'film' };
@@ -118,17 +124,20 @@ export function fightWon(journey: Journey, chapter: Chapter = copperChapter): Jo
   return { ...journey, done, scene: chest ? 'chest' : onward(journey, chapter) };
 }
 
-/** A treasure chosen from the chest at the step, which is done with it. */
+/**
+ * A treasure chosen from the chest at the step, which is done with it; or, when the heroes
+ * have every treasure it could hold, none, and the chest is left.
+ */
 export function treasureChosen(
   journey: Journey,
-  treasure: Treasure,
+  treasure: Treasure | undefined,
   chapter: Chapter = copperChapter,
 ): Journey {
   const done = journey.done.includes(journey.at) ? journey.done : [...journey.done, journey.at];
   return {
     ...journey,
     done,
-    treasures: [...journey.treasures, treasure],
+    treasures: treasure === undefined ? journey.treasures : [...journey.treasures, treasure],
     scene: onward(journey, chapter),
   };
 }
@@ -176,10 +185,15 @@ export function reviveJourney(saved: unknown, chapter: Chapter = copperChapter):
     isStep(at) &&
     Array.isArray(done) &&
     done.every(isStep) &&
+    new Set(done).size === done.length &&
     Array.isArray(treasures) &&
     treasures.every(isTreasure) &&
     scenes.includes(scene as Scene);
-  return known ? (saved as unknown as Journey) : null;
+  if (!known) return null;
+  // A chest is open only at a chest, or after a fight that has one, won.
+  const step = chapter.steps[at] as Step;
+  const chestHere = step.kind === 'chest' || (step.chest === true && done.includes(at));
+  return scene === 'chest' && !chestHere ? null : (saved as unknown as Journey);
 }
 
 /** What the journey shows now, with what it needs. */

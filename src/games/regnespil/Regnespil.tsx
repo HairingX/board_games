@@ -12,6 +12,7 @@ import { Film } from './Film';
 import { fightSaveKey, reviveFight, seeds, type SavedFight } from './fightSave';
 import {
   adventureKey,
+  fightPlaceOf,
   fightWon,
   filmSeen,
   journeySaveKey,
@@ -51,13 +52,22 @@ export const adventurePlace = 'eventyr';
 /** A new journey's seed, from which its fights and chests are drawn. */
 const newSeed = () => Math.floor(Math.random() * seeds);
 
-/** The music that plays on each of the adventure's screens. */
-const screenMusic: Readonly<Record<Screen['kind'], Mixed>> = {
+/**
+ * The music that plays on each of the adventure's screens; a fight plays its own, as it begins
+ * and as it is won (`Fight.tsx`).
+ */
+const screenMusic: Readonly<Record<Screen['kind'], Mixed | 'own'>> = {
   film: music.begins,
-  fight: music.fight,
+  fight: 'own',
   chest: music.road,
   map: music.road,
   end: music.ends,
+};
+
+/** The music a tap starts for a screen, before it shows. */
+const musicFor = (kind: Screen['kind']): Mixed => {
+  const tune = screenMusic[kind];
+  return tune === 'own' ? music.fight : tune;
 };
 
 /** Whether a saved fight is one to go on with: of these players, at this step, against this monster. */
@@ -103,7 +113,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
   const screen = screenOf(current);
   const tune =
     place[0] === fightPlace
-      ? music.fight
+      ? 'own'
       : place[0] === adventurePlace
         ? screenMusic[screen.kind]
         : undefined;
@@ -114,11 +124,15 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
 
   // The music is read into memory before it is needed, so it plays without the internet.
   useEffect(() => {
-    void sound.prepareMusic([...fightMusic, ...Object.values(screenMusic).map(({ url }) => url)]);
+    void sound.prepareMusic([
+      ...fightMusic,
+      ...(['film', 'map', 'end'] as const).map((kind) => musicFor(kind).url),
+    ]);
   }, []);
 
-  // Each screen has its music; the setup has none.
+  // Each screen has its music, a fight its own; the setup has none.
   useEffect(() => {
+    if (tune === 'own') return;
     if (tune) sound.music(tune.url, tune.gain);
     else sound.stopMusic();
   }, [tune]);
@@ -167,11 +181,11 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
             key={current.at}
             players={players}
             settings={settings}
-            saved={goesOn(journeyFight, players, screen.foe, current.at)}
+            saved={goesOn(journeyFight, players, screen.foe, fightPlaceOf(current))}
             foe={screen.foe}
             toughness={screen.toughness}
             gear={gearOf(current.treasures)}
-            step={current.at}
+            step={fightPlaceOf(current)}
             onSave={saveJourneyFight}
             onCoins={onCoins}
             onDone={() => {
@@ -254,7 +268,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
             // A journey at its end is begun again; any other goes on where it stands.
             const goingOn = journey !== null && journey.scene !== 'end';
             if (!goingOn) saveJourney(startJourney(newSeed()));
-            const tuneThen = goingOn ? screenMusic[screen.kind] : music.begins;
+            const tuneThen = goingOn ? musicFor(screen.kind) : music.begins;
             sound.music(tuneThen.url, tuneThen.gain);
             go([adventurePlace]);
           }}

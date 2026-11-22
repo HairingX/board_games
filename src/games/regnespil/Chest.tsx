@@ -14,7 +14,8 @@ import './regnespil.css';
 interface Props {
   /** The treasures the chest holds, one to be chosen. */
   offers: readonly Treasure[];
-  onChoose: (treasure: Treasure) => void;
+  /** Keeps the treasure chosen; with none, as when the chest holds nothing new, goes on. */
+  onChoose: (treasure?: Treasure) => void;
   onBack: () => void;
   aside?: ReactNode;
   sound?: SoundEngine;
@@ -134,6 +135,17 @@ export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }:
                 </li>
               ))}
             </ul>
+            {offers.length === 0 && (
+              <button
+                type="button"
+                className="rs-button"
+                onClick={() => {
+                  onChoose();
+                }}
+              >
+                {t.adventure.onward}
+              </button>
+            )}
             {chosen && (
               <p className="visually-hidden" role="status">
                 {t.chest.took(t.treasures[chosen].name)}

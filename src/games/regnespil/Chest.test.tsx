@@ -58,4 +58,13 @@ describe('Chest', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Åbn kisten' }));
     expect(screen.getByRole('button', { name: /Skjoldamuletten/ })).toBeInTheDocument();
   });
+
+  it('goes on when it holds nothing new to choose', () => {
+    const onChoose = vi.fn();
+    const engine = new SoundEngine(fakeSoundBrowser().browser);
+    render(<Chest offers={[]} onChoose={onChoose} onBack={vi.fn()} sound={engine} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Åbn kisten' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Videre' }));
+    expect(onChoose).toHaveBeenCalledWith();
+  });
 });

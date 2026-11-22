@@ -10,6 +10,7 @@ import {
 } from '../../../tests/audio';
 import type { Voice } from './babble';
 import { chimes, type Chime } from './chimes';
+import { voices } from './voices';
 import { ducking, musicFade, sound, SoundEngine } from './engine';
 
 function engine() {
@@ -139,6 +140,19 @@ describe('SoundEngine', () => {
     sound.music('/forest.m4a');
     await Promise.resolve();
     expect(forest?.play).toHaveBeenCalledTimes(3);
+  });
+
+  it('starts music the phone held back with the next sound, but not while the app is away', () => {
+    const { sound, audios } = engine();
+    sound.music('/forest.m4a');
+    const [forest] = audios;
+    // Begun without a tap, the phone would not play it.
+    forest?.pause();
+    sound.babble(voices.hero, 2);
+    expect(forest?.play).toHaveBeenCalledTimes(2);
+    sound.sleep();
+    sound.babble(voices.hero, 2);
+    expect(forest?.play).toHaveBeenCalledTimes(2);
   });
 
   it('ducks the music under a chime, and lets a note glide', () => {
