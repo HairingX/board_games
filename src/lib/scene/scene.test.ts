@@ -171,6 +171,21 @@ describe('figures acting', () => {
     expect(signed[1]).toMatchObject({ sheet: 'alert', x: 23 });
   });
 
+  it('spins round like a top, and swells up trembling and back', () => {
+    const spinning = { acts: [{ kind: 'spin', at }] } as const;
+    const flips = Array.from({ length: 40 }, (_, step) =>
+      Boolean(one(spinning, at + (step * act.spin.seconds) / 40)?.flip),
+    );
+    expect(flips.filter(Boolean).length).toBeGreaterThan(5);
+    expect(one(spinning, at + act.spin.seconds + eps)?.flip).toBeUndefined();
+    const swelling = { acts: [{ kind: 'swell', at }] } as const;
+    const { up, hold, down, size } = act.swell;
+    expect(one(swelling, at + up / 2)?.grow).toBeCloseTo(1 + (size - 1) / 2);
+    const held = [0.11, 0.145].map((into) => one(swelling, at + up + into)?.x);
+    expect(held[0]).not.toBe(held[1]);
+    expect(one(swelling, at + up + hold + down + eps)?.grow).toBeUndefined();
+  });
+
   it('cheers again and again when the act repeats', () => {
     const dancing = { acts: [{ kind: 'cheer', at, repeat: 2 }] } as const;
     const high = one(dancing, at + act.cheer.seconds / 2)?.y;
@@ -345,14 +360,14 @@ describe('figures acting', () => {
   });
 
   it('floats an effect gently up and down', () => {
-    const cup: Scene = {
+    const floating: Scene = {
       ...scene,
       ground: [],
       things: [],
       figures: [],
       effects: [
         {
-          sheet: 'cup',
+          sheet: 'spark',
           width: 9,
           height: 11,
           frames: 1,
@@ -364,9 +379,9 @@ describe('figures acting', () => {
         },
       ],
     };
-    expect(drawScene(cup, at)[0]?.y).toBe(10);
-    expect(drawScene(cup, at + 1)[0]?.y).toBe(8);
-    expect(drawScene(cup, at + 100)[0]?.y).toBe(10);
+    expect(drawScene(floating, at)[0]?.y).toBe(10);
+    expect(drawScene(floating, at + 1)[0]?.y).toBe(8);
+    expect(drawScene(floating, at + 100)[0]?.y).toBe(10);
   });
 
   it('plays an effect once every so often, while it lasts or for good', () => {

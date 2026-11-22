@@ -17,7 +17,12 @@ import {
   smash,
   spearHeld,
   sweep,
-  trophy,
+  energy,
+  energyFrom,
+  flagFall,
+  flagLands,
+  flagPlanted,
+  shieldFlash,
   type Doing,
   type Staging,
 } from './clearing';
@@ -67,20 +72,26 @@ export const victory = {
 /**
  * How a victory is celebrated, so it is plain the fight was won, as the owner chose: a
  * victory dance, the heroes hopping and cheering again and again, each a little after the
- * other, under a gold cup floating over them, while fireworks burst over the trees, each every
- * so often, for a while; when the fight is opened again, they burst a little again.
+ * other, while a flag falls from the sky (`flag` seconds after the last stroke shows) and is
+ * planted where the monster stood, waving for good, and fireworks burst over the trees, each
+ * every so often, for a while; when the fight is opened again, they burst a little again.
  */
 export const celebration = {
   dance: 2.2,
+  flag: 0.9,
   every: 2.4,
   apart: 0.4,
   fireworks: 12,
   again: 6,
 } as const;
 
-/** The flag and fireworks of a victory, from `at`, the fireworks for `lasts` seconds. */
-const celebrate = (at: number, lasts: number): readonly Effect[] => [
-  trophy(at),
+/**
+ * The flag and fireworks of a victory, from `at`: the flag falling where the monster stood
+ * (its `middle`), and the fireworks for `lasts` seconds.
+ */
+const celebrate = (at: number, lasts: number, middle: number): readonly Effect[] => [
+  flagPlanted(at, middle),
+  flagLands(at + flagFall.seconds, middle),
   ...fireworks(at, lasts, celebration.every),
 ];
 
@@ -120,6 +131,8 @@ export interface Moment {
   others: readonly string[];
   /** Whether the heroes are out of hearts after it, so the one knocked over rests. */
   lost: boolean;
+  /** Where the middle of the monster is on the stage, where a victory's flag falls. */
+  middle: number;
 }
 
 const sound = (name: Sound, after = 0): Cue => ({ sound: name, after });
@@ -180,27 +193,16 @@ export type Evasion = keyof typeof evasions;
 
 /** What can happen when the hero attacks, by what the answer did. */
 export const attacks = {
-  /**
-   * A right answer: the stroke lands; `rage` if the monster grew enraged at it, `shield` if a
-   * shield rose before it, which comes up with a clang and a roar.
-   */
-  stroke: (moment: Moment, power: boolean, rage: boolean, shield = false): Beat => {
+  /** A right answer: the stroke lands. */
+  stroke: (moment: Moment, power: boolean): Beat => {
     const shown = moment.at + reveal;
-    const roars = rage || shield;
     return {
       staging: {
         hero: { acts: strike(moment) },
-        monster: {
-          acts: [...hurry(moment), { kind: 'hurt', at: shown + victory.vanish }],
-          ...(roars ? { sign: { sheet: 'angry', at: shown + moments.rage } } : {}),
-        },
+        monster: { acts: [...hurry(moment), { kind: 'hurt', at: shown + victory.vanish }] },
         effects: cuts(shown, power),
       },
-      cues: [
-        ...landing(power),
-        ...(roars ? [voice('monster', 8, reveal + moments.rage)] : []),
-        ...(shield ? [sound('clang', reveal + moments.rage)] : []),
-      ],
+      cues: landing(power),
     };
   },
   /**
@@ -244,7 +246,7 @@ export const attacks = {
           ...cuts(shown, power),
           puff(shown + victory.puff),
           ...coinSpots.slice(0, coins).map((spot, index) => coinDrop(shown + coinAt(index), spot)),
-          ...celebrate(shown + celebration.dance, celebration.fireworks),
+          ...celebrate(shown + celebration.flag, celebration.fireworks, moment.middle),
         ],
       },
       cues: [
@@ -487,12 +489,7 @@ export function answerBeat(
   if (next.last === 'struck' || power) {
     return next.outcome === 'won'
       ? attacks.victory(moment, power, coins)
-      : attacks.stroke(
-          moment,
-          power,
-          next.enraged && !before.enraged,
-          next.shieldRaised && !before.shieldRaised,
-        );
+      : attacks.stroke(moment, power);
   }
   return attacks.evaded(moment, ways.evasion, next.last === 'nicked');
 }
@@ -527,10 +524,15 @@ export const reached = {
 /**
  * How the stage stands when a fight is opened again at `at`, rather than played to where it
  * is: a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
- * ones waiting behind, by their players' ids) dance under the gold cup while fireworks burst a
- * little again.
+ * ones waiting behind, by their players' ids) dance by the flag where the monster stood (its
+ * `middle`) while fireworks burst a little again.
  */
-export function aftermath(fight: Fight, at: number, others: readonly string[]): Staging {
+export function aftermath(
+  fight: Fight,
+  at: number,
+  others: readonly string[],
+  middle: number,
+): Staging {
   return fight.outcome === 'won'
     ? {
         hero: { acts: [dance(at, 0)] },
@@ -538,7 +540,90 @@ export function aftermath(fight: Fight, at: number, others: readonly string[]): 
           others.map((id, index) => [id, { acts: [dance(at, index + 1)] }]),
         ),
         monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] },
-        effects: celebrate(at, celebration.again),
+        effects: [
+          // The flag stands where it fell, and the fireworks burst a little again.
+          flagPlanted(at - flagFall.seconds, middle),
+          ...fireworks(at, celebration.again, celebration.every),
+        ],
       }
     : {};
+}
+
+/** How a phase begins: the energy gathering for a shield, one spark after another, and after. */
+export const phasing = { gather: 0.9, apart: 0.08, after: 0.9 } as const;
+
+/**
+ * How a monster enters a new phase, as the owner asked, so it is felt that the fight grows
+ * harder rather than a change just popping up: these play between two sums, at `at`, the
+ * monster's `middle` where it stands, before the next sum comes.
+ */
+export const phases = {
+  /** Enraged: it spins round like a top, swells up trembling with a roar and a stamp, and back. */
+  rage: (at: number): Beat => {
+    const swelling = at + motionTokens.act.spin.seconds;
+    return {
+      staging: {
+        monster: {
+          acts: [
+            { kind: 'spin', at },
+            { kind: 'swell', at: swelling },
+          ],
+          sign: { sheet: 'angry', at: swelling },
+        },
+        hero: { sign: { sheet: 'alert', at: swelling } },
+      },
+      cues: [
+        voice('monster', 4),
+        voice('monster', 10, swelling - at),
+        sound('bump', swelling - at + motionTokens.act.swell.up),
+      ],
+    };
+  },
+  /**
+   * A shield: sparks of energy fly in from all round the stage and gather in the monster, it
+   * swells as they meet, and the shield forms in a flash of light, with a clang and a roar.
+   */
+  shield: (at: number, middle: number): Beat => {
+    const formed = at + phasing.gather + phasing.apart * (energyFrom.length - 1);
+    return {
+      staging: {
+        monster: {
+          acts: [{ kind: 'swell', at: formed - motionTokens.act.swell.up }],
+          sign: { sheet: 'alert', at },
+        },
+        hero: { sign: { sheet: 'alert', at: formed } },
+        effects: [
+          ...energyFrom.map((from, index) =>
+            energy(at + index * phasing.apart, from, middle, phasing.gather),
+          ),
+          shieldFlash(formed, middle),
+        ],
+      },
+      cues: [
+        sound('gather'),
+        voice('monster', 3),
+        sound('powerUp', formed - at),
+        sound('clang', formed - at),
+        voice('monster', 8, formed - at),
+      ],
+    };
+  },
+} as const;
+export type Phase = keyof typeof phases;
+
+/** How long each phase's beginning lasts, in seconds, before the next sum comes. */
+export const phaseSeconds: Readonly<Record<Phase, number>> = {
+  rage:
+    motionTokens.act.spin.seconds +
+    motionTokens.act.swell.up +
+    motionTokens.act.swell.hold +
+    motionTokens.act.swell.down,
+  shield: phasing.gather + phasing.apart * (energyFrom.length - 1) + phasing.after,
+};
+
+/** The phase a fight entered at the last answer, if it did: a shield rising, or enraged. */
+export function phaseEntered(next: Fight, before: Fight): Phase | undefined {
+  if (next.outcome !== 'fighting') return undefined;
+  if (next.shieldRaised && !before.shieldRaised) return 'shield';
+  return next.enraged && !before.enraged ? 'rage' : undefined;
 }

@@ -116,6 +116,10 @@ export interface Draw {
   y: number;
   /** Quarter turns about its middle, clockwise, as a figure knocked over lies; none if absent. */
   turn?: number;
+  /** How many times its size it is drawn, about its feet, as a monster swelling with rage. */
+  grow?: number;
+  /** Whether it is drawn mirrored, as a figure spinning round shows its other side. */
+  flip?: boolean;
 }
 
 /** The stage's size in pixels. */
@@ -250,6 +254,23 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     if (height === 0) return undefined;
     return { sheet: figure.sheet, cut: { ...cutOf(row), height }, x, y: y + tall - height };
   }
+  if (kind === 'spin' && into < act.spin.seconds) {
+    // Spinning round like a top: its other side and back, quicker and quicker.
+    const turns = Math.floor((into / act.spin.seconds) ** 0.7 * act.spin.turns);
+    if (turns % 2 === 1) return { sheet: figure.sheet, cut: cutOf(row), x, y, flip: true };
+  }
+  if (kind === 'swell' && into < act.swell.up + act.swell.hold + act.swell.down) {
+    const { up, hold, down, size, shake } = act.swell;
+    const share = into < up ? into / up : into < up + hold ? 1 : 1 - (into - up - hold) / down;
+    const trembling = into >= up && into < up + hold;
+    return {
+      sheet: figure.sheet,
+      cut: cutOf(row),
+      x: x + (trembling ? (Math.floor(into * 30) % 2 === 0 ? shake : -shake) : 0),
+      y,
+      grow: 1 + (size - 1) * share,
+    };
+  }
   if (kind === 'cheer' && into < act.cheer.seconds) {
     y -= Math.round(Math.sin((into / act.cheer.seconds) * Math.PI) * act.cheer.height);
   }
@@ -337,7 +358,16 @@ export function drawScene(scene: Scene, seconds: number, still = false): Draw[] 
       (draw): draw is Draw => draw !== undefined,
     ),
   ].map((draw: Draw): Draw => {
-    const { sheet, cut, x, y, turn } = draw;
-    return turn === undefined ? { sheet, cut, x, y } : { sheet, cut, x, y, turn };
+    // Only what is drawn: a thing's other fields, as which sheet it is from, are left out.
+    const { sheet, cut, x, y, turn, grow, flip } = draw;
+    return {
+      sheet,
+      cut,
+      x,
+      y,
+      ...(turn === undefined ? {} : { turn }),
+      ...(grow === undefined ? {} : { grow }),
+      ...(flip === undefined ? {} : { flip }),
+    };
   });
 }

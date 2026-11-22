@@ -154,21 +154,24 @@ describe('Fight', () => {
     expect(hearts('5')).toBeInTheDocument();
   });
 
-  it('enrages the slime halfway: its face turns cross, it roars, and strikes back at once', async () => {
+  it('enrages the slime halfway: its face turns cross, it spins and swells with a roar, and strikes back', async () => {
     const { container, babbled } = open([{ level: 1, sword: 'træ' }]);
     const face = () => container.querySelector('.rs-foe-face')?.getAttribute('src');
     const calm = face();
     await choose('2');
     expect(face()).not.toBe(calm);
-    expect(babbled()).toContainEqual([voices.slime, 8]);
+    // After the pause it shows its new phase before the next sum comes.
     await pause(right);
+    expect(babbled()).toContainEqual([voices.slime, 10]);
+    expect(screen.queryByText('Forsvar')).not.toBeInTheDocument();
+    await pause(2);
     expect(screen.getByText('Forsvar')).toBeInTheDocument();
   });
 
   it('wins with a fanfare, coins and a cheering hero, and starts again', async () => {
     const { played, context, audios, runLater, onCoins } = open([{ level: 1, sword: 'træ' }]);
     await choose('2');
-    await pause(right);
+    await next(right);
     // Enraged, the slime strikes back at once: the hero dodges.
     await choose('2');
     await pause(right);
@@ -399,7 +402,7 @@ describe('Fight', () => {
     const { container, babbled } = open();
     for (let turn = 0; turn < 3; turn++) {
       await choose('2');
-      await pause(right);
+      await next(right);
     }
     // Struck twice and dodged once, it turns to the bush.
     expect(babbled()).toContainEqual([voices.slime, 3]);

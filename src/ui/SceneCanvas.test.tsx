@@ -215,6 +215,29 @@ describe('paint', () => {
     expect(context.drawImage.mock.calls[1]?.slice(5)).toEqual([40, 20, 16, 16]);
   });
 
+  it('grows a figure about its feet, and mirrors it, as a monster swelling and spinning', () => {
+    const context = fakeContext();
+    const picture = document.createElement('canvas');
+    paint(
+      context as unknown as CanvasRenderingContext2D,
+      [
+        { sheet: 'boss', cut: { x: 0, y: 0, width: 20, height: 10 }, x: 10, y: 20, grow: 1.5 },
+        { sheet: 'boss', cut: { x: 0, y: 0, width: 20, height: 10 }, x: 10, y: 20, flip: true },
+      ],
+      new Map([['boss', picture]]),
+      { width: 64, height: 64 },
+      2,
+    );
+    expect(context.setTransform.mock.calls).toEqual([
+      [2, 0, 0, 2, 0, 0],
+      [3, 0, 0, 3, 40, 60],
+      [2, 0, 0, 2, 0, 0],
+      [-2, 0, 0, 2, 40, 60],
+      [2, 0, 0, 2, 0, 0],
+    ]);
+    expect(context.drawImage.mock.calls[0]?.slice(5)).toEqual([-10, -10, 20, 10]);
+  });
+
   it('leaves out a picture it does not have', () => {
     const context = fakeContext();
     paint(

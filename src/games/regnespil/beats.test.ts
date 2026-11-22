@@ -3,6 +3,9 @@ import { drawScene } from '../../lib/scene/scene';
 import {
   aftermath,
   answerBeat,
+  phaseEntered,
+  phases,
+  phaseSeconds,
   attacks,
   evasions,
   reached,
@@ -18,7 +21,7 @@ import { clearing, slimeAt } from './clearing';
 import { giantSlime, slime } from './monsters';
 import { sounds } from './sounds';
 
-const moment: Moment = { at: 10, walked: 0, others: [], lost: false };
+const moment: Moment = { at: 10, walked: 0, others: [], lost: false, middle: 108 };
 
 /** Every moment a beat's staging may draw something, from its start to well after. */
 const throughout = Array.from({ length: 40 }, (_, step) => moment.at + step * 0.1);
@@ -66,8 +69,7 @@ describe('the fight’s beats', () => {
       expect(evasions[evasion](1).at).toBe(1);
       expect(drawn(attacks.evaded(moment, evasion, true))).toBeGreaterThan(0);
     }
-    const struck = attacks.stroke(moment, true, true);
-    expect(struck.staging.monster?.sign?.sheet).toBe('angry');
+    const struck = attacks.stroke(moment, true);
     expect(struck.cues.filter((cue) => 'sound' in cue && cue.sound === 'hit')).toHaveLength(2);
     const won = attacks.victory({ ...moment, others: ['far'] }, false, 6);
     const celebrated = clearing(
@@ -75,8 +77,10 @@ describe('the fight’s beats', () => {
       { front: 'Knight', bench: [] },
       { look: slime.look.calm, bush: true, shielded: false },
     );
-    const atParty = drawScene(celebrated, moment.at + reveal + 3).map((draw) => draw.sheet);
-    expect(atParty).toEqual(expect.arrayContaining(['cup', 'sparkle']));
+    const atParty = [1, 2, 3, 4].flatMap((after) =>
+      drawScene(celebrated, moment.at + reveal + after).map((draw) => draw.sheet),
+    );
+    expect(atParty).toEqual(expect.arrayContaining(['flag', 'sparkle']));
     // Two cheers, then the dance, again and again.
     expect(won.staging.bench?.far?.acts?.at(-1)).toMatchObject({ kind: 'cheer', repeat: 2.4 });
     expect(heard(won)).toBe(true);
@@ -96,8 +100,6 @@ describe('the fight’s beats', () => {
     expect(chipped.cues).toContainEqual({ sound: 'clang', after: reveal });
     const broken = attacks.shielded(moment, true);
     expect(broken.staging.effects?.length).toBe(2);
-    const risen = attacks.stroke(moment, false, false, true);
-    expect(risen.cues.some((cue) => 'sound' in cue && cue.sound === 'clang')).toBe(true);
   });
 
   it('picks the beat a boss’s answer plays, on its shield and as its shield rises', () => {
@@ -107,14 +109,11 @@ describe('the fight’s beats', () => {
     expect(onShield.cues).toContainEqual({ sound: 'clang', after: reveal });
     const shattered = answerBeat({ ...boss, last: 'shattered' }, boss, moment, ways, 3);
     expect(shattered.staging.effects).toHaveLength(2);
-    const rising = answerBeat(
-      { ...boss, last: 'struck', shieldRaised: true, shield: 3 },
-      boss,
-      moment,
-      ways,
-      3,
-    );
-    expect(rising.staging.monster?.sign?.sheet).toBe('angry');
+    const rising = { ...boss, last: 'struck', shieldRaised: true, shield: 3 } as const;
+    expect(phaseEntered(rising, boss)).toBe('shield');
+    expect(phaseEntered({ ...boss, enraged: true }, boss)).toBe('rage');
+    expect(phaseEntered(boss, boss)).toBeUndefined();
+    expect(phaseEntered({ ...rising, outcome: 'won' }, boss)).toBeUndefined();
     const slammed = answerBeat(
       { ...boss, last: 'hit' },
       { ...boss, threat: true },
@@ -123,6 +122,24 @@ describe('the fight’s beats', () => {
       3,
     );
     expect(slammed.staging.monster?.acts?.[0]?.kind).toBe('pounce');
+  });
+
+  it('shows a new phase beginning: a spin and a swell for rage, energy gathering for a shield', () => {
+    const rage = phases.rage(moment.at);
+    expect(rage.staging.monster?.acts?.map((act) => act.kind)).toEqual(['spin', 'swell']);
+    expect(heard(rage)).toBe(true);
+    const shield = phases.shield(moment.at, 120);
+    expect(shield.staging.effects?.filter((effect) => effect.sheet === 'spark')).toHaveLength(6);
+    expect(shield.cues).toContainEqual(expect.objectContaining({ sound: 'powerUp' }));
+    // Each beginning ends before the next sum, after its last moment.
+    for (const [which, beat] of [
+      ['rage', rage],
+      ['shield', shield],
+    ] as const) {
+      const last = Math.max(...beat.cues.map((cue) => cue.after));
+      expect(phaseSeconds[which]).toBeGreaterThan(last);
+    }
+    expect(drawn(shield)).toBeGreaterThan(0);
   });
 
   it('stands a big monster with its feet on the ground, without a bush, and with its shield', () => {
@@ -154,13 +171,13 @@ describe('the fight’s beats', () => {
   it('has a beaten monster gone when the fight is opened again, and anything else as it stands', () => {
     const won = { ...startFight(2), lives: 0, outcome: 'won' } as const;
     const scene = clearing(
-      aftermath(won, 5, ['far']),
+      aftermath(won, 5, ['far'], 108),
       { front: 'Knight', bench: [{ id: 'far', hero: 'Samurai' }] },
       { look: slime.look.calm, bush: true, shielded: false },
     );
     const drawnNow = drawScene(scene, 5).map((draw) => draw.sheet);
     expect(drawnNow).toContain('Knight');
-    expect(drawnNow).toEqual(expect.arrayContaining(['cup', 'Samurai']));
+    expect(drawnNow).toEqual(expect.arrayContaining(['flag', 'Samurai']));
     expect(drawnNow).toContain('ring');
     expect(drawnNow).not.toContain({ look: slime.look.calm, bush: true, shielded: false });
     expect(drawScene(scene, 5, true).map((draw) => draw.sheet)).not.toContain({
@@ -168,15 +185,15 @@ describe('the fight’s beats', () => {
       bush: true,
       shielded: false,
     });
-    // Later the fireworks are over, and the heroes still dance under the cup.
+    // Later the fireworks are over, and the heroes still dance by the flag.
     const later = drawScene(scene, 5 + 60).map((draw) => draw.sheet);
-    expect(later).toContain('cup');
+    expect(later).toContain('flag');
     expect(later).not.toContain('ring');
     const hops = [60, 60.35].map(
       (time) => drawScene(scene, 5 + time).find((draw) => draw.sheet === 'Knight')?.y,
     );
     expect(hops[0]).not.toBe(hops[1]);
-    expect(aftermath(startFight(2), 5, [])).toEqual({});
+    expect(aftermath(startFight(2), 5, [], 108)).toEqual({});
   });
 
   it('shows how an answer went as the hero or the monster arrives', () => {

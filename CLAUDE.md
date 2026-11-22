@@ -183,10 +183,12 @@ game builds on them, and everything must stay smooth on a phone.
   springing out in arcs, and the heroes cheering, a heart over the head of the one who struck,
   and then happy music. So it is plain the fight was won, the heroes then do a victory dance,
   as the owner chose: hopping and cheering again and again for good, each a little after the
-  other (a repeating act), under the pack's gold cup floating over them (`trophy`), while
-  fireworks (the pack's `Magic/Circle` and `Magic/Spark`) burst over the trees for a while
-  (`celebration` in `beats.ts`); no flag, which looked stiff held still, and no gravestone,
-  not for the youngest. The coins are picked up, as the owner asked, since children love
+  other (a repeating act), while the pack's red flag drops from the sky and lands, in a puff of
+  dust, where the monster stood, waving there for good (`flagPlanted` in `clearing.ts`), as
+  the owner chose over a gold cup that looked like a mug, and fireworks (the pack's
+  `Magic/Circle` and `Magic/Spark`) burst over the trees for a while (`celebration` in
+  `beats.ts`); no flag in the hand, which looked stiff held still, and no gravestone, not for
+  the youngest. The coins are picked up, as the owner asked, since children love
   taking money: each lands as a button (`coinSpots`, far enough apart for a finger) and,
   tapped, flashes and flies up into its player's purse with the pack's "Coin2", the purse's
   count bouncing as it grows. Each player has a purse of their own, kept for good on their
@@ -197,7 +199,7 @@ game builds on them, and everything must stay smooth on a phone.
   hearts, the monster's life, whose turn comes next and the sum waiting for them, so a closed
   or crashed app goes on where it was, with the same sum, not a new one to try instead. The
   stage reopens as the fight stands (`aftermath` in `beats.ts`): a beaten monster is gone, the
-  heroes dance under the cup, and the fireworks burst a little again.
+  heroes dance by the flag where it stood, and the fireworks burst a little again.
 - The party, as agreed: each player chooses a hero on the setup (`HeroPicker.tsx`), kept with
   their level and sword and suggested the first time from the face on their profile, or else
   by their id (`heroes.ts`), among figures the story will not use (not `Boy`, `Princess`,
@@ -230,7 +232,14 @@ game builds on them, and everything must stay smooth on a phone.
   answer); at a third a shield rises (`shieldAt`), drawn before it with its pieces in blue
   over its life, and a right answer still always lands: on the shield, breaking a piece off
   (`shieldPieces`, three), or shattering it at once with a power stroke. It has no berry
-  bush. A saved fight keeps the monster it is against (`foe`), and one against another monster
+  bush. A new phase never just appears, as the owner asked, so it feels like more is coming:
+  it is a short scene between the sums, before the next comes (`phases`, `phaseSeconds` and
+  `phaseEntered` in `beats.ts`). Enraged, the boss spins like a top (the `spin` act, mirrored
+  faster and slower), swells up with a roar, trembling, and shrinks back (`swell`, grown about
+  its feet; for that moment only the pixel art is drawn at sizes between whole pixels); as the
+  shield comes, sparks of energy fly in from around the stage and gather on it (`energy`), and
+  the shield forms in a flash with a clang and a roar, hidden until it has. A saved fight keeps
+  the monster it is against (`foe`), and one against another monster
   is begun afresh. Still to come: monsters with more lives further on, as the run takes
   shape.
 - Monsters and bosses are generated, as the owner decided (section 5.7 of

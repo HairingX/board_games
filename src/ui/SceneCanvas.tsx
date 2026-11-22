@@ -34,9 +34,26 @@ export function paint(
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.imageSmoothingEnabled = false;
   context.clearRect(0, 0, size.width, size.height);
-  for (const { sheet, cut, x, y, turn } of draws) {
+  for (const { sheet, cut, x, y, turn, grow, flip } of draws) {
     const picture = pictures.get(sheet);
     if (!picture) continue;
+    if (grow !== undefined || flip) {
+      // Grown about its feet, or mirrored about its middle, as a monster swelling or spinning.
+      const size = grow ?? 1;
+      const feet = { x: x + cut.width / 2, y: y + cut.height };
+      context.setTransform(
+        scale * size * (flip ? -1 : 1),
+        0,
+        0,
+        scale * size,
+        feet.x * scale,
+        feet.y * scale,
+      );
+      const { width, height } = cut;
+      context.drawImage(picture, cut.x, cut.y, width, height, -width / 2, -height, width, height);
+      context.setTransform(scale, 0, 0, scale, 0, 0);
+      continue;
+    }
     if (turn === undefined) {
       context.drawImage(picture, cut.x, cut.y, cut.width, cut.height, x, y, cut.width, cut.height);
       continue;

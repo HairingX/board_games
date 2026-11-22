@@ -401,7 +401,7 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   but not for the youngest children. (Built: a flag held up for good, and fireworks.)
 - The flag only waved for 10–12 seconds before it froze; a held flag frozen looked bad. Of the
   proposals (a flag planted in the ground, a flag in the hand, a victory dance), the owner chose
-  the victory dance. (Built: the heroes hop and cheer again and again under a gold cup.)
+  the victory dance. (Built: the heroes hop and cheer again and again.)
 - Try a harder boss to get more fight, to see the phases the slime never reaches. (Decided and
   built as proposed: the giant slime, three times as tough; at two thirds enraged with a
   warned body slam; at a third a shield that right answers break a piece at a time and a power
@@ -410,3 +410,13 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   percent and some others are easy to guess: for 22 squared, one answer is 484 and the others
   are far smaller, so the answer is plain without working it out. (Fixed: wrong answers to
   bigger sums are about as big as the right one.)
+- The gold cup over the dancing heroes is not pretty and looks like some kind of mug. Nicer
+  if a flag just drops from the sky and lands where the boss stood, so you can see the flag
+  standing where the boss was before. (Built: the flag drops, lands in a puff of dust and
+  waves there for good.)
+- The boss fight has little variation: the shield it brought out was the only thing noticed,
+  and it made no reaction. It could spin like a top, or grow in size, roar and become a little
+  smaller again, and gather energy for the shield, like the fireworks. In general a phase
+  should not just pop up; it should be made something of, so you feel more resistance is
+  coming now. (Built: rage is a spin, a swell with a roar and a shrink; the shield gathers
+  sparks of energy and forms in a flash.)

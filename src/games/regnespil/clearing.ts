@@ -16,7 +16,8 @@ import splash from '../../../assets/ninja-adventure/FX/Elemental/Water/SpriteShe
 import pebble from '../../../assets/ninja-adventure/FX/Projectile/SpriteSheetRock.png';
 import grass from '../../../assets/ninja-adventure/FX/Particle/Grass.png';
 import lance from '../../../assets/ninja-adventure/Items/Weapons/Lance/Sprite.png';
-import cup from '../../../assets/ninja-adventure/Items/Treasure/GoldCup.png';
+import flag from '../../../assets/ninja-adventure/Backgrounds/Animated/Flag/FlagRed16x16.png';
+import spark from '../../../assets/ninja-adventure/FX/Particle/Spark.png';
 import giantSlime from '../../../assets/ninja-adventure/Actor/Boss/GiantSlime/Idle.png';
 import guard from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetYellow.png';
 import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpark.png';
@@ -58,7 +59,8 @@ export const clearingSheets = {
   pebble,
   grass,
   lance,
-  cup,
+  flag,
+  spark,
   giantSlime,
   guard,
   ring,
@@ -206,17 +208,75 @@ export const dust = (at: number): Effect => ({
   at,
 });
 
-/** A gold cup over the heroes' heads after a victory, floating gently up and down, for good. */
-export const trophy = (at: number): Effect => ({
-  sheet: 'cup',
-  width: 9,
-  height: 11,
-  frames: 1,
-  x: heroAt.x + 3,
-  y: heroAt.y - 18,
+/** How far a victory flag falls from the sky, in pixels, and for how long, in seconds. */
+export const flagFall = { height: 70, seconds: 0.6 } as const;
+
+/**
+ * A victory flag falling from the sky and planted where the monster stood (`middle`), waving
+ * for good, so it is plain the fight was won; frames side by side.
+ */
+export const flagPlanted = (at: number, middle: number): Effect => ({
+  sheet: 'flag',
+  width: 16,
+  height: 16,
+  frames: 4,
+  x: middle - 8,
+  y: slimeAt.y - flagFall.height,
   at,
   lasts: Number.POSITIVE_INFINITY,
-  float: { height: 2, every: 1.2 },
+  arc: { dx: 0, dy: flagFall.height, height: 0, seconds: flagFall.seconds },
+});
+
+/** Dust thrown up where the flag lands. */
+export const flagLands = (at: number, middle: number): Effect => ({
+  sheet: 'smoke',
+  width: 32,
+  height: 32,
+  frames: 6,
+  x: middle - 16,
+  y: slimeAt.y - 12,
+  at,
+});
+
+/**
+ * A spark of energy flying from the edge of the stage into the monster (its `middle`), as a
+ * shield gathers; frames side by side.
+ */
+export const energy = (
+  at: number,
+  from: { x: number; y: number },
+  middle: number,
+  seconds: number,
+): Effect => ({
+  sheet: 'spark',
+  width: 10,
+  height: 8,
+  frames: 7,
+  ...from,
+  at,
+  lasts: seconds,
+  arc: { dx: middle - 5 - from.x, dy: slimeAt.y - from.y, height: 12, seconds },
+});
+
+/** Where a shield's energy comes from: all round the stage's edges. */
+export const energyFrom: readonly { x: number; y: number }[] = [
+  { x: 4, y: 4 },
+  { x: 150, y: 2 },
+  { x: 76, y: -6 },
+  { x: 150, y: 128 },
+  { x: 4, y: 120 },
+  { x: 80, y: 136 },
+];
+
+/** A ring of light flashing round the monster (its `middle`) as its shield forms. */
+export const shieldFlash = (at: number, middle: number): Effect => ({
+  sheet: 'ring',
+  width: 32,
+  height: 32,
+  frames: 6,
+  x: middle - 16,
+  y: slimeAt.y - 12,
+  at,
 });
 
 /**

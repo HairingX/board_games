@@ -32,7 +32,11 @@ import {
   teases,
   teasing,
   strikes,
+  phaseEntered,
+  phases,
+  phaseSeconds,
   type Beat,
+  type Phase,
 } from './beats';
 import {
   benchAt,
@@ -257,8 +261,11 @@ export function Fight({
       save.fight,
       now(),
       players.filter((one) => one.id !== save.activeId).map((one) => one.id),
+      middle,
     ),
   );
+  /** The phase the monster entered at the last answer, until its beginning has been played. */
+  const [phase, setPhase] = useState<Phase>();
   /** How long each player took over their latest sums, by their profile's id. */
   const [paces, setPaces] = useState<Readonly<Record<string, readonly number[]>>>({});
   /** The slime's walk up to the hero now, or the next one. */
@@ -377,8 +384,15 @@ export function Fight({
     }
   });
 
-  // After the pause, the monster may tease the heroes before the next turn shows.
+  // After the pause, a monster entering a new phase shows it, or it may tease the heroes,
+  // before the next turn shows.
   const afterPause = useEffectEvent(() => {
+    if (phase) {
+      const at = now();
+      setTeaseEnds(at + phaseSeconds[phase]);
+      perform(phases[phase](at, middle));
+      return;
+    }
     const how =
       save.fight.threat || save.fight.hungry
         ? undefined
@@ -411,6 +425,7 @@ export function Fight({
       const timer = setTimeout(
         () => {
           setTeaseEnds(undefined);
+          setPhase(undefined);
           showNext();
         },
         Math.max(0, teaseEnds - now()) * 1000,
@@ -444,7 +459,7 @@ export function Fight({
     if (pounced) {
       keep({ ...save, fight: next });
       setView((before) => ({ ...before, fight: next }));
-      const moment = { at, walked: 0, others: [], lost: next.outcome === 'lost' };
+      const moment = { at, walked: 0, others: [], lost: next.outcome === 'lost', middle };
       perform(reachedBeats.pounce(moment, approachOf(walk)));
     } else {
       perform(reachedBeats.roar(at, approachOf(walk)));
@@ -526,7 +541,8 @@ export function Fight({
       evasion: evasionFor(save.seed, fight.round, monster.evasions),
     };
     setLeaves(fight.threat && strikes[ways.strike].leaves);
-    const moment = { at, walked, others, lost: next.outcome === 'lost' };
+    const moment = { at, walked, others, lost: next.outcome === 'lost', middle };
+    setPhase(phaseEntered(next, fight));
     effect(sounds.choose);
     perform(answerBeat(next, fight, moment, ways, players.length * coinsEach));
     if (walk) {
@@ -567,6 +583,8 @@ export function Fight({
       index === active ? [] : [{ id: one.id, hero: own(index).hero }],
     ),
   };
+  /** Whether the monster's shield shows: once it has formed, not while it gathers. */
+  const shielded = shown.shield > 0 && phase !== 'shield';
   const scene = clearing(
     walk
       ? {
@@ -582,7 +600,7 @@ export function Fight({
       look: shown.enraged ? monster.look.enraged : monster.look.calm,
       big: monster.big,
       bush: monster.plan.bush,
-      shielded: shown.shield > 0,
+      shielded,
     },
     shown.berries,
   );
@@ -722,7 +740,7 @@ export function Fight({
               <span key={index} className="rs-life-piece" data-left={index < shown.lives} />
             ))}
           </span>
-          {shown.shield > 0 && (
+          {shielded && (
             // The shield's pieces over the life bar, breaking off as it is struck.
             <span
               key={`shield-${String(shown.shield)}`}

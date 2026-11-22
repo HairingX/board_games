@@ -68,6 +68,13 @@ export const motionTokens = {
      * moment there, and a hop back.
      */
     pounce: { out: 0.45, hold: 0.25, back: 0.5, height: 22 },
+    /** Spinning round like a top, its other side showing this many times. */
+    spin: { seconds: 0.8, turns: 9 },
+    /**
+     * Swelling up with a roar, as a monster enters a new phase: growing to `size` times its
+     * size, trembling a while by `shake` pixels, and shrinking back.
+     */
+    swell: { up: 0.3, hold: 0.6, down: 0.3, size: 1.4, shake: 1 },
     /** A high jump, clear of a stroke. */
     leap: { seconds: 0.55, height: 16 },
     /** Burrowing into the ground, a moment under it, and up again. */
