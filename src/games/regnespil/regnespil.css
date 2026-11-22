@@ -905,11 +905,10 @@
   color: var(--pixel-bad);
 }
 
-/* The slime's first frame, from its sheet of 16-pixel frames, twice its size. */
-.rs-stake-slime {
+/* The monster's portrait, as at the top. */
+.rs-stake-foe {
   width: 32px;
   height: 32px;
-  background-size: 128px 128px;
   image-rendering: pixelated;
 }
 

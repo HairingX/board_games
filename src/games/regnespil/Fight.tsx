@@ -41,10 +41,10 @@ import {
 } from './beats';
 import {
   benchAt,
-  bigFront,
   clearing,
   clearingSheets,
   coinSpots,
+  foeMiddle,
   heroAt,
   reach,
   slimeAt,
@@ -211,7 +211,7 @@ export function Fight({
   /** A new fight, the first player's turn, its sum none of those shown lately. */
   const fresh = (recent: readonly string[]): SavedFight => {
     const against = monsters[foe];
-    const lives = monsterLives(settings.map((one) => one.sword)) * against.toughness;
+    const lives = Math.ceil(monsterLives(settings.map((one) => one.sword)) * against.toughness);
     return {
       fight: startFight(lives, against.plan),
       lives,
@@ -241,7 +241,11 @@ export function Fight({
   /** The monster the heroes fight. */
   const monster = monsters[save.foe];
   /** Where the middle of the monster is on the stage, for its life bar and what floats over it. */
-  const middle = monster.big ? slimeAt.x - bigFront + monster.big.width / 2 : slimeAt.x + 8;
+  const middle = foeMiddle(monster);
+  /** Whether the monster is won over with treats rather than beaten. */
+  const befriends = monster.befriends ?? false;
+  /** The monster as named in a sentence. */
+  const called = t.foes[monster.kind];
   const shown = view.fight;
   const task = view.task;
   const active = Math.max(
@@ -263,6 +267,7 @@ export function Fight({
       now(),
       players.filter((one) => one.id !== save.activeId).map((one) => one.id),
       middle,
+      befriends,
     ),
   );
   /** The phase the monster entered at the last answer, until its beginning has been played. */
@@ -549,7 +554,7 @@ export function Fight({
     const moment = { at, walked, others, lost: next.outcome === 'lost', middle };
     setPhase(phaseEntered(next, fight));
     effect(sounds.choose);
-    perform(answerBeat(next, fight, moment, ways, players.length * coinsEach));
+    perform(answerBeat(next, fight, moment, ways, players.length * coinsEach, befriends));
     if (walk) {
       setPaces({ ...paces, [view.activeId]: withTime(paces[view.activeId], at - walk.asked) });
     }
@@ -604,6 +609,7 @@ export function Fight({
     {
       look: shown.enraged ? monster.look.enraged : monster.look.calm,
       big: monster.big,
+      size: monster.size,
       bush: monster.plan.bush,
       shielded,
     },
@@ -720,7 +726,9 @@ export function Fight({
           key={`life-${String(answers)}-${String(walks)}`}
           className="rs-life"
           role="img"
-          aria-label={t.lives(shown.lives)}
+          aria-label={
+            befriends ? t.grumpy(called.the, shown.lives) : t.lives(called.its, shown.lives)
+          }
           // Away while the monster charges, as the bar stays where the monster stood.
           data-away={chosen !== undefined && leaves}
           // Going with the monster as it walks up to the hero; when it turns back, the bar
@@ -799,7 +807,7 @@ export function Fight({
         <SceneCanvas
           scene={scene}
           sheets={clearingSheets}
-          label={t.fightLabel}
+          label={t.fightLabel(called.facing)}
           overlay={overlay}
           fit="box"
           {...(load ? { load } : {})}
@@ -824,7 +832,7 @@ export function Fight({
             )}
             <p className="rs-stakes">
               {view.threat ? (
-                <span className="rs-stake" data-good="true" aria-label={t.stakeDodge}>
+                <span className="rs-stake" data-good="true" aria-label={t.stakeDodge(called.its)}>
                   <span aria-hidden="true">✓</span>
                   <img src={hud.guard} alt="" className="rs-stake-guard" />
                 </span>
@@ -832,28 +840,32 @@ export function Fight({
                 <span
                   className="rs-stake"
                   data-good="true"
-                  aria-label={shown.shield > 0 ? t.stakeShield : t.stakeRight}
+                  aria-label={
+                    shown.shield > 0
+                      ? t.stakeShield
+                      : befriends
+                        ? t.stakeTreat(called.the)
+                        : t.stakeRight(called.the)
+                  }
                 >
                   <span aria-hidden="true">✓</span>
-                  <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
+                  {befriends ? (
+                    <img src={hud.treat} alt="" className="rs-stake-weapon" />
+                  ) : (
+                    <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
+                  )}
                   <span aria-hidden="true">→</span>
                   {shown.shield > 0 ? (
                     <img src={hud.guard} alt="" className="rs-stake-guard" />
                   ) : (
-                    <span
-                      className="rs-stake-slime"
-                      style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
-                    />
+                    <img src={monster.face.calm} alt="" className="rs-stake-foe" />
                   )}
                 </span>
               )}
               {view.hungry ? (
-                <span className="rs-stake" data-good="false" aria-label={t.stakeFed}>
+                <span className="rs-stake" data-good="false" aria-label={t.stakeFed(called.the)}>
                   <span aria-hidden="true">✗</span>
-                  <span
-                    className="rs-stake-slime"
-                    style={{ backgroundImage: `url("${clearingSheets.slime}")` }}
-                  />
+                  <img src={monster.face.calm} alt="" className="rs-stake-foe" />
                   <span aria-hidden="true">+{formatNumber(locale, 1)}</span>
                 </span>
               ) : (
@@ -870,7 +882,9 @@ export function Fight({
           </>
         ) : (
           <div className="fight-over">
-            <p role="status">{shown.outcome === 'won' ? t.won(name) : t.lost}</p>
+            <p role="status">
+              {shown.outcome === 'lost' ? t.lost : befriends ? t.befriended(name) : t.won(name)}
+            </p>
             <button type="button" className="rs-button" onClick={restart}>
               {shown.outcome === 'won' ? t.again : t.tryAgain}
             </button>

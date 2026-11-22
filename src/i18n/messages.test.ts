@@ -85,7 +85,21 @@ describe('the messages that are made from values', () => {
     expect(r.levelOf('Jonas')).toBe('Jonas’s level');
     expect(r.swordOf('Mille')).toBe('Mille’s sword');
     expect(r.hearts(4.5, 5)).toBe('The hero’s hearts: 4.5 of 5');
-    expect(r.lives(1)).toBe('The slime’s lives: 1');
+    expect(r.lives(r.foes.slime.its, 1)).toBe('The slime’s lives: 1');
+    expect(r.stakeDodge(r.foes.slime.its)).toBe('Right: you dodge the slime’s attack');
+    expect(r.stakeRight(r.foes.giantSlime.the)).toBe('Right: your stroke hits the giant slime');
+    expect(r.stakeTreat(r.foes.copperDog.the)).toBe(
+      'Right: the copper dog gets a treat and cheers up',
+    );
+    expect(r.stakeFed(r.foes.slime.the)).toBe('Wrong: the slime eats berries and gets a life back');
+    expect(r.fightLabel(r.foes.copperDog.facing)).toBe(
+      'The hero faces a grumpy dog with eyes as big as teacups in the forest clearing.',
+    );
+    expect(r.grumpy(r.foes.copperDog.the, 2)).toBe('The copper dog is grumpy: 2');
+    expect(r.befriended('Scruffy Patch')).toBe('Scruffy Patch is your friend now!');
+    expect(regnespilText.da.grumpy(regnespilText.da.foes.copperDog.the, 2)).toBe(
+      'Kobberhunden er sur: 2',
+    );
     expect(r.combo(2, 3)).toBe('Right in a row: 2 of 3');
     expect(r.heroOf('Jonas')).toBe('Jonas’s hero');
     expect(r.won('Slimy Sid')).toBe('Slimy Sid is beaten!');

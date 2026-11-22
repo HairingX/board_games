@@ -1,6 +1,7 @@
-import { formatNumber, genitive, plural } from '../../i18n/format';
+import { capital, formatNumber, genitive, plural } from '../../i18n/format';
 import type { Translations } from '../../i18n/locales';
 import type { Hero } from './heroes';
+import type { Foe } from './monsters';
 import type { Sword } from './swords';
 import type { Operator } from './tasks';
 
@@ -76,9 +77,23 @@ const da = {
   slime: 'Slimklatten',
   attack: 'Angreb',
   defend: 'Forsvar',
-  stakeDodge: 'Rigtigt: du undviger slimets angreb',
-  stakeRight: 'Rigtigt: dit slag rammer slimet',
-  stakeFed: 'Forkert: slimet spiser bær og får et liv tilbage',
+  /**
+   * Each monster as named in a sentence: "the slime", "the slime's", and what the heroes face,
+   * for screen readers.
+   */
+  foes: {
+    slime: { the: 'slimet', its: 'slimets', facing: 'et blåt slim' },
+    giantSlime: { the: 'kæmpeslimet', its: 'kæmpeslimets', facing: 'et kæmpestort slim' },
+    copperDog: {
+      the: 'kobberhunden',
+      its: 'kobberhundens',
+      facing: 'en sur hund med øjne så store som tekopper',
+    },
+  } satisfies Record<Foe, { the: string; its: string; facing: string }>,
+  stakeDodge: (its: string) => `Rigtigt: du undviger ${its} angreb`,
+  stakeRight: (the: string) => `Rigtigt: dit slag rammer ${the}`,
+  stakeTreat: (the: string) => `Rigtigt: ${the} får en godbid og bliver gladere`,
+  stakeFed: (the: string) => `Forkert: ${the} spiser bær og får et liv tilbage`,
   stakeShield: 'Rigtigt: dit slag rammer skjoldet og slår et stykke af',
   shieldLeft: (count: number) => `Skjoldets stykker: ${formatNumber('da', count)}`,
   boss: 'Mod kæmpeslimet',
@@ -87,13 +102,17 @@ const da = {
     `${genitive('da', name)} pung: ${formatNumber('da', count)} ${plural('da', count, { one: 'mønt', other: 'mønter' })}`,
   stakeWrong: (hearts: number) =>
     `Forkert: ${formatNumber('da', hearts)} ${plural('da', hearts, { one: 'hjerte', other: 'hjerter' })} mindre`,
-  fightLabel: 'Helten står over for et blåt slim i skovens lysning.',
+  fightLabel: (facing: string) => `Helten står over for ${facing} i skovens lysning.`,
   hearts: (left: number, of: number) =>
     `Heltens hjerter: ${formatNumber('da', left)} af ${formatNumber('da', of)}`,
-  lives: (count: number) => `Slimets liv: ${formatNumber('da', count)}`,
+  lives: (its: string, count: number) => `${capital('da', its)} liv: ${formatNumber('da', count)}`,
+  /** How grumpy a monster won over with treats still is, for its bar. */
+  grumpy: (the: string, count: number) =>
+    `${capital('da', the)} er sur: ${formatNumber('da', count)}`,
   combo: (count: number, of: number) =>
     `Rigtige i træk: ${formatNumber('da', count)} af ${formatNumber('da', of)}`,
   won: (name: string) => `${name} er besejret!`,
+  befriended: (name: string) => `${name} er blevet jeres ven!`,
   /** The two pools each kind of monster's names are made from (`names.ts`). */
   names: {
     slime: {
@@ -114,6 +133,10 @@ const da = {
     giantSlime: {
       describe: ['Kæmpestore', 'Vældige', 'Tunge', 'Mægtige', 'Brølende', 'Bobbede', 'Gumlende'],
       name: ['Klatten', 'Bjarne', 'Bølle', 'Valdemar', 'Tykke Tove', 'Mogens', 'Gumme'],
+    },
+    copperDog: {
+      describe: ['Brummende', 'Gnavne', 'Pjuskede', 'Snusende', 'Knurrende', 'Kvikke', 'Tossede'],
+      name: ['Bamse', 'Basse', 'Kobber', 'Kvik', 'Trofast', 'Tekop', 'Fiffi'],
     },
   },
   lost: 'Helten er træt og hviler sig.',
@@ -191,9 +214,19 @@ export const text: Translations<typeof da> = {
     slime: 'The slime',
     attack: 'Attack',
     defend: 'Defend',
-    stakeDodge: 'Right: you dodge the slime’s attack',
-    stakeRight: 'Right: your stroke hits the slime',
-    stakeFed: 'Wrong: the slime eats berries and gets a life back',
+    foes: {
+      slime: { the: 'the slime', its: 'the slime’s', facing: 'a blue slime' },
+      giantSlime: { the: 'the giant slime', its: 'the giant slime’s', facing: 'a giant slime' },
+      copperDog: {
+        the: 'the copper dog',
+        its: 'the copper dog’s',
+        facing: 'a grumpy dog with eyes as big as teacups',
+      },
+    },
+    stakeDodge: (its) => `Right: you dodge ${its} attack`,
+    stakeRight: (the) => `Right: your stroke hits ${the}`,
+    stakeTreat: (the) => `Right: ${the} gets a treat and cheers up`,
+    stakeFed: (the) => `Wrong: ${the} eats berries and gets a life back`,
     stakeShield: 'Right: your stroke hits the shield and breaks a piece off',
     shieldLeft: (count) => `Pieces of the shield: ${formatNumber('en', count)}`,
     boss: 'Fight the giant slime',
@@ -202,13 +235,15 @@ export const text: Translations<typeof da> = {
       `${genitive('en', name)} purse: ${formatNumber('en', count)} ${plural('en', count, { one: 'coin', other: 'coins' })}`,
     stakeWrong: (hearts) =>
       `Wrong: ${formatNumber('en', hearts)} ${plural('en', hearts, { one: 'heart', other: 'hearts' })} less`,
-    fightLabel: 'The hero faces a blue slime in the forest clearing.',
+    fightLabel: (facing) => `The hero faces ${facing} in the forest clearing.`,
     hearts: (left, of) =>
       `The hero’s hearts: ${formatNumber('en', left)} of ${formatNumber('en', of)}`,
-    lives: (count) => `The slime’s lives: ${formatNumber('en', count)}`,
+    lives: (its, count) => `${capital('en', its)} lives: ${formatNumber('en', count)}`,
+    grumpy: (the, count) => `${capital('en', the)} is grumpy: ${formatNumber('en', count)}`,
     combo: (count, of) =>
       `Right in a row: ${formatNumber('en', count)} of ${formatNumber('en', of)}`,
     won: (name) => `${name} is beaten!`,
+    befriended: (name) => `${name} is your friend now!`,
     names: {
       slime: {
         describe: [
@@ -228,6 +263,10 @@ export const text: Translations<typeof da> = {
       giantSlime: {
         describe: ['Giant', 'Mighty', 'Massive', 'Rumbling', 'Wobbling', 'Grand', 'Gulping'],
         name: ['Gloop', 'Moe', 'Rex', 'Wally', 'Gus', 'Big Bertha', 'Monty'],
+      },
+      copperDog: {
+        describe: ['Grumpy', 'Growly', 'Scruffy', 'Sniffy', 'Huffy', 'Bouncy', 'Barky'],
+        name: ['Biscuit', 'Buster', 'Copper', 'Patch', 'Rusty', 'Teacup', 'Bramble'],
       },
     },
     lost: 'The hero is tired and rests.',

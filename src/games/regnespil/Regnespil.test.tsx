@@ -104,7 +104,7 @@ describe('Regnespil', () => {
         go={vi.fn()}
       />,
     );
-    expect(await screen.findByRole('img', { name: 'Slimets liv: 18' })).toBeInTheDocument();
+    expect(await screen.findByRole('img', { name: 'Kæmpeslimets liv: 18' })).toBeInTheDocument();
   });
 
   it('starts the fight with its music from the tap', async () => {

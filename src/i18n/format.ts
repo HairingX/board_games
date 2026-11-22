@@ -38,6 +38,11 @@ export function genitive(locale: Locale, name: string): string {
   return /[sxz]$/i.test(name) ? `${name}’` : `${name}s`;
 }
 
+/** Words begun with a capital letter, as the language writes it, to open a sentence. */
+export function capital(locale: Locale, words: string): string {
+  return words.charAt(0).toLocaleUpperCase(locale) + words.slice(1);
+}
+
 /** A number of percent as the language writes it: 37,5 % in Danish, 37.5% in English. */
 export function formatPercent(locale: Locale, percent: number): string {
   return percents(locale).format(percent / 100);

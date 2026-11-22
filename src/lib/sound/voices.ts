@@ -30,4 +30,8 @@ export const voices = {
   slime: spoken({ wave: 'square', vowel: 1200, pitch: 260, pace: 9, spread: 4 }, -11.6),
   troll: spoken({ wave: 'sawtooth', vowel: 700, pitch: 70, pace: 6, spread: 1 }, -18),
   giant: spoken({ wave: 'square', vowel: 600, pitch: 55, pace: 5, spread: 1 }, -16.3),
+  /** A dog, short and gruff, bark by bark: the copper dog of the story. */
+  dog: spoken({ wave: 'square', vowel: 1000, pitch: 200, pace: 8, spread: 3 }, -11.5),
+  /** The story's old woman: high, crackly and quick. */
+  crone: spoken({ wave: 'sawtooth', vowel: 1600, pitch: 280, pace: 9, spread: 6 }, -15.3),
 } as const satisfies Record<string, Voice>;

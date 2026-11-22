@@ -43,7 +43,7 @@ export interface Act {
    * a stroke with a `return`, or as it gets up after being knocked over.
    */
   reach?: number;
-  /** How long an approach takes, in seconds. */
+  /** How long an approach, or a step from far away, takes, in seconds. */
   lasts?: number;
   /** Where a figure stepping into place comes from, in pixels from its place. */
   from?: { x: number; y: number };
@@ -65,7 +65,15 @@ export interface Figure {
    * A big figure's frames, side by side in one row of its sheet, whichever way it faces, if it
    * is not one of the pack's 16-pixel figures; it stands on the ground at `y` + its height.
    */
-  big?: { width: number; height: number; frames: number };
+  big?: {
+    width: number;
+    height: number;
+    frames: number;
+    /** Which way its frames face, if they face sideways; it is drawn mirrored to face the other. */
+    faces?: 'left' | 'right';
+  };
+  /** How many times its size it is drawn, a whole number, so every pixel stays sharp. */
+  size?: number;
   /** A sign over its head, from a sheet of its own, shown for a while from `at`. */
   sign?: { sheet: string; at: number };
 }
@@ -141,6 +149,28 @@ const since = (seconds: number, at: number) => seconds - at;
  * With motion stilled it keeps still, but an act's lasting outcome, vanishing, still shows.
  */
 function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | undefined {
+  const draw = pose(figure, seconds, still);
+  if (!draw) return undefined;
+  // A sheet facing one way, drawn facing the other, is mirrored, and a spin mirrors it again.
+  const sideways = figure.facing === 'left' || figure.facing === 'right';
+  const mirrored =
+    sideways && figure.big?.faces !== undefined && figure.big.faces !== figure.facing;
+  const flip = mirrored !== (draw.flip ?? false);
+  const grow = (draw.grow ?? 1) * (figure.size ?? 1);
+  const { sheet, cut, x, y, turn } = draw;
+  return {
+    sheet,
+    cut,
+    x,
+    y,
+    ...(turn === undefined ? {} : { turn }),
+    ...(grow === 1 ? {} : { grow }),
+    ...(flip ? { flip } : {}),
+  };
+}
+
+/** A figure as it is drawn at the moment, before its size and the way its sheet faces. */
+function pose(figure: Figure, seconds: number, still: boolean): Draw | undefined {
   const { act } = motionTokens;
   const column = facings.indexOf(figure.facing);
   const { big } = figure;
@@ -187,7 +217,7 @@ function drawFigure(figure: Figure, seconds: number, still: boolean): Draw | und
     walking(left > 0);
   }
   if (kind === 'step') {
-    const left = Math.max(0, 1 - into / act.step.seconds);
+    const left = Math.max(0, 1 - into / (current?.lasts ?? act.step.seconds));
     x += Math.round((current?.from?.x ?? 0) * left);
     y += Math.round((current?.from?.y ?? 0) * left);
     walking(left > 0);
@@ -296,11 +326,15 @@ function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined 
   if (!figure.sign) return undefined;
   const into = since(seconds, figure.sign.at);
   if (into < 0 || into >= motionTokens.sign.seconds) return undefined;
+  const width = figure.big?.width ?? tile;
+  const height = figure.big?.height ?? tile;
+  // Over the head of a figure drawn larger, which grows up from its feet.
+  const top = figure.y + height - height * (figure.size ?? 1);
   return {
     sheet: figure.sign.sheet,
     cut: size,
-    x: figure.x + Math.round(((figure.big?.width ?? tile) - size.width) / 2),
-    y: figure.y - size.height - 1,
+    x: figure.x + Math.round((width - size.width) / 2),
+    y: top - size.height - 1,
   };
 }
 

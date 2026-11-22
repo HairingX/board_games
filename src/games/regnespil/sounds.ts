@@ -14,6 +14,8 @@ import powerUp from '../../../assets/ninja-adventure/Audio/Sounds/Bonus/PowerUp1
 import spit from '../../../assets/ninja-adventure/Audio/Sounds/Elemental/Bubble2.m4a';
 import splash from '../../../assets/ninja-adventure/Audio/Sounds/Elemental/Water2.m4a';
 import slash from '../../../assets/ninja-adventure/Audio/Sounds/Whoosh & Slash/Slash.m4a';
+import treat from '../../../assets/ninja-adventure/Audio/Sounds/Bonus/Bonus.m4a';
+import bark from '../../../assets/ninja-adventure/Audio/Sounds/Creature/Dog.m4a';
 
 /*
  * The math game's sounds and music, mixed: the pack's files were recorded at very different
@@ -51,6 +53,9 @@ export const sounds = {
   gather: mixed(gather, -14.9, loudness.action),
   powerUp: mixed(powerUp, -14, loudness.action),
   splash: mixed(splash, -14.8, loudness.action),
+  /** A treat caught, and a dog's bark, for the dogs of the story, won over with treats. */
+  treat: mixed(treat, -19.5, loudness.action),
+  bark: mixed(bark, -15.4, loudness.action),
   victory: mixed(victoryJingle, -17.2, loudness.celebration),
 } as const;
 

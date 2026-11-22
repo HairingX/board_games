@@ -23,6 +23,7 @@ import {
   flagLands,
   flagPlanted,
   shieldFlash,
+  treatThrown,
   type Doing,
   type Staging,
 } from './clearing';
@@ -100,6 +101,20 @@ const dance = (at: number, index: number): Act => ({
   kind: 'cheer',
   at: at + index * celebration.apart,
   repeat: celebration.every,
+});
+
+/**
+ * How a monster won over comes to the heroes: a moment after the last treat shows, in seconds,
+ * it runs this many pixels towards them, taking this long, and stays by them, hopping.
+ */
+export const befriending = { comes: 1.4, reach: 30, run: 1 } as const;
+
+/** The monster won over, by the heroes, as it runs there and stays. */
+const byHeroes = (at: number): Act => ({
+  kind: 'approach',
+  at,
+  reach: befriending.reach,
+  lasts: befriending.run,
 });
 
 /** When a victory's coin springs out, after the last stroke shows, in seconds. */
@@ -191,6 +206,12 @@ function landing(power: boolean): readonly Cue[] {
 const cuts = (shown: number, power: boolean): readonly Effect[] =>
   power ? [sweep(shown), smash(shown)] : [sweep(shown)];
 
+/** The treats thrown at a right answer, a second a moment after for a power stroke. */
+const treats = (moment: Moment, power: boolean): readonly Effect[] => [
+  treatThrown(moment.at, moment.middle, reveal),
+  ...(power ? [treatThrown(moment.at + moments.second, moment.middle, reveal)] : []),
+];
+
 /** How the monster gets out of the way of a stroke that does not land. */
 export const evasions = {
   leap: (at: number): Act => ({ kind: 'leap', at }),
@@ -230,6 +251,94 @@ export const attacks = {
         sound('clang', reveal),
         ...(broken ? [sound('hit', reveal + moments.second)] : []),
         voice('monster', broken ? 5 : 2, reveal + moments.squeal),
+      ],
+    };
+  },
+  /**
+   * A right answer against a monster won over with treats: the hero throws it a treat, two
+   * for a power stroke, and it catches each with a hop and a happy sound, a heart over it.
+   */
+  treat: (moment: Moment, power: boolean): Beat => {
+    const shown = moment.at + reveal;
+    return {
+      staging: {
+        hero: { acts: [{ kind: 'attack', at: moment.at }] },
+        monster: {
+          acts: [...hurry(moment), { kind: 'cheer', at: shown }],
+          sign: { sheet: 'heart', at: shown },
+        },
+        effects: treats(moment, power),
+      },
+      cues: [
+        shout,
+        sound('treat', reveal),
+        ...(power ? [sound('treat', reveal + moments.second)] : []),
+        voice('monster', 3, reveal + moments.squeal),
+      ],
+    };
+  },
+  /**
+   * An answer close against a monster won over with treats: the treat flies past as it gets
+   * out of the way, and it giggles; `nicked` if it costs the hero, who then smarts.
+   */
+  missed: (moment: Moment, evasion: Evasion, nicked: boolean): Beat => {
+    const shown = moment.at + reveal;
+    return {
+      staging: {
+        hero: {
+          acts: [
+            { kind: 'attack', at: moment.at },
+            ...(nicked ? [{ kind: 'hurt', at: shown + moments.squeal } as const] : []),
+          ],
+        },
+        monster: { acts: [...hurry(moment), evasions[evasion](shown - moments.evade)] },
+        effects: [treatThrown(moment.at, moment.middle, reveal, true)],
+      },
+      cues: [shout, voice('monster', 2, reveal + moments.squeal)],
+    };
+  },
+  /**
+   * The last treat: the monster is won over. It catches the treat, spins round for joy and
+   * runs to the heroes, hopping by them; coins spring out, the heroes cheer and dance, and
+   * fireworks burst; no flag, as nothing was beaten.
+   */
+  befriended: (moment: Moment, power: boolean, coins: number): Beat => {
+    const shown = moment.at + reveal;
+    const cheers = victory.cheers.map((cheer) => ({ kind: 'cheer', at: shown + cheer }) as const);
+    return {
+      staging: {
+        bench: Object.fromEntries(
+          moment.others.map((id, index) => [
+            id,
+            { acts: [...cheers, dance(shown + celebration.dance, index + 1)] },
+          ]),
+        ),
+        hero: {
+          acts: [{ kind: 'attack', at: moment.at }, ...cheers, dance(shown + celebration.dance, 0)],
+          sign: { sheet: 'heart', at: shown + victory.cheers[0] },
+        },
+        monster: {
+          acts: [
+            ...hurry(moment),
+            { kind: 'cheer', at: shown },
+            { kind: 'spin', at: shown + motionTokens.act.cheer.seconds },
+            byHeroes(shown + befriending.comes),
+          ],
+          sign: { sheet: 'heart', at: shown },
+        },
+        effects: [
+          ...treats(moment, power),
+          ...coinSpots.slice(0, coins).map((spot, index) => coinDrop(shown + coinAt(index), spot)),
+          ...fireworks(shown + celebration.flag, celebration.fireworks, celebration.every),
+        ],
+      },
+      cues: [
+        shout,
+        sound('treat', reveal),
+        sound('victory', reveal),
+        sound('bark', reveal + moments.squeal),
+        voice('monster', 5, reveal + befriending.comes),
+        voice('hero', 6, reveal + victory.cheers[0]),
       ],
     };
   },
@@ -471,7 +580,8 @@ export interface Ways {
 /**
  * The beat an answer plays, from what the rules made of it: the monster's blow dodged or
  * landing on a turn to defend; on a turn to attack, a stroke (the last one a victory, with
- * this many coins), the monster getting out of the way, bouncing the hero over, or eating.
+ * this many coins), the monster getting out of the way, bouncing the hero over, or eating;
+ * against a monster that `befriends`, treats thrown instead of strokes.
  */
 export function answerBeat(
   next: Fight,
@@ -479,6 +589,7 @@ export function answerBeat(
   moment: Moment,
   ways: Ways,
   coins: number,
+  befriends = false,
 ): Beat {
   if (before.threat) {
     const strike = strikes[ways.strike];
@@ -490,12 +601,19 @@ export function answerBeat(
   }
   if (next.last === 'bumped') return attacks.bumped(moment);
   const power = next.last === 'smashed';
+  const nicked = next.last === 'nicked';
+  if (befriends) {
+    if (next.last !== 'struck' && !power) return attacks.missed(moment, ways.evasion, nicked);
+    return next.outcome === 'won'
+      ? attacks.befriended(moment, power, coins)
+      : attacks.treat(moment, power);
+  }
   if (next.last === 'struck' || power) {
     return next.outcome === 'won'
       ? attacks.victory(moment, power, coins)
       : attacks.stroke(moment, power);
   }
-  return attacks.evaded(moment, ways.evasion, next.last === 'nicked');
+  return attacks.evaded(moment, ways.evasion, nicked);
 }
 
 /** How long the monster glares at the hero it has walked up to, before it turns back. */
@@ -527,7 +645,8 @@ export const reached = {
 
 /**
  * How the stage stands when a fight is opened again at `at`, rather than played to where it
- * is: a hero out of hearts lies resting; a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
+ * is: a hero out of hearts lies resting; a monster won over (`befriends`) stays by the
+ * heroes; a beaten monster is gone, as it vanished at the victory, and the heroes (`others` the
  * ones waiting behind, by their players' ids) dance by the flag where the monster stood (its
  * `middle`) while fireworks burst a little again.
  */
@@ -536,6 +655,7 @@ export function aftermath(
   at: number,
   others: readonly string[],
   middle: number,
+  befriends = false,
 ): Staging {
   if (fight.outcome === 'lost') {
     // The hero rests where they lay down, out of hearts, sleepy.
@@ -552,10 +672,16 @@ export function aftermath(
         bench: Object.fromEntries(
           others.map((id, index) => [id, { acts: [dance(at, index + 1)] }]),
         ),
-        monster: { acts: [{ kind: 'vanish', at: Number.NEGATIVE_INFINITY }] },
+        // A monster won over stays by the heroes; one beaten is gone, the flag where it stood.
+        monster: {
+          acts: [
+            befriends
+              ? byHeroes(Number.NEGATIVE_INFINITY)
+              : { kind: 'vanish', at: Number.NEGATIVE_INFINITY },
+          ],
+        },
         effects: [
-          // The flag stands where it fell, and the fireworks burst a little again.
-          flagPlanted(at - flagFall.seconds, middle),
+          ...(befriends ? [] : [flagPlanted(at - flagFall.seconds, middle)]),
           ...fireworks(at, celebration.again, celebration.every),
         ],
       }

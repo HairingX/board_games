@@ -37,40 +37,26 @@ export function paint(
   for (const { sheet, cut, x, y, turn, grow, flip } of draws) {
     const picture = pictures.get(sheet);
     if (!picture) continue;
-    if (grow !== undefined || flip) {
-      // Grown about its feet, or mirrored about its middle, as a monster swelling or spinning.
-      const size = grow ?? 1;
-      const feet = { x: x + cut.width / 2, y: y + cut.height };
-      context.setTransform(
-        scale * size * (flip ? -1 : 1),
-        0,
-        0,
-        scale * size,
-        feet.x * scale,
-        feet.y * scale,
-      );
-      const { width, height } = cut;
-      context.drawImage(picture, cut.x, cut.y, width, height, -width / 2, -height, width, height);
-      context.setTransform(scale, 0, 0, scale, 0, 0);
+    const { width, height } = cut;
+    if (turn === undefined && grow === undefined && !flip) {
+      context.drawImage(picture, cut.x, cut.y, width, height, x, y, width, height);
       continue;
     }
-    if (turn === undefined) {
-      context.drawImage(picture, cut.x, cut.y, cut.width, cut.height, x, y, cut.width, cut.height);
-      continue;
-    }
-    // Turned about its middle by quarter turns, which keep every pixel on the grid.
-    const sin = Math.round(Math.sin((turn * Math.PI) / 2));
-    const cos = Math.round(Math.cos((turn * Math.PI) / 2));
-    const middle = { x: x + cut.width / 2, y: y + cut.height / 2 };
+    // Grown about its feet, mirrored, and turned about its middle by quarter turns, which keep
+    // every pixel on the grid: a monster swelling or spinning, a figure knocked over.
+    const size = grow ?? 1;
+    const mirror = flip ? -1 : 1;
+    const sin = Math.round(Math.sin(((turn ?? 0) * Math.PI) / 2));
+    const cos = Math.round(Math.cos(((turn ?? 0) * Math.PI) / 2));
+    const middle = { x: x + width / 2, y: y + height - (height * size) / 2 };
     context.setTransform(
-      scale * cos,
-      scale * sin,
-      -scale * sin,
-      scale * cos,
+      scale * cos * size * mirror,
+      scale * sin * size * mirror,
+      -scale * sin * size,
+      scale * cos * size,
       middle.x * scale,
       middle.y * scale,
     );
-    const { width, height } = cut;
     context.drawImage(picture, cut.x, cut.y, width, height, -width / 2, -height / 2, width, height);
     context.setTransform(scale, 0, 0, scale, 0, 0);
   }

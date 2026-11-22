@@ -81,7 +81,8 @@ async function pause(seconds: number): Promise<void> {
 /** The victory, over the slime the tests' fights make, from the seed 0. */
 const won = `${monsterName(text.da.names.slime, 0)} er besejret!`;
 const hearts = (left: string) => screen.getByRole('img', { name: `Heltens hjerter: ${left} af 5` });
-const lives = (count: number) => screen.getByRole('img', { name: `Slimets liv: ${String(count)}` });
+const lives = (count: number, its = 'Slimets') =>
+  screen.getByRole('img', { name: `${its} liv: ${String(count)}` });
 const { right, wrong } = motionTokens.fightPause;
 /** How long after an answer is chosen it shows how it went. */
 const reveal = motionTokens.act.charge.out;
@@ -481,8 +482,32 @@ describe('Fight', () => {
 
   it('fights the giant slime, three times as tough, its portrait at the top', () => {
     const { container } = open([{ level: 1, sword: 'træ' }], [mille], null, 'giantSlime');
-    expect(lives(6)).toBeInTheDocument();
+    expect(lives(6, 'Kæmpeslimets')).toBeInTheDocument();
     expect(container.querySelector('.rs-foe-face')).toHaveAttribute('src', giantSlime.face.calm);
+  });
+
+  it('wins the copper dog over with treats, and it becomes the heroes’ friend', async () => {
+    const { played } = open([{ level: 1, sword: 'jern' }], [mille], null, 'copperDog');
+    const grumpy = (count: number) =>
+      screen.getByRole('img', { name: `Kobberhunden er sur: ${String(count)}` });
+    // Half again as tough as the slime, rounded up.
+    expect(grumpy(5)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('Rigtigt: kobberhunden får en godbid og bliver gladere'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: /hund med øjne så store som tekopper/ }),
+    ).toBeInTheDocument();
+    await choose('2');
+    expect(played()).toContainEqual([sounds.treat.url, sounds.treat.gain, reveal]);
+    expect(grumpy(4)).toBeInTheDocument();
+    for (let turn = 0; turn < 6 && !screen.queryByText(/jeres ven/); turn++) {
+      await next(right);
+      await choose('2');
+    }
+    const name = monsterName(text.da.names.copperDog, 0);
+    expect(screen.getByRole('status')).toHaveTextContent(`${name} er blevet jeres ven!`);
+    expect(played()).toContainEqual([sounds.bark.url, sounds.bark.gain, reveal + 0.15]);
   });
 
   it('has the boss’s shield take the strokes, a piece at a time, and slam down when enraged', async () => {
@@ -510,7 +535,7 @@ describe('Fight', () => {
     ).toBeInTheDocument();
     await choose('2');
     expect(screen.getByRole('img', { name: 'Skjoldets stykker: 2' })).toBeInTheDocument();
-    expect(lives(2)).toBeInTheDocument();
+    expect(lives(2, 'Kæmpeslimets')).toBeInTheDocument();
     expect(first.played()).toContainEqual([sounds.clang.url, sounds.clang.gain, reveal]);
     first.unmount();
     // Enraged, it strikes back with a body slam (the seed 0 has it slam at this turn).
@@ -519,7 +544,7 @@ describe('Fight', () => {
       fight: { ...shielded.fight, round: 4, threat: true },
     });
     click('1');
-    expect(lives(2)).toHaveAttribute('data-away', 'true');
+    expect(lives(2, 'Kæmpeslimets')).toHaveAttribute('data-away', 'true');
   });
 
   it('defends: the slime warns, the panel turns blue, and a right answer dodges', async () => {

@@ -171,6 +171,38 @@ describe('figures acting', () => {
     expect(signed[1]).toMatchObject({ sheet: 'alert', x: 23 });
   });
 
+  it('draws a figure larger by a whole number, its sign over its head, and mirrors a sheet facing the other way', () => {
+    const dog = {
+      sheet: 'dog',
+      x: 0,
+      y: 40,
+      facing: 'left',
+      doing: 'standing',
+      big: { width: 18, height: 16, frames: 2, faces: 'right' },
+      size: 2,
+      sign: { sheet: 'heart', at },
+    } as const;
+    const drawn = (figure: Figure, seconds = at) =>
+      drawScene({ ...scene, ground: [], things: [], figures: [figure] }, seconds, true);
+    expect(drawn(dog)[0]).toMatchObject({ grow: 2, flip: true });
+    // The sign over the head of the dog drawn twice as tall: 16 pixels higher.
+    expect(drawn(dog)[1]).toMatchObject({ sheet: 'heart', y: 40 - 16 - signSize.height - 1 });
+    expect(drawn({ ...dog, facing: 'right' })[0]?.flip).toBeUndefined();
+    expect(drawn({ ...dog, facing: 'down' })[0]?.flip).toBeUndefined();
+    // Spinning, it shows its other side: the sheet's own.
+    const spinning = { ...dog, acts: [{ kind: 'spin', at }] } as const;
+    const sides = Array.from(
+      { length: 20 },
+      (_, step) =>
+        drawScene(
+          { ...scene, ground: [], things: [], figures: [spinning] },
+          at + (step * act.spin.seconds) / 20,
+        )[0]?.flip,
+    );
+    expect(sides).toContain(undefined);
+    expect(sides).toContain(true);
+  });
+
   it('spins round like a top, and swells up trembling and back', () => {
     const spinning = { acts: [{ kind: 'spin', at }] } as const;
     const flips = Array.from({ length: 40 }, (_, step) =>
@@ -183,6 +215,7 @@ describe('figures acting', () => {
     expect(one(swelling, at + up / 2)?.grow).toBeCloseTo(1 + (size - 1) / 2);
     const held = [0.11, 0.145].map((into) => one(swelling, at + up + into)?.x);
     expect(held[0]).not.toBe(held[1]);
+    expect(one(swelling, at + up + hold + down / 2)?.grow).toBeCloseTo(1 + (size - 1) / 2);
     expect(one(swelling, at + up + hold + down + eps)?.grow).toBeUndefined();
   });
 
@@ -211,6 +244,10 @@ describe('figures acting', () => {
     expect(one(stepping, at + act.step.seconds / 2)).toMatchObject({ x: 10, y: 25 });
     expect(one(stepping, at + act.step.seconds + eps)).toMatchObject({ x: 20, cut: { y: 0 } });
     expect(one({ acts: [{ kind: 'step', at }] }, at + eps)?.x).toBe(20);
+    // A step from far away takes as long as it says, walking all the while.
+    const far = { acts: [{ kind: 'step', at, from: { x: -40, y: 0 }, lasts: 2 }] } as const;
+    expect(one(far, at + 1)?.x).toBe(0);
+    expect(one(far, at + 2 + eps)?.x).toBe(20);
   });
 
   it('approaches slowly over its own time, and waits there', () => {

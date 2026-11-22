@@ -22,6 +22,8 @@ import giantSlime from '../../../assets/ninja-adventure/Actor/Boss/GiantSlime/Id
 import guard from '../../../assets/ninja-adventure/FX/Magic/Shield/SpriteSheetYellow.png';
 import ring from '../../../assets/ninja-adventure/FX/Magic/Circle/SpriteSheetSpark.png';
 import sparkle from '../../../assets/ninja-adventure/FX/Magic/Spark/SpriteSheet.png';
+import dog from '../../../assets/ninja-adventure/Actor/Animal/DogOrange/SpriteSheet.png';
+import bone from '../../../assets/ninja-adventure/Items/Weapons/Bone/Sprite.png';
 import {
   tile,
   type Act,
@@ -65,6 +67,8 @@ export const clearingSheets = {
   guard,
   ring,
   sparkle,
+  dog,
+  bone,
 } as const;
 
 export type Sign = 'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry';
@@ -301,6 +305,38 @@ export const fireworks = (at: number, lasts: number, every: number): readonly Ef
     repeat: every,
   }));
 
+/**
+ * A treat thrown from the hero to the monster's `middle`, arriving as `seconds` pass, where it is
+ * caught; or, `missed`, flying on past it to land in the grass behind.
+ */
+export const treatThrown = (
+  at: number,
+  middle: number,
+  seconds: number,
+  missed = false,
+): Effect => {
+  const from = { x: heroAt.x + 10, y: heroAt.y + 2 };
+  const onward = missed ? treatPast : 1;
+  return {
+    sheet: 'bone',
+    width: 7,
+    height: 12,
+    frames: 1,
+    ...from,
+    at,
+    lasts: seconds * onward + (missed ? motionTokens.sign.seconds : 0),
+    arc: {
+      dx: (middle - 4 - from.x) * onward,
+      dy: missed ? 10 : 0,
+      height: 16,
+      seconds: seconds * onward,
+    },
+  };
+};
+
+/** How much further than the monster a treat it dodges flies. */
+const treatPast = 1.5;
+
 /** The ball of slime splashing over the hero; frames side by side. */
 export const slimeSplash = (at: number): Effect => ({
   sheet: 'splash',
@@ -382,15 +418,47 @@ export interface Party {
   bench: readonly { id: string; hero: Hero }[];
 }
 
-/** How far in from its frame's edge a big monster's front is, in pixels. */
-export const bigFront = 11;
+/**
+ * A big monster's frames, side by side in one row of its sheet: their size, how many, which way
+ * they face if sideways, and how far in from the frame's left its front is, as it faces the
+ * heroes, in pixels.
+ */
+export interface Big {
+  width: number;
+  height: number;
+  frames: number;
+  faces?: 'left' | 'right';
+  front: number;
+}
 
-/** How the monster stands on the stage: its sheet, its size if big, its bush and shield. */
+/**
+ * How the monster stands on the stage: its sheet, its frames if big and how many times its
+ * size it is drawn, its bush and shield.
+ */
 export interface Foe {
   look: string;
-  big?: { width: number; height: number; frames: number } | undefined;
+  big?: Big | undefined;
+  size?: number | undefined;
   bush: boolean;
   shielded: boolean;
+}
+
+/**
+ * Where a monster stands: a small one where the slime does; a big one with its front where the
+ * slime's is and its feet on the same ground, however many times its size it is drawn.
+ */
+export function foeAt(foe: Pick<Foe, 'big' | 'size'>): { x: number; y: number } {
+  if (!foe.big) return slimeAt;
+  const { width, height, front } = foe.big;
+  return {
+    x: slimeAt.x + (width / 2 - front) * (foe.size ?? 1) - width / 2,
+    y: slimeAt.y + tile - height,
+  };
+}
+
+/** Where the middle of a monster is on the stage, for its life bar and what floats over it. */
+export function foeMiddle(foe: Pick<Foe, 'big' | 'size'>): number {
+  return foe.big ? foeAt(foe).x + foe.big.width / 2 : slimeAt.x + tile / 2;
 }
 
 /** A shield the monster holds up before it, glinting, while it has one. */
@@ -414,10 +482,11 @@ export function clearing(staging: Staging, party: Party, foe: Foe, berries = 2):
   const places = benchAt(party.bench.length);
   // The bush holds from none to two berries, each with a cut.
   const berryBush = { sheet: 'nature', cut: bushes[berries] as Cut, ...bushAt };
-  // A big monster stands with its feet where a small one's would be, its front where its is.
-  const place = foe.big
-    ? { x: slimeAt.x - bigFront, y: slimeAt.y + tile - foe.big.height, big: foe.big }
-    : slimeAt;
+  const place = {
+    ...foeAt(foe),
+    ...(foe.big ? { big: foe.big } : {}),
+    ...(foe.size === undefined ? {} : { size: foe.size }),
+  };
   return {
     ...forest,
     things: foe.bush ? [...forest.things, berryBush] : forest.things,

@@ -1,9 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { formatLanguages, formatLongDate, formatNumber, plural, timeAgo } from './format';
+import { capital, formatLanguages, formatLongDate, formatNumber, plural, timeAgo } from './format';
 
 const minute = 60 * 1000;
 const day = 24 * 60 * minute;
 const now = Date.UTC(2026, 10, 18, 12);
+
+describe('capital', () => {
+  it('begins words with a capital letter, as the language writes it', () => {
+    expect(capital('da', 'ørnens rede')).toBe('Ørnens rede');
+    expect(capital('en', 'the slime’s')).toBe('The slime’s');
+  });
+});
 
 describe('timeAgo', () => {
   it.each([

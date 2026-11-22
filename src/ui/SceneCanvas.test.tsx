@@ -228,14 +228,18 @@ describe('paint', () => {
       { width: 64, height: 64 },
       2,
     );
-    expect(context.setTransform.mock.calls).toEqual([
+    // A zero may come out signed, which draws the same.
+    const unsigned = context.setTransform.mock.calls.map((call) =>
+      (call as number[]).map((n) => n + 0),
+    );
+    expect(unsigned).toEqual([
       [2, 0, 0, 2, 0, 0],
-      [3, 0, 0, 3, 40, 60],
+      [3, 0, 0, 3, 40, 45],
       [2, 0, 0, 2, 0, 0],
-      [-2, 0, 0, 2, 40, 60],
+      [-2, 0, 0, 2, 40, 50],
       [2, 0, 0, 2, 0, 0],
     ]);
-    expect(context.drawImage.mock.calls[0]?.slice(5)).toEqual([-10, -10, 20, 10]);
+    expect(context.drawImage.mock.calls[0]?.slice(5)).toEqual([-10, -5, 20, 10]);
   });
 
   it('leaves out a picture it does not have', () => {

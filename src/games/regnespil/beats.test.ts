@@ -7,6 +7,7 @@ import {
   phases,
   phaseSeconds,
   attacks,
+  befriending,
   evasions,
   reached,
   reveal,
@@ -17,8 +18,8 @@ import {
   type Moment,
 } from './beats';
 import { startFight } from './battle';
-import { clearing, slimeAt } from './clearing';
-import { giantSlime, slime } from './monsters';
+import { clearing, foeAt, foeMiddle, slimeAt } from './clearing';
+import { copperDog, giantSlime, slime } from './monsters';
 import { sounds } from './sounds';
 
 const moment: Moment = { at: 10, walked: 0, others: [], lost: false, middle: 108 };
@@ -194,6 +195,78 @@ describe('the fight’s beats', () => {
     );
     expect(hops[0]).not.toBe(hops[1]);
     expect(aftermath(startFight(2), 5, [], 108)).toEqual({});
+  });
+
+  it('throws treats at a monster won over: caught at a right answer, dodged at a close one', () => {
+    const dog = { ...startFight(4, copperDog.plan), threat: false };
+    const ways = { strike: 'charge', evasion: 'leap' } as const;
+    const caught = answerBeat({ ...dog, last: 'struck' }, dog, moment, ways, 3, true);
+    expect(caught.staging.effects?.map((effect) => effect.sheet)).toEqual(['bone']);
+    expect(caught.cues).toContainEqual({ sound: 'treat', after: reveal });
+    expect(caught.staging.monster?.sign?.sheet).toBe('heart');
+    const two = answerBeat({ ...dog, last: 'smashed' }, dog, moment, ways, 3, true);
+    expect(two.staging.effects).toHaveLength(2);
+    const dodged = answerBeat({ ...dog, last: 'parried' }, dog, moment, ways, 3, true);
+    expect(dodged.staging.monster?.acts?.at(-1)?.kind).toBe('leap');
+    expect(dodged.staging.hero?.acts).toHaveLength(1);
+    const smarting = answerBeat({ ...dog, last: 'nicked' }, dog, moment, ways, 3, true);
+    expect(smarting.staging.hero?.acts?.at(-1)?.kind).toBe('hurt');
+    expect(answerBeat({ ...dog, last: 'bumped' }, dog, moment, ways, 3, true)).toEqual(
+      attacks.bumped(moment),
+    );
+    for (const beat of [caught, two, dodged, smarting]) expect(heard(beat)).toBe(true);
+  });
+
+  it('wins a monster over at the last treat: it runs to the heroes and stays there, no flag', () => {
+    const dog = { ...startFight(4, copperDog.plan), threat: false };
+    const ways = { strike: 'charge', evasion: 'leap' } as const;
+    const friends = answerBeat(
+      { ...dog, last: 'struck', lives: 0, outcome: 'won' },
+      dog,
+      { ...moment, others: ['far'] },
+      ways,
+      3,
+      true,
+    );
+    expect(heard(friends)).toBe(true);
+    expect(friends.staging.monster?.acts?.at(-1)).toMatchObject({
+      kind: 'approach',
+      reach: befriending.reach,
+    });
+    expect(friends.staging.effects?.some((effect) => effect.sheet === 'flag')).toBe(false);
+    expect(friends.staging.bench?.far?.acts?.at(-1)?.kind).toBe('cheer');
+    const strong = answerBeat(
+      { ...dog, last: 'smashed', lives: 0, outcome: 'won' },
+      dog,
+      moment,
+      ways,
+      0,
+      true,
+    );
+    expect(strong.staging.effects?.filter((effect) => effect.sheet === 'bone')).toHaveLength(2);
+    const won = { ...dog, lives: 0, outcome: 'won' } as const;
+    const after = aftermath(won, 5, [], 116, true);
+    expect(after.monster?.acts?.[0]?.kind).toBe('approach');
+    expect(after.effects?.some((effect) => effect.sheet === 'flag')).toBe(false);
+  });
+
+  it('stands a dog drawn twice its size with its nose where the slime’s front is', () => {
+    const place = foeAt(copperDog);
+    // Its frame's middle, twice the half of its frame less its nose before it.
+    expect(place.x + 9 - (9 - 1) * 2).toBe(slimeAt.x);
+    expect(place.y + 16).toBe(slimeAt.y + 16);
+    expect(foeMiddle(copperDog)).toBe(place.x + 9);
+    expect(foeMiddle(slime)).toBe(slimeAt.x + 8);
+    expect(foeAt(giantSlime).x).toBe(slimeAt.x - 11);
+    const scene = clearing(
+      {},
+      { front: 'Knight', bench: [] },
+      { look: 'dog', big: copperDog.big, size: 2, bush: false, shielded: false },
+    );
+    expect(drawScene(scene, 1).find((draw) => draw.sheet === 'dog')).toMatchObject({
+      grow: 2,
+      flip: true,
+    });
   });
 
   it('keeps a hero out of hearts lying down to rest, also when the fight is opened again', () => {

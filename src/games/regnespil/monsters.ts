@@ -1,9 +1,11 @@
 import giantFace from '../../../assets/ninja-adventure/Actor/Boss/GiantSlime/Faceset.png';
+import dogFace from '../../../assets/ninja-adventure/Actor/Animal/DogOrange/Faceset.png';
 import type { Voice } from '../../lib/sound/babble';
 import { voices } from '../../lib/sound/voices';
 import { faces } from './art';
 import { slimePlan, type Plan } from './battle';
 import type { Evasion, StrikeName, Tease } from './beats';
+import type { Big } from './clearing';
 
 /*
  * The monsters as data, as the design has it (section 5.6 of `docs/regnespil-design.md`): a
@@ -13,7 +15,7 @@ import type { Evasion, StrikeName, Tease } from './beats';
  */
 
 /** The monsters there are, by kind; a fight is saved with the kind it is against. */
-export const foes = ['slime', 'giantSlime'] as const;
+export const foes = ['slime', 'giantSlime', 'copperDog'] as const;
 export type Foe = (typeof foes)[number];
 
 export function isFoe(value: unknown): value is Foe {
@@ -30,10 +32,17 @@ export interface Monster {
    * A big monster's frames, side by side in one row, if it is not drawn as the pack's small
    * figures are; it stands with its feet where a small one's would be.
    */
-  big?: { width: number; height: number; frames: number };
+  big?: Big;
+  /** How many times its size it is drawn, a whole number, if larger. */
+  size?: number;
   voice: Voice;
   /** How many times the players' swords' lives it has. */
   toughness: number;
+  /**
+   * Whether it is won over rather than beaten, as the story's dogs are: a right answer throws
+   * it a treat, and once it has had enough it becomes the heroes' friend.
+   */
+  befriends?: boolean;
   /** When it grows enraged, when a shield rises, and whether a berry bush stands by it. */
   plan: Plan;
   /** How it strikes back, and once enraged; how it gets out of the way; how it teases. */
@@ -67,7 +76,7 @@ export const giantSlime: Monster = {
   kind: 'giantSlime',
   look: { calm: 'giantSlime', enraged: 'giantSlime' },
   face: { calm: giantFace, enraged: giantFace },
-  big: { width: 62, height: 52, frames: 5 },
+  big: { width: 62, height: 52, frames: 5, front: 11 },
   voice: voices.giant,
   toughness: 3,
   plan: { rage: 2 / 3, shield: 1 / 3, bush: false },
@@ -77,5 +86,27 @@ export const giantSlime: Monster = {
   teases: ['taunt', 'pebbles'],
 };
 
+/**
+ * The copper dog, the story's first dog, with eyes as big as teacups, as the story has it
+ * (`docs/regnespil-story.md`): the first boss, grumpy, not wicked, won over with treats rather
+ * than beaten. Drawn twice its size from the pack's running dog, it charges and hops crossly
+ * and kicks grass, grows grumpier halfway, and becomes the heroes' friend.
+ */
+export const copperDog: Monster = {
+  kind: 'copperDog',
+  look: { calm: 'dog', enraged: 'dog' },
+  face: { calm: dogFace, enraged: dogFace },
+  big: { width: 18, height: 16, frames: 2, faces: 'right', front: 1 },
+  size: 2,
+  voice: voices.dog,
+  toughness: 1.5,
+  befriends: true,
+  plan: { rage: 1 / 2, shield: 0, bush: false },
+  strikes: ['charge'],
+  enragedStrikes: ['charge'],
+  evasions: ['leap', 'sidestep'],
+  teases: ['taunt', 'sand'],
+};
+
 /** Each monster by its kind. */
-export const monsters: Readonly<Record<Foe, Monster>> = { slime, giantSlime };
+export const monsters: Readonly<Record<Foe, Monster>> = { slime, giantSlime, copperDog };
