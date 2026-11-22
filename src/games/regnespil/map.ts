@@ -121,18 +121,18 @@ const tokens: Readonly<Record<Foe, { calm: Token; tough: Token }>> = {
 export const isTough = (step: Step): boolean => step.kind === 'fight' && step.toughness >= 2;
 
 /**
- * How many times their size the heroes are drawn on the map, so the players always see where
- * they are, as the owner could not; where they stand at a step, beside where its monster was;
- * and their friend the dog, its own size, at their feet.
+ * Where the heroes stand at a step, beside where its monster was, and their friend the dog at
+ * their feet. They are drawn their own size; a pin with the leader's face over them shows
+ * where they are (`JourneyMap.tsx`), as drawn twice their size they were too big, the owner
+ * found.
  */
-export const heroSize = 2;
-export const heroesAt = (step: { x: number; y: number }) => ({ x: step.x - 18, y: step.y + 4 });
-const friendAt = (step: { x: number; y: number }) => ({ x: step.x + 2, y: step.y + 12 });
+export const heroesAt = (step: { x: number; y: number }) => ({ x: step.x - 10, y: step.y + 6 });
+const friendAt = (step: { x: number; y: number }) => ({ x: step.x + 4, y: step.y + 12 });
 
 /** Where each hero after the first walks, behind and beside the one in front, in pixels. */
 const behind = (index: number) => ({
-  x: (index % 2 === 0 ? 1 : -1) * 12 * Math.ceil(index / 2),
-  y: 8 * index,
+  x: (index % 2 === 0 ? 1 : -1) * 7 * Math.ceil(index / 2),
+  y: 5 * index,
 });
 
 /** How fast the heroes walk the road, in pixels a second, and the shortest walk, in seconds. */
@@ -282,7 +282,6 @@ export function mapScene(
           ...place(there),
           facing: 'up',
           doing: 'standing',
-          size: heroSize,
           acts: from(place),
         };
       }),

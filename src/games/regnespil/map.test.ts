@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { drawScene } from '../../lib/scene/scene';
 import { copperChapter, startJourney, type Journey } from './journey';
 import {
-  heroSize,
   heroesAt,
   isTough,
   mapScene,
@@ -30,8 +29,8 @@ describe('the map', () => {
     expect(sheets.slice(-4)).toEqual(['dog', 'Knight', 'Monkey', 'Samurai']);
     const lead = heroesAt(copperChapter.steps.hund ?? { x: 0, y: 0 });
     expect(scene.figures.at(-3)).toMatchObject(lead);
-    expect(scene.figures.at(-2)).toMatchObject({ x: lead.x - 12, y: lead.y + 8 });
-    expect(scene.figures.at(-1)).toMatchObject({ x: lead.x + 12, y: lead.y + 16 });
+    expect(scene.figures.at(-2)).toMatchObject({ x: lead.x - 7, y: lead.y + 5 });
+    expect(scene.figures.at(-1)).toMatchObject({ x: lead.x + 7, y: lead.y + 10 });
     // The copper dog's chest stands open where it was won over; a shut chest waits up ahead.
     expect(
       scene.things.filter((thing) => thing.sheet === 'chest').map((thing) => thing.cut.x),
@@ -95,11 +94,12 @@ describe('the map', () => {
     expect(roads(onRoad)).toHaveLength(7);
   });
 
-  it('makes what waits next hop, with a marker over its top, the heroes drawn large', () => {
+  it('makes what waits next hop, with a marker over its top', () => {
     const scene = mapScene(atFork, ['Knight']);
     const hopping = scene.figures.filter((figure) => figure.acts?.[0]?.kind === 'cheer');
     expect(hopping.map((figure) => figure.sheet)).toEqual(['slime', 'slimeRage']);
-    expect(scene.figures.at(-1)?.size).toBe(heroSize);
+    // The heroes their own size: a pin over them shows where they are.
+    expect(scene.figures.at(-1)?.size).toBeUndefined();
     const steps = copperChapter.steps;
     for (const [step, top] of [
       [steps.eng, 132],

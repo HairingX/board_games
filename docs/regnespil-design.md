@@ -487,3 +487,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   middle of the screen.)
 - The dog runs all the time, also when it stands still. (Fixed: it stands on its first frame,
   and runs only as it moves.)
+- How do you get the chest at the sign? I do not understand how to get it. The hero is huge
+  now? (Fixed: the sign's bubble shows the cross slime guarding the detour, an arrow, and the
+  chest past it; the heroes are their own size again, a pin with the leader's face over them.)

@@ -1099,6 +1099,49 @@ button.rs-sign {
   }
 }
 
+/* What a sign shows: the monster guarding the road, an arrow on, and the chest past it. */
+.rs-sign-guard {
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 14);
+  image-rendering: pixelated;
+}
+
+.rs-sign-arrow {
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 7);
+  background: var(--pixel-ink);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+/* The leader's face in a pin over the heroes: here you are. It walks with them. */
+.rs-party {
+  position: absolute;
+  padding: calc(var(--px) * 1);
+  pointer-events: none;
+  background: var(--pixel-text);
+  border: calc(var(--px) * 1) solid var(--pixel-ink);
+  border-radius: 50%;
+  transform: translate(-50%, -100%);
+}
+
+.rs-party img {
+  display: block;
+  width: calc(var(--px) * 11);
+  height: calc(var(--px) * 11);
+  border-radius: 50%;
+  image-rendering: pixelated;
+}
+
+.rs-party[data-walking='true'] {
+  animation: rs-party-walk var(--walk-time) linear;
+}
+
+@keyframes rs-party-walk {
+  from {
+    translate: var(--from-x) var(--from-y);
+  }
+}
+
 .rs-sign-chest {
   width: calc(var(--px) * 16);
   height: calc(var(--px) * 16);

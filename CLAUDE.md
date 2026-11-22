@@ -290,16 +290,17 @@ game builds on them, and everything must stay smooth on a phone.
   - Then the map (`map.ts`, `JourneyMap.tsx`), as the owner asked, so it is plain the
     adventure is under way, where it goes and how far it is: the forest from the road up to
     the hollow tree, a monster waiting at each step, roads dotted on the ground between them,
-    under all that stands there, a flag where a monster was beaten, every player's hero drawn
-    twice its size (`heroSize`), so the players always see where they are, with their friend
-    the dog, walking from step to step, and pips over it for the steps done and left, the last
-    the boss's portrait. As the owner asked, the roads the heroes can take now stand out,
+    under all that stands there, a flag where a monster was beaten, every player's hero and
+    their friend the dog walking from step to step, a pin with the leader's face over them, so
+    the players always see where they are (drawn twice their size the heroes were too big, the
+    owner found), and pips over it for the steps done and left, the last the boss's portrait. As the owner asked, the roads the heroes can take now stand out,
     dotted larger in white (earth further on, light sand where they walked), and what waits at
     their ends hops, under a yellow marker pointing down at it (`markOver`); tapped, with a
     sound, the heroes walk there. No ring marks a step, which the owner took for where the
     heroes stood. At a fork the main road goes on to one
-    fight, and a detour, shown by a wooden sign pointing down it with a chest over it, as the
-    owner described, leads past a tougher slime (drawn cross and twice its size) to a chest and
+    fight, and a detour, shown by a wooden sign pointing down it, its bubble showing in
+    pictures what guards the road, an arrow and the chest past it, as the owner described and
+    then found unclear with the chest alone, leads past a tougher slime (drawn cross and twice its size) to a chest and
     loops back to the main road. While its road lies ahead, the sign can be tapped and leads
     the heroes down it, as the owner found a sign that could not be tapped puzzling.
     Monsters further on have more lives (`toughness` per step).

@@ -13,7 +13,7 @@ import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine'
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { common } from '../../ui/text';
 import { topFrames } from './art';
-import type { Hero } from './heroes';
+import { heroFaces, type Hero } from './heroes';
 import { ahead, copperChapter, stepsLeft, type Chapter, type Journey, type Step } from './journey';
 import { heroesAt, isTough, mapScene, mapSheets, markOver, walkSeconds, type Walk } from './map';
 import { monsters } from './monsters';
@@ -104,18 +104,53 @@ export function JourneyMap({
     setWalk({ to: id, at: now(), lasts: walkSeconds(heroesAt(here), heroesAt(step)) });
   };
 
+  /**
+   * Where the pin with the leader's face stands, over the heroes' heads: at their step, or, on
+   * their way, at the step they walk to, coming from the one they left.
+   */
+  const pinOver = (step: Step) => {
+    const feet = heroesAt(step);
+    return { x: feet.x + 8, y: feet.y - 1 };
+  };
+  const start = pinOver(here);
+  const pin = walk ? pinOver(chapter.steps[walk.to] as Step) : start;
+
   const overlay = (
     <div className="rs-hud">
       {chapter.signs.map((sign) => {
         const place = { left: px(sign.x + 8), top: px(sign.y) };
-        const shows = <img src={littleChest} alt="" className="rs-sign-chest" />;
+        // What lies down the road, past the monster that guards it, if one does.
+        const guard = chapter.steps[sign.to] as Step;
+        const label =
+          guard.kind === 'chest'
+            ? t.map.sign
+            : t.map.signPast(isTough(guard) ? t.foes[guard.foe].strong : t.foes[guard.foe].the);
+        const shows = (
+          <>
+            {guard.kind !== 'chest' && (
+              <>
+                <img
+                  src={
+                    isTough(guard)
+                      ? monsters[guard.foe].face.enraged
+                      : monsters[guard.foe].face.calm
+                  }
+                  alt=""
+                  className="rs-sign-guard"
+                />
+                <span className="rs-sign-arrow" />
+              </>
+            )}
+            <img src={littleChest} alt="" className="rs-sign-chest" />
+          </>
+        );
         // While its road lies ahead, the sign leads the heroes down it, as the step does.
         return ahead(journey, chapter).includes(sign.to) ? (
           <button
             key={sign.to}
             type="button"
             className="rs-bubble rs-sign"
-            aria-label={`${t.map.sign}. ${goTo(chapter.steps[sign.to] as Step)}`}
+            aria-label={`${label}. ${goTo(guard)}`}
             disabled={walk !== undefined}
             style={place}
             onClick={() => {
@@ -129,13 +164,31 @@ export function JourneyMap({
             key={sign.to}
             className="rs-bubble rs-sign"
             role="img"
-            aria-label={t.map.sign}
+            aria-label={label}
             style={place}
           >
             {shows}
           </p>
         );
       })}
+      <span
+        // Placed anew as the heroes set out, so it goes with them.
+        key={walk?.to ?? journey.at}
+        className="rs-party"
+        aria-hidden="true"
+        data-walking={walk !== undefined}
+        style={
+          {
+            left: px(pin.x),
+            top: px(pin.y),
+            '--from-x': px(start.x - pin.x),
+            '--from-y': px(start.y - pin.y),
+            '--walk-time': `${String(walk?.lasts ?? 0)}s`,
+          } as CSSProperties
+        }
+      >
+        <img src={heroFaces[heroes[0] as Hero]} alt="" />
+      </span>
       {ahead(journey, chapter).map((id) => {
         const step = chapter.steps[id] as Step;
         const mark = markOver(step);

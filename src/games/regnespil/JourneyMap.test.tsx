@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeSoundBrowser } from '../../../tests/audio';
 import { SoundEngine } from '../../lib/sound/engine';
-import { startJourney, type Journey } from './journey';
+import { copperChapter, startJourney, type Chapter, type Journey } from './journey';
+import { heroFaces } from './heroes';
 import { sounds } from './sounds';
 import { JourneyMap } from './JourneyMap';
 
@@ -16,7 +17,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function open(journey: Journey) {
+function open(journey: Journey, chapter?: Chapter) {
   const onGo = vi.fn();
   const onBack = vi.fn();
   const engine = new SoundEngine(fakeSoundBrowser().browser);
@@ -28,6 +29,7 @@ function open(journey: Journey) {
       onGo={onGo}
       onBack={onBack}
       sound={engine}
+      {...(chapter ? { chapter } : {})}
       now={() => Date.now() / 1000}
       load={() => new Promise(() => undefined)}
     />,
@@ -51,7 +53,7 @@ describe('JourneyMap', () => {
     // The sign at the fork leads down the detour, as its step does.
     expect(
       screen.getByRole('button', {
-        name: 'Et skilt: ad denne vej ligger en kiste. Gå videre og kæmp mod et stærkt slim',
+        name: 'Et skilt: forbi et stærkt slim ligger en kiste ad denne vej. Gå videre og kæmp mod et stærkt slim',
       }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
@@ -86,7 +88,9 @@ describe('JourneyMap', () => {
     expect(screen.getByRole('button', { name: 'Gå hen til kisten' })).toBeInTheDocument();
     // Past the fork, the sign only shows what lay that way.
     expect(
-      screen.getByRole('img', { name: 'Et skilt: ad denne vej ligger en kiste' }),
+      screen.getByRole('img', {
+        name: 'Et skilt: forbi et stærkt slim ligger en kiste ad denne vej',
+      }),
     ).toBeInTheDocument();
     unmount();
     open({ ...atFork, at: 'lysning', done: ['hund', 'sti', 'eng', 'lysning'] });
@@ -94,5 +98,30 @@ describe('JourneyMap', () => {
       screen.getByRole('button', { name: 'Gå til det hule træ og kæmp mod kæmpeslimet' }),
     ).toBeInTheDocument();
     expect(screen.getByRole('img', { name: '1 skridt til det hule træ' })).toBeInTheDocument();
+  });
+
+  it('shows where the heroes are with a pin of the leader’s face, which walks with them', () => {
+    const { container } = open(atFork);
+    const pin = container.querySelector('.rs-party');
+    expect(pin?.querySelector('img')).toHaveAttribute('src', heroFaces.Knight);
+    expect(pin).toHaveAttribute('data-walking', 'false');
+    fireEvent.click(screen.getByRole('button', { name: 'Gå videre og kæmp mod slimet' }));
+    expect(container.querySelector('.rs-party')).toHaveAttribute('data-walking', 'true');
+  });
+
+  it('shows on a sign what guards its road and the chest past it, or the chest alone', () => {
+    const signs = [
+      { x: 20, y: 150, to: 'eng', shows: 'chest' },
+      { x: 120, y: 80, to: 'kiste', shows: 'chest' },
+    ] as const;
+    open(atFork, { ...copperChapter, signs });
+    expect(
+      screen.getByRole('button', {
+        name: 'Et skilt: forbi slimet ligger en kiste ad denne vej. Gå videre og kæmp mod slimet',
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Et skilt: ad denne vej ligger en kiste' }),
+    ).toBeInTheDocument();
   });
 });
