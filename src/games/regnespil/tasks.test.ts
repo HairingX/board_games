@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { levels } from './levels';
-import { freshFor, freshTask, judge, makeTask, sumKey, type Token } from './tasks';
+import { believable, freshFor, freshTask, judge, makeTask, sumKey, type Token } from './tasks';
 import { numeric, valueKey, type Value } from './values';
 
 /** A source of random numbers that repeats, so tasks can be checked by the thousand. */
@@ -196,5 +196,26 @@ describe('judge', () => {
     expect(judge(0.5, { n: 1, d: 2 }, 0.1)).toBe('right');
     expect(judge({ n: 2, d: 5 }, { n: 1, d: 2 }, 0.1)).toBe('close');
     expect(judge({ n: 1, d: 5 }, { n: 1, d: 2 }, 0.1)).toBe('far');
+  });
+});
+
+describe('wrong answers to bigger sums', () => {
+  it('are about as big as the right one, unless finding the size is the sum', () => {
+    const random = seeded(1);
+    for (const level of levels) {
+      for (let drawn = 0; drawn < 300; drawn++) {
+        const task = makeTask(level, random);
+        const size = Math.abs(numeric(task.answer));
+        const shifting = task.sum[1] === '×' && (task.sum[2] === 10 || task.sum[2] === 100);
+        if (size < believable.from || shifting) continue;
+        for (const choice of task.choices) {
+          const off = Math.abs(Math.abs(numeric(choice)) - size);
+          expect(
+            off,
+            `${JSON.stringify(task.sum)} ${JSON.stringify(task.choices)}`,
+          ).toBeLessThanOrEqual(size * believable.within);
+        }
+      }
+    }
   });
 });

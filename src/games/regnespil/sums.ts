@@ -34,6 +34,11 @@ export interface Made {
   negatives?: boolean;
   /** How near a wrong answer is still close; by default within 2, or a tenth of the answer. */
   near?: number;
+  /**
+   * Whether the mistakes are in the answer's size itself, as moving the point, so finding the
+   * right size is the sum; then wrong answers far from the right one in size are kept.
+   */
+  sized?: boolean;
 }
 
 /** A kind of sum: made afresh, at random, each time. */

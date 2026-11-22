@@ -121,6 +121,7 @@ export const harderKinds: Readonly<
         answer,
         mistakes: [x, tidy(answer / 10), tidy(answer * 10)],
         near: nearFor(answer),
+        sized: true,
       };
     },
     // A fraction of a number: 3/4 of 20, and the mistakes of one part, or the rest.

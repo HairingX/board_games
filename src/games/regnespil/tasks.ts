@@ -65,13 +65,41 @@ export function freshTask(draw: () => Task, recent: readonly string[]): Task {
 const drawsAtMost = 100;
 
 /**
+ * How a wrong answer to a bigger sum (from `from`) must be as big as the right one, give or
+ * take a share (`within`), so it cannot be ruled out by its size alone, as the owner found:
+ * 22 squared among 484, 44 and 22 needs no sum. Slips filling in are this far apart (`step`
+ * for answers from `from`), which keeps the last digit, so none is ruled out by it either.
+ */
+export const believable = { from: 20, within: 0.5, step: 10 } as const;
+
+/** Whether a wrong answer is about as big as the right one, so its size alone gives nothing away. */
+function aboutAsBig(value: Value, answer: Value): boolean {
+  const size = Math.abs(numeric(answer));
+  return (
+    size < believable.from || Math.abs(Math.abs(numeric(value)) - size) <= size * believable.within
+  );
+}
+
+/**
  * A task at the level: one of its kinds of sums, with the right answer and two typical
  * mistakes, distinct, and not below zero unless negative numbers are taught, in a random order.
- * Should a sum's mistakes not give two, the answer's next neighbours fill in.
+ * A mistake much bigger or smaller than the right answer is left out, unless finding the size
+ * is the sum. Should a sum's mistakes not give two, slips beside the answer fill in: its
+ * neighbours, or for a bigger answer ten or twenty either side, in a random order, so the
+ * right answer is not always the smallest or the middle one.
  */
 function anyTask(level: Level, random: Random): Task {
-  const { sum, answer, mistakes, negatives = false, near } = pick(random, kinds[level])(random);
-  const wrong = [...mistakes, beside(answer, 1), beside(answer, 2)]
+  const made = pick(random, kinds[level])(random);
+  const { sum, answer, mistakes, negatives = false, near, sized = false } = made;
+  const { step } = believable;
+  // Ten either side, or twenty, in a random order, and a neighbour if none of those will do.
+  const slips = (
+    Math.abs(numeric(answer)) < believable.from
+      ? [1, 2]
+      : [...shuffle([step, -step, 2 * step, -2 * step], random), 1, -1]
+  ).map((by) => beside(answer, by));
+  const wrong = [...mistakes, ...slips]
+    .filter((value) => sized || aboutAsBig(value, answer))
     .filter((value) => (negatives || numeric(value) >= 0) && !same(value, answer))
     .filter((value, index, all) => all.findIndex((other) => same(other, value)) === index)
     .slice(0, 2);

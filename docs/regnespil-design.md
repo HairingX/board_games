@@ -406,3 +406,7 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   built as proposed: the giant slime, three times as tough; at two thirds enraged with a
   warned body slam; at a third a shield that right answers break a piece at a time and a power
   stroke shatters; chosen on the setup while the game is tried.)
+- At the higher levels, times and division sums have answers close together, but powers,
+  percent and some others are easy to guess: for 22 squared, one answer is 484 and the others
+  are far smaller, so the answer is plain without working it out. (Fixed: wrong answers to
+  bigger sums are about as big as the right one.)
