@@ -305,6 +305,41 @@ objects, which the engine makes cheap to vary. More free art packs can be added 
    to be decided.
 8. When the game suggests a higher math level to a child, and how it says so kindly.
 
+## 10a. From the review of chapter 1 (proposed, for the owner)
+
+Four critics reviewed the first chapter (a game designer, a children's learning expert, a
+sceptical parent and a code reviewer). What could be fixed without changing a decision is
+built (`CLAUDE.md`). These change something the owner decided, or are bigger, and wait:
+
+1. **Grown-ups and children together.** Hearts are shared, so a grown-up at level 13 with the
+   flame sword can lose the team the fight; monsters have every sword's lives added and are
+   tougher further on, so three players need about 120 sums for the chapter and a small child
+   waits long. Proposed: grown-ups' mistakes cost the monster's lives back rather than the
+   team's hearts, or grown-ups have hearts of their own; lives grow slower than the number of
+   players (about its square root), and a boss has a most as well as a least.
+2. **"Prøv igen" begins the fight afresh**, the monster whole again, so losing near the end of
+   a boss is a game over in all but name. Proposed: resting refills the hearts and the monster
+   keeps its wounds.
+3. **The adventure belongs to the group that played it**, so a child playing alone in the
+   morning and with a sibling at night has two journeys. Proposed: show whose journey waits, or
+   keep the journey per player.
+4. **The monster walking up while a child thinks** reads, to the learning expert, as a hidden
+   timer, which research links to math anxiety. Proposed: with the wooden and iron swords it
+   stays where it is, idling (yawning, sitting); only the flame sword brings it closer.
+5. **The detour is no real choice** while hearts are whole at every fight: the chest's road
+   always wins. Proposed: hearts carried through the chapter (with a rest on the main road),
+   or a reward on the main road too.
+6. **The first levels as things, not only numerals**: at levels 1–2, the numbers shown as
+   things in the scene (the dog wants three treats and has one), the numerals under them.
+7. **Teaching by doing**: a hand pointing the first time, on the first sum, the first
+   defence and the first chest, kept per child.
+8. **More to see**: other monster families than slimes, a stage of its own for each step (a
+   thicket, a meadow), the friend dog in the fights (sniffing away one wrong answer once a
+   fight, an early form of the owner's "only two answers" upgrade), treasures shown in the
+   fight and glowing when they work, and the choices at chests and forks taken in turn, the
+   chooser's face shown.
+9. **The film resumes at the shot it was left on**, rather than from its start.
+
 ## 11. The owner's ideas, as raised
 
 Kept as close to the owner's words as possible, newest last, so none is forgotten.
