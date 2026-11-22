@@ -36,7 +36,7 @@ import {
   type Scene,
 } from '../../lib/scene/scene';
 import { motionTokens } from '../../ui/motion';
-import { forest, forestSheets } from './forest';
+import { forest, forestSheets, sceneries, type Scenery } from './forest';
 import { heroSheets, type Hero } from './heroes';
 
 /**
@@ -493,10 +493,16 @@ const shieldHeld: Effect = {
 
 /**
  * The clearing with the heroes and a monster facing each other, as staged: the hero whose turn
- * it is in front, the others behind; the monster as it looks now (a sheet's name); and the
- * berry bush with the berries it has.
+ * it is in front, the others behind; the monster as it looks now (a sheet's name); the
+ * berry bush with the berries it has; in the clearing, or by the hollow tree.
  */
-export function clearing(staging: Staging, party: Party, foe: Foe, berries = 2): Scene {
+export function clearing(
+  staging: Staging,
+  party: Party,
+  foe: Foe,
+  berries = 2,
+  scenery: Scenery = 'clearing',
+): Scene {
   const places = benchAt(party.bench.length);
   // The bush holds from none to two berries, each with a cut.
   const berryBush = { sheet: 'nature', cut: bushes[berries] as Cut, ...bushAt };
@@ -507,7 +513,7 @@ export function clearing(staging: Staging, party: Party, foe: Foe, berries = 2):
   };
   return {
     ...forest,
-    things: foe.bush ? [...forest.things, berryBush] : forest.things,
+    things: foe.bush ? [...sceneries[scenery], berryBush] : sceneries[scenery],
     figures: [
       ...party.bench.map((one, index) => ({
         sheet: one.hero,

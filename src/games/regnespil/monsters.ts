@@ -39,6 +39,11 @@ export interface Monster {
   /** How many times the players' swords' lives it has. */
   toughness: number;
   /**
+   * The fewest lives it has however few play, so a boss is no pushover for a child alone with
+   * the easiest sword.
+   */
+  least?: number;
+  /**
    * Whether it is won over rather than beaten, as the story's dogs are: a right answer throws
    * it a treat, and once it has had enough it becomes the heroes' friend.
    */
@@ -79,6 +84,7 @@ export const giantSlime: Monster = {
   big: { width: 62, height: 52, frames: 5, front: 11 },
   voice: voices.giant,
   toughness: 3,
+  least: 8,
   plan: { rage: 2 / 3, shield: 1 / 3, bush: false },
   strikes: ['charge', 'spit'],
   enragedStrikes: ['slam', 'spit', 'slam'],
@@ -106,6 +112,7 @@ export const copperDog: Monster = {
   size: copperDogSize,
   voice: voices.dog,
   toughness: 1.5,
+  least: 5,
   befriends: true,
   plan: { rage: 1 / 2, shield: 0, bush: false },
   strikes: ['charge'],

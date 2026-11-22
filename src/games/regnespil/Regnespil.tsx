@@ -5,6 +5,7 @@ import { sound } from '../../lib/sound/engine';
 import { reviveSoundSettings, soundSaveKey } from '../../lib/sound/settings';
 import { useSaved, useSavedEach } from '../../lib/useSaved';
 import { SoundMenu } from '../../ui/SoundMenu';
+import { swordPictures } from './art';
 import { Chest } from './Chest';
 import { Fight, fightMusic } from './Fight';
 import { prologue } from './film';
@@ -184,6 +185,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
             saved={goesOn(journeyFight, players, screen.foe, fightPlaceOf(current))}
             foe={screen.foe}
             toughness={screen.toughness}
+            scenery={screen.scenery}
             gear={gearOf(current.treasures)}
             step={fightPlaceOf(current)}
             onSave={saveJourneyFight}
@@ -200,6 +202,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
           <Chest
             key={current.at}
             offers={screen.offers}
+            weapon={swordPictures[(settings[0] as PlayerSettings).sword]}
             onChoose={(treasure) => {
               saveJourney(treasureChosen(current, treasure));
             }}
@@ -211,7 +214,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
         return (
           <JourneyMap
             journey={current}
-            hero={heroes[0] as PlayerSettings['hero']}
+            heroes={heroes}
             onGo={(step) => {
               saveJourney(walkTo(current, step));
             }}

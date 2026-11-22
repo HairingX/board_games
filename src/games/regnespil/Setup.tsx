@@ -136,27 +136,30 @@ export function Setup({
             {t.adventure.restart}
           </button>
         ))}
-      <button
-        type="button"
-        className="btn btn-quiet btn-block"
-        onClick={() => {
-          onStart('slime');
-        }}
-      >
-        {t.adventure.quickFight}
-      </button>
-      <button
-        type="button"
-        className="btn btn-quiet btn-block"
-        onClick={() => {
-          onStart('giantSlime');
-        }}
-      >
-        {t.boss}
-      </button>
-      <button type="button" className="btn btn-quiet btn-block rs-listen" onClick={onListen}>
-        {t.listen.title}
-      </button>
+      <details className="rs-trials">
+        <summary>{t.adventure.trials}</summary>
+        <button
+          type="button"
+          className="btn btn-quiet btn-block"
+          onClick={() => {
+            onStart('slime');
+          }}
+        >
+          {t.adventure.quickFight}
+        </button>
+        <button
+          type="button"
+          className="btn btn-quiet btn-block"
+          onClick={() => {
+            onStart('giantSlime');
+          }}
+        >
+          {t.boss}
+        </button>
+        <button type="button" className="btn btn-quiet btn-block rs-listen" onClick={onListen}>
+          {t.listen.title}
+        </button>
+      </details>
     </section>
   );
 }

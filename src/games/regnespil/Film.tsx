@@ -29,14 +29,22 @@ interface Props {
 
 const pageClock = () => performance.now() / 1000;
 
+/**
+ * How many times their size the pictures in bubbles are drawn, so a child sees what they show
+ * on a phone; and how long, in seconds, before the film can be skipped, so a child's first tap
+ * does not end it.
+ */
+const bubbleZoom = 2;
+export const skipAfter = 3;
+
 /** The voices the films' characters babble in. */
 const filmVoices = { hero: voices.hero, crone: voices.crone, dog: voices.dog } as const;
 
 /**
  * A film of the story, played shot by shot on the puppet theatre's stage, with the
  * characters' sounds and voices and their picture bubbles, each at its moment. What each shot
- * shows is told in words to screen readers. It can be skipped at any time, and the screen is
- * kept on while it plays.
+ * shows is told in words to screen readers. After its first moments it can be skipped, from a
+ * quiet button at the top, and the screen is kept on while it plays.
  */
 export function Film({
   shots,
@@ -53,6 +61,16 @@ export function Film({
   /** Which shot plays, from when on the page's clock, and how far into it the bubbles are. */
   const [playing, setPlaying] = useState(() => ({ index: 0, at: now() }));
   const [into, setInto] = useState(0);
+  /** Whether the film may be skipped yet: not in its first moments, so a tap does not end it. */
+  const [skippable, setSkippable] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSkippable(true);
+    }, skipAfter * 1000);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
   const shot = shots[playing.index] as Shot;
   useWakeLock(true);
 
@@ -105,6 +123,8 @@ export function Film({
 
   const scene = useMemo(() => shot.scene(playing.at, heroes), [shot, playing.at, heroes]);
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
+  /** A size in a bubble's picture, drawn larger. */
+  const zoomed = (pixels: number) => px(pixels * bubbleZoom);
   const bubbles = shot.bubbles.filter(
     (bubble) => bubble.at <= into && into < bubble.at + bubble.lasts,
   );
@@ -122,12 +142,13 @@ export function Film({
             <span
               key={index}
               className="rs-bubble-picture"
+              data-upside-down={picture.upsideDown === true}
               style={{
-                width: px(picture.cut.width),
-                height: px(picture.cut.height),
+                width: zoomed(picture.cut.width),
+                height: zoomed(picture.cut.height),
                 backgroundImage: `url("${picture.url}")`,
-                backgroundPosition: `${px(-picture.cut.x)} ${px(-picture.cut.y)}`,
-                backgroundSize: `${px(picture.image.width)} ${px(picture.image.height)}`,
+                backgroundPosition: `${zoomed(-picture.cut.x)} ${zoomed(-picture.cut.y)}`,
+                backgroundSize: `${zoomed(picture.image.width)} ${zoomed(picture.image.height)}`,
               }}
             />
           ))}
@@ -142,7 +163,14 @@ export function Film({
         <button type="button" className="game-header-button" aria-label={c.back} onClick={onBack}>
           <span aria-hidden="true">‹</span>
         </button>
-        <span />
+        {skippable ? (
+          <button type="button" className="rs-skip" onClick={onDone}>
+            {t.film.skip}
+            <span aria-hidden="true"> ⏭</span>
+          </button>
+        ) : (
+          <span />
+        )}
         {aside}
       </header>
       <div
@@ -161,12 +189,6 @@ export function Film({
       <p className="visually-hidden" aria-live="polite">
         {t.film.shots[shot.tells]}
       </p>
-      <div className="rs-panel rs-film-panel">
-        <button type="button" className="rs-skip" onClick={onDone}>
-          {t.film.skip}
-          <span aria-hidden="true"> ⏭</span>
-        </button>
-      </div>
     </section>
   );
 }

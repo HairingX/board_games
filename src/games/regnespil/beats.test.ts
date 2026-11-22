@@ -250,6 +250,23 @@ describe('the fight’s beats', () => {
     expect(after.effects?.some((effect) => effect.sheet === 'flag')).toBe(false);
   });
 
+  it('stages a fight by the hollow tree, its hole at its foot', () => {
+    const inClearing = clearing(
+      {},
+      { front: 'Knight', bench: [] },
+      { look: 'slime', bush: false, shielded: false },
+    );
+    const byTree = clearing(
+      {},
+      { front: 'Knight', bench: [] },
+      { look: 'slime', bush: false, shielded: false },
+      2,
+      'tree',
+    );
+    expect(byTree.things.some((thing) => thing.cut.y === 208)).toBe(true);
+    expect(inClearing.things.some((thing) => thing.cut.y === 208)).toBe(false);
+  });
+
   it('stands a dog drawn twice its size with its nose where the slime’s front is', () => {
     const place = foeAt(copperDog);
     // Its frame's middle, twice the half of its frame less its nose before it.

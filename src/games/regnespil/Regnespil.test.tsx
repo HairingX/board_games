@@ -216,7 +216,7 @@ describe('Regnespil', () => {
 
   it('shows the film, then the copper dog, when the adventure is opened without a journey', async () => {
     open([adventurePlace]);
-    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }, { timeout: 4000 }));
     expect(await screen.findByRole('img', { name: /Kobberhunden er sur/ })).toBeInTheDocument();
   });
 
@@ -272,9 +272,10 @@ describe('Regnespil', () => {
     open([adventurePlace]);
     fireEvent.click(await screen.findByRole('button', { name: 'Åbn kisten' }));
     const [first] = screen
-      .getAllByRole('button', { name: /./, description: '' })
+      .getAllByRole('button')
       .filter((one) => one.classList.contains('rs-treasure'));
     fireEvent.click(first as HTMLElement);
+    fireEvent.click(screen.getByRole('button', { name: /^Tag / }));
     const step = await screen.findByRole(
       'button',
       { name: 'Gå videre og kæmp mod slimet' },
@@ -318,7 +319,7 @@ describe('Regnespil', () => {
     await waitFor(async () => {
       expect(await saves.read('regnespil/mille')).toMatchObject({ coins: 6 });
     });
-    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }, { timeout: 4000 }));
     expect(screen.getByRole('heading', { name: 'Kapitel 1 er klaret!' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Spil kapitlet igen' }));
     expect(await screen.findByRole('img', { name: 'Eventyrets film' })).toBeInTheDocument();

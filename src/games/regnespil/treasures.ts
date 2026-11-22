@@ -44,15 +44,21 @@ export function gearOf(carried: readonly Treasure[]): Gear {
   return carried.reduce<Gear>((gear, treasure) => ({ ...gear, ...helps[treasure] }), noGear);
 }
 
+/**
+ * The treasures a chest may hold: not yet the gold pouch, as coins have nothing to buy until
+ * there is a shop, and a treasure must be felt in the fights.
+ */
+export const inChests: readonly Treasure[] = ['heartJar', 'powerRing', 'guardCharm'];
+
 /** How many treasures a chest offers to choose from. */
 export const chestHolds = 3;
 
 /**
  * The treasures a chest offers: up to three the heroes do not have yet, picked by `random`, in
- * the order of `treasures`, so each is new.
+ * the order of `inChests`, so each is new.
  */
 export function chestOffers(carried: readonly Treasure[], random: Random): readonly Treasure[] {
-  const left = treasures.filter((treasure) => !carried.includes(treasure));
+  const left = inChests.filter((treasure) => !carried.includes(treasure));
   const picked = shuffle(left, random).slice(0, chestHolds);
   return left.filter((treasure) => picked.includes(treasure));
 }

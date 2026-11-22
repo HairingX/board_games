@@ -69,8 +69,8 @@ type Token = Pick<Figure, 'sheet' | 'big' | 'size'>;
  * one, cross, so the players see what a detour costs.
  */
 const tokens: Readonly<Record<Foe, { calm: Token; tough: Token }>> = {
-  slime: { calm: { sheet: 'slime' }, tough: { sheet: 'slimeRage' } },
-  giantSlime: { calm: { sheet: 'slime', size: 2 }, tough: { sheet: 'slimeRage', size: 2 } },
+  slime: { calm: { sheet: 'slime' }, tough: { sheet: 'slimeRage', size: 2 } },
+  giantSlime: { calm: { sheet: 'slime', size: 3 }, tough: { sheet: 'slimeRage', size: 3 } },
   copperDog: { calm: { sheet: 'dog', big: dogFrames }, tough: { sheet: 'dog', big: dogFrames } },
 };
 
@@ -79,6 +79,12 @@ export const isTough = (step: Step): boolean => step.kind === 'fight' && step.to
 
 /** Where the heroes stand at a step, beside where its monster was, and their friend the dog. */
 export const heroesAt = (step: { x: number; y: number }) => ({ x: step.x - 6, y: step.y + 6 });
+
+/** Where each hero after the first walks, behind and beside the one in front, in pixels. */
+const behind = (index: number) => ({
+  x: (index % 2 === 0 ? 1 : -1) * 6 * Math.ceil(index / 2),
+  y: 5 * index,
+});
 const friendAt = (step: { x: number; y: number }) => ({ x: step.x - 26, y: step.y + 10 });
 
 /** How fast the heroes walk the road, in pixels a second, and the shortest walk, in seconds. */
@@ -144,12 +150,12 @@ function atStep(
 
 /**
  * The map as it stands on the journey: each step as it is, the signs, and the heroes at their
- * step, the first player's hero leading, with their friend the dog; walking to another step,
- * if they are.
+ * step, the first player's hero leading and the others behind, with their friend the dog;
+ * walking to another step, if they are.
  */
 export function mapScene(
   journey: Journey,
-  hero: Hero,
+  heroes: readonly Hero[],
   walk?: Walk,
   chapter: Chapter = copperChapter,
 ): Scene {
@@ -191,7 +197,13 @@ export function mapScene(
         big: dogFrames,
         acts: from(friendAt),
       },
-      { sheet: hero, ...heroesAt(there), facing: 'up', doing: 'standing', acts: from(heroesAt) },
+      ...heroes.map((hero, index): Figure => {
+        const place = (step: Step) => {
+          const lead = heroesAt(step);
+          return { x: lead.x + behind(index).x, y: lead.y + behind(index).y };
+        };
+        return { sheet: hero, ...place(there), facing: 'up', doing: 'standing', acts: from(place) };
+      }),
     ],
     effects: parts.flatMap((part) => part.effects),
   };

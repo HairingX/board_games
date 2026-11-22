@@ -52,6 +52,7 @@ import {
   type Party,
   type Staging,
 } from './clearing';
+import type { Scenery } from './forest';
 import { monsters, type Foe } from './monsters';
 import type { PlayerSettings } from './players';
 import { evasionFor, strikeFor, teaseFor } from './antics';
@@ -166,6 +167,8 @@ interface Props {
   gear?: Gear;
   /** How many times its usual lives the monster has, as further on a journey. */
   toughness?: number;
+  /** Where the fight takes place: the clearing, or by the hollow tree. */
+  scenery?: Scenery;
   /** The step of the journey a fight is at, saved with it. */
   step?: string;
   /**
@@ -212,6 +215,7 @@ export function Fight({
   foe = 'slime',
   gear = noGear,
   toughness = 1,
+  scenery = 'clearing',
   step,
   onDone,
   aside,
@@ -228,8 +232,9 @@ export function Fight({
   /** A new fight, the first player's turn, its sum none of those shown lately. */
   const fresh = (recent: readonly string[]): SavedFight => {
     const against = monsters[foe];
-    const lives = Math.ceil(
-      monsterLives(settings.map((one) => one.sword)) * against.toughness * toughness,
+    const lives = Math.max(
+      against.least ?? 1,
+      Math.ceil(monsterLives(settings.map((one) => one.sword)) * against.toughness * toughness),
     );
     return {
       fight: startFight(lives, against.plan, gear),
@@ -613,6 +618,8 @@ export function Fight({
 
   const player = players[active] as Profile;
   const sword = own(active).sword;
+  /** What the player strikes with: their sword, or a treat for a monster won over. */
+  const weapon = befriends ? hud.treat : swordPictures[sword];
   /** What a wrong answer costs the active player, in half hearts, at its worst. */
   const cost = swordRules[sword].far;
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
@@ -647,6 +654,7 @@ export function Fight({
       shielded,
     },
     shown.berries,
+    scenery,
   );
 
   const overlay = (
@@ -683,7 +691,7 @@ export function Fight({
           {Array.from({ length: shown.powerAt }, (_, index) => (
             <img
               key={index}
-              src={swordPictures[sword]}
+              src={weapon}
               alt=""
               className="rs-combo-pip"
               data-lit={index < shown.combo}
@@ -868,8 +876,8 @@ export function Fight({
               </p>
             ) : (
               <p className="rs-tab">
-                <img src={swordPictures[sword]} alt="" className="rs-tab-weapon" />
-                {t.attack}
+                <img src={weapon} alt="" className="rs-tab-weapon" />
+                {befriends ? t.treat : t.attack}
               </p>
             )}
             <p className="rs-stakes">
@@ -891,11 +899,7 @@ export function Fight({
                   }
                 >
                   <span aria-hidden="true">✓</span>
-                  {befriends ? (
-                    <img src={hud.treat} alt="" className="rs-stake-weapon" />
-                  ) : (
-                    <img src={swordPictures[sword]} alt="" className="rs-stake-weapon" />
-                  )}
+                  <img src={weapon} alt="" className="rs-stake-weapon" />
                   <span aria-hidden="true">→</span>
                   {shown.shield > 0 ? (
                     <img src={hud.guard} alt="" className="rs-stake-guard" />
@@ -925,7 +929,13 @@ export function Fight({
         ) : (
           <div className="fight-over">
             <p role="status">
-              {shown.outcome === 'lost' ? t.lost : befriends ? t.befriended(name) : t.won(name)}
+              {shown.outcome === 'lost'
+                ? players.length > 1
+                  ? t.lostAll
+                  : t.lost
+                : befriends
+                  ? t.befriended(name)
+                  : t.won(name)}
             </p>
             {shown.outcome === 'won' && onDone ? (
               <button type="button" className="rs-button" onClick={onDone}>

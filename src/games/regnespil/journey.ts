@@ -1,5 +1,6 @@
 import { seeded } from '../../lib/random';
 import { seeds } from './fightSave';
+import type { Scenery } from './forest';
 import type { Foe } from './monsters';
 import { chestOffers, isTreasure, type Treasure } from './treasures';
 
@@ -25,6 +26,8 @@ export type Step = { x: number; y: number; next: readonly string[] } & (
       toughness: number;
       /** Whether a chest opens once the fight is won, as the copper dog's does. */
       chest?: boolean;
+      /** Where the fight takes place, if not in the clearing. */
+      scenery?: Scenery;
     }
 );
 
@@ -59,8 +62,16 @@ export const copperChapter: Chapter = {
     eng: { kind: 'fight', foe: 'slime', toughness: 1.5, x: 30, y: 132, next: ['lysning'] },
     krat: { kind: 'fight', foe: 'slime', toughness: 2, x: 118, y: 148, next: ['kiste'] },
     kiste: { kind: 'chest', x: 118, y: 108, next: ['lysning'] },
-    lysning: { kind: 'fight', foe: 'slime', toughness: 2, x: 72, y: 96, next: ['træet'] },
-    træet: { kind: 'boss', foe: 'giantSlime', toughness: 1, x: 72, y: 58, next: [] },
+    lysning: { kind: 'fight', foe: 'slime', toughness: 1.5, x: 72, y: 96, next: ['træet'] },
+    træet: {
+      kind: 'boss',
+      foe: 'giantSlime',
+      toughness: 1,
+      scenery: 'tree',
+      x: 72,
+      y: 58,
+      next: [],
+    },
   },
   signs: [{ x: 96, y: 160, to: 'krat', shows: 'chest' }],
 };
@@ -199,7 +210,7 @@ export function reviveJourney(saved: unknown, chapter: Chapter = copperChapter):
 /** What the journey shows now, with what it needs. */
 export type Screen =
   | { kind: 'film' | 'map' | 'end' }
-  | { kind: 'fight'; foe: Foe; toughness: number }
+  | { kind: 'fight'; foe: Foe; toughness: number; scenery: Scenery }
   | { kind: 'chest'; offers: readonly Treasure[] };
 
 /**
@@ -215,7 +226,12 @@ export function screenOf(journey: Journey, chapter: Chapter = copperChapter): Sc
     case 'fight':
       return step.kind === 'chest'
         ? chest
-        : { kind: 'fight', foe: step.foe, toughness: step.toughness };
+        : {
+            kind: 'fight',
+            foe: step.foe,
+            toughness: step.toughness,
+            scenery: step.scenery ?? 'clearing',
+          };
     default:
       return { kind: journey.scene };
   }

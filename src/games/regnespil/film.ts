@@ -1,11 +1,10 @@
 import crone from '../../../assets/ninja-adventure/Actor/Character/NinjaMageOrange/SpriteSheet.png';
 import arrow from '../../../assets/ninja-adventure/Ui/Arrow.png';
-import chest from '../../../assets/ninja-adventure/Items/Treasure/BigTreasureChest.png';
 import whiteDog from '../../../assets/ninja-adventure/Actor/Animal/DogBlack/SpriteSheetWhite.png';
 import goldDog from '../../../assets/ninja-adventure/Actor/Animal/DogYellow/SpriteSheet.png';
 import type { Act, Cut, Effect, Figure, Scene } from '../../lib/scene/scene';
 import { benchAt, clearingSheets, foeAt, heroAt, slimeAt, type Sign } from './clearing';
-import { forest, forestSheets } from './forest';
+import { forest, forestSheets, holeAt, sceneries } from './forest';
 import type { Hero } from './heroes';
 import { copperDog, copperDogSize, dogFrames } from './monsters';
 import type { sounds } from './sounds';
@@ -15,7 +14,7 @@ import type { sounds } from './sounds';
  * shots on the puppet theatre's stage, the characters acting, babbling in their own voices and
  * showing picture bubbles. The film before the first chapter draws the players in: the heroes
  * meet an old woman, who shows them, in pictures, a hollow tree with a tinderbox's spark down
- * in it, riches, and three dogs; then the first dog, the copper dog, bursts onto the road, and
+ * in it, and three dogs; then the first dog, the copper dog, bursts onto the road, and
  * the first fight begins. The film at the chapter's end leads the heroes down into the hollow
  * tree, where eyes glint in the dark. Each shot lasts seconds, and the film can be skipped.
  */
@@ -28,6 +27,8 @@ export interface Picture {
   url: string;
   cut: Cut;
   image: { width: number; height: number };
+  /** Turned upside down, as the pack's arrow, which points up, to point down. */
+  upsideDown?: boolean;
 }
 
 /** A picture bubble over someone's head, from `at` seconds into the shot for `lasts`. */
@@ -64,10 +65,8 @@ const size = (width: number, height: number) => ({ width, height });
 /** The pictures in the bubbles. */
 const pictures = {
   hollow: { url: forestSheets.nature, cut: cut(112, 208, 16, 16), image: size(384, 336) },
-  down: { url: arrow, cut: cut(0, 0, 13, 13), image: size(13, 13) },
+  down: { url: arrow, cut: cut(0, 0, 13, 13), image: size(13, 13), upsideDown: true },
   spark: { url: clearingSheets.spark, cut: cut(30, 0, 10, 8), image: size(70, 8) },
-  riches: { url: chest, cut: cut(16, 0, 16, 14), image: size(32, 14) },
-  coin: { url: clearingSheets.coin, cut: cut(0, 0, 10, 10), image: size(40, 10) },
   copper: { url: clearingSheets.dog, cut: cut(0, 0, 18, 16), image: size(36, 16) },
   silver: { url: whiteDog, cut: cut(0, 0, 18, 17), image: size(36, 17) },
   gold: { url: goldDog, cut: cut(0, 0, 21, 17), image: size(42, 17) },
@@ -76,6 +75,9 @@ const pictures = {
 /** Where the old woman stands, facing the heroes, and the point over her head. */
 const croneAt = slimeAt;
 const overCrone = { x: croneAt.x + 8, y: croneAt.y - 2 };
+
+/** Over the middle of the stage, for a bubble too wide to fit over her, three dogs in it. */
+const overMiddle = { x: 84, y: croneAt.y - 2 };
 
 /** A figure of the film standing at its place, facing `facing`, doing what it is given. */
 const figure = (
@@ -131,14 +133,14 @@ const stage = (figures: readonly Figure[], effects: readonly Effect[] = []): Sce
 const walkIn = { from: -80, seconds: 3 } as const;
 
 /**
- * The film before the first chapter: about half a minute. "One, two! One, two!" the heroes
+ * The film before the first chapter: under half a minute. "One, two! One, two!" the heroes
  * march along the road, as the tale begins; an old woman in a pointed hat shows them a hollow
- * tree with a spark down in it, riches, and three dogs, each bigger; then a bark, she hurries
+ * tree with a spark down in it and three dogs, each bigger; then a bark, she hurries
  * off, and the copper dog bursts onto the road, grumpy, and the heroes stand ready.
  */
 export const prologue: readonly Shot[] = [
   {
-    seconds: 6.5,
+    seconds: 5.5,
     tells: 'road',
     scene: (at, party) =>
       stage([
@@ -161,38 +163,31 @@ export const prologue: readonly Shot[] = [
     ],
   },
   {
-    seconds: 8.5,
+    seconds: 5,
     tells: 'quest',
     scene: (at, party) =>
       stage([
         ...heroes(
           party,
           (index) => [
-            { kind: 'cheer', at: at + 5.2 + index * 0.15 },
-            { kind: 'cheer', at: at + 5.9 + index * 0.15 },
+            { kind: 'cheer', at: at + 3.4 + index * 0.15 },
+            { kind: 'cheer', at: at + 4 + index * 0.15 },
           ],
-          (index) => (index === 0 ? sign('star', at + 4.9) : {}),
+          (index) => (index === 0 ? sign('star', at + 3.1) : {}),
         ),
         figure('crone', croneAt, 'left'),
       ]),
     bubbles: [
       {
-        at: 0.4,
-        lasts: 3.4,
+        at: 0.3,
+        lasts: 3,
         over: overCrone,
         pictures: [pictures.hollow, pictures.down, pictures.spark],
-      },
-      {
-        at: 4.2,
-        lasts: 3.6,
-        over: overCrone,
-        pictures: [pictures.riches, pictures.coin, pictures.coin],
       },
     ],
     cues: [
       { voice: 'crone', syllables: 6, after: 0.2 },
-      { voice: 'crone', syllables: 5, after: 4 },
-      { voice: 'hero', syllables: 4, after: 5.2 },
+      { voice: 'hero', syllables: 4, after: 3.4 },
     ],
   },
   {
@@ -214,7 +209,7 @@ export const prologue: readonly Shot[] = [
       {
         at: 0.4,
         lasts: 3.6,
-        over: overCrone,
+        over: overMiddle,
         pictures: [pictures.copper, pictures.silver, pictures.gold],
       },
     ],
@@ -274,19 +269,10 @@ export const prologue: readonly Shot[] = [
   },
 ];
 
-/** The hollow tree, at the top of the clearing, with the dark hole at its foot. */
-const hollowTree = [
-  { sheet: 'nature', cut: cut(48, 288, 48, 48), x: 96, y: 16 },
-  { sheet: 'nature', cut: cut(112, 208, 16, 16), x: 112, y: 56 },
-] as const;
-
-/** Where the hole is, where the heroes jump down, and where eyes glint in the dark. */
-const holeAt = { x: 112, y: 56 };
-
 /** The clearing with the hollow tree in it. */
 const atTree = (figures: readonly Figure[], effects: readonly Effect[] = []): Scene => ({
   ...stage(figures, effects),
-  things: [...forest.things.filter((thing) => thing.x < 100 || thing.y > 40), ...hollowTree],
+  things: sceneries.tree,
 });
 
 /** The dog as the heroes' friend, its own size, by the hole. */

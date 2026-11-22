@@ -106,6 +106,7 @@ describe('the messages that are made from values', () => {
       'Go to the hollow tree and fight the giant slime',
     );
     expect(r.chest.took(r.treasures.powerRing.name)).toBe('You took the power ring');
+    expect(r.chest.take(r.treasures.heartJar.name)).toBe('Take the heart jar');
     expect(r.charm(0)).toBe('The guard charm took a blow');
     expect(regnespilText.da.grumpy(regnespilText.da.foes.copperDog.the, 2)).toBe(
       'Kobberhunden er sur: 2',

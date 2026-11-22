@@ -238,6 +238,21 @@ describe('Fight', () => {
     expect(hearts('5')).toBeInTheDocument();
   });
 
+  it('lets the heroes rest together when the team’s hearts are gone', async () => {
+    open(
+      [
+        { level: 7, sword: 'flamme' },
+        { level: 7, sword: 'flamme' },
+      ],
+      [mille, far],
+    );
+    for (let bump = 0; bump < 5; bump++) {
+      await choose('12');
+      await next(wrong);
+    }
+    expect(screen.getByRole('status')).toHaveTextContent('Heltene er trætte og hviler sig.');
+  });
+
   it('passes the turn round the table, each player with a sum at their own level', async () => {
     open(
       [
@@ -521,9 +536,9 @@ describe('Fight', () => {
     expect(played()).toContainEqual([sounds.slash.url, sounds.slash.gain, reveal]);
   });
 
-  it('fights the giant slime, three times as tough, its portrait at the top', () => {
+  it('fights the giant slime, three times as tough and no fewer than eight lives, its portrait at the top', () => {
     const { container } = open([{ level: 1, sword: 'træ' }], [mille], null, 'giantSlime');
-    expect(lives(6, 'Kæmpeslimets')).toBeInTheDocument();
+    expect(lives(8, 'Kæmpeslimets')).toBeInTheDocument();
     expect(container.querySelector('.rs-foe-face')).toHaveAttribute('src', giantSlime.face.calm);
   });
 
@@ -533,6 +548,8 @@ describe('Fight', () => {
       screen.getByRole('img', { name: `Kobberhunden er sur: ${String(count)}` });
     // Half again as tough as the slime, rounded up.
     expect(grumpy(5)).toBeInTheDocument();
+    // Treats, not strokes: the tab says so, with a bone.
+    expect(screen.getByText('Godbid')).toBeInTheDocument();
     expect(
       screen.getByLabelText('Rigtigt: kobberhunden får en godbid og bliver gladere'),
     ).toBeInTheDocument();

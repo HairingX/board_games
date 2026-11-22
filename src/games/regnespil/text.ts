@@ -77,6 +77,8 @@ const da = {
   /** The monster fought, named at the top of the fight. */
   slime: 'Slimklatten',
   attack: 'Angreb',
+  /** The tab when the players throw treats to win a monster over. */
+  treat: 'Godbid',
   defend: 'Forsvar',
   /**
    * Each monster as named in a sentence: "the slime", "the slime's", and what the heroes face,
@@ -165,6 +167,7 @@ const da = {
       'Vil I starte eventyret forfra? Skattene fra denne tur er væk, men mønterne i pungene bliver.',
     yesRestart: 'Ja, start forfra',
     quickFight: 'En hurtig kamp',
+    trials: 'Prøv dele af spillet',
     onward: 'Videre',
   },
   film: {
@@ -173,7 +176,7 @@ const da = {
     shots: {
       road: 'Heltene går ad vejen gennem skoven: én, to! én, to! De møder en gammel kone med en spids hat.',
       quest:
-        'Konen viser dem i billeder et hult træ, hvor der nede i hullet ligger et fyrtøj, og skatte af kobber, sølv og guld.',
+        'Konen viser dem i billeder et hult træ, hvor der nede i hullet ligger et fyrtøj, der slår gnister.',
       dogs: 'Men dernede vogter tre hunde, den ene større end den anden. Heltene bliver lidt bange, og konen klapper dem.',
       bark: 'Så lyder et gø, og den gamle kone skynder sig væk.',
       dog: 'Kobberhunden med øjne så store som tekopper springer frem og knurrer. Heltene gør sig klar.',
@@ -194,15 +197,19 @@ const da = {
   chest: {
     open: 'Åbn kisten',
     choose: 'Vælg én skat',
+    take: (name: string) => `Tag ${name}`,
     took: (name: string) => `I tog ${name}`,
   },
   end: {
     title: 'Kapitel 1 er klaret!',
     text: 'Heltene er sprunget ned i det hule træ. Næste kapitel kommer snart.',
     found: 'Skattene I fandt',
+    next: 'Kapitel 2: sølvhunden venter, låst indtil videre',
+    home: 'Til start',
     again: 'Spil kapitlet igen',
   },
   lost: 'Helten er træt og hviler sig.',
+  lostAll: 'Heltene er trætte og hviler sig.',
   again: 'Ny kamp',
   tryAgain: 'Prøv igen',
   /** The sounds to compare while the game's sounds are chosen. */
@@ -275,6 +282,7 @@ export const text: Translations<typeof da> = {
       'Each player has their own level for the sums and their own sword for the fight: the harder the sword, the stronger the monsters.',
     slime: 'The slime',
     attack: 'Attack',
+    treat: 'Treat',
     defend: 'Defend',
     foes: {
       slime: {
@@ -357,6 +365,7 @@ export const text: Translations<typeof da> = {
         'Start the adventure again? The treasures from this journey are gone, but the coins in the purses stay.',
       yesRestart: 'Yes, start again',
       quickFight: 'A quick fight',
+      trials: 'Try parts of the game',
       onward: 'Onward',
     },
     film: {
@@ -365,7 +374,7 @@ export const text: Translations<typeof da> = {
       shots: {
         road: 'The heroes march along the road through the forest: one, two! one, two! They meet an old woman in a pointed hat.',
         quest:
-          'In pictures, she shows them a hollow tree with a tinderbox down in its hole, and treasures of copper, silver and gold.',
+          'In pictures, she shows them a hollow tree with a tinderbox down in its hole, striking sparks.',
         dogs: 'But down there, three dogs keep watch, each bigger than the last. The heroes grow a little scared, and the old woman pats them.',
         bark: 'Then a bark is heard, and the old woman hurries away.',
         dog: 'The copper dog, with eyes as big as teacups, bursts out, growling. The heroes make ready.',
@@ -386,15 +395,19 @@ export const text: Translations<typeof da> = {
     chest: {
       open: 'Open the chest',
       choose: 'Choose one treasure',
+      take: (name) => `Take the ${name.toLowerCase()}`,
       took: (name) => `You took the ${name.toLowerCase()}`,
     },
     end: {
       title: 'Chapter 1 is done!',
       text: 'The heroes have jumped down the hollow tree. The next chapter comes soon.',
       found: 'The treasures you found',
+      next: 'Chapter 2: the silver dog waits, locked for now',
+      home: 'Back to the start',
       again: 'Play the chapter again',
     },
     lost: 'The hero is tired and rests.',
+    lostAll: 'The heroes are tired and rest.',
     again: 'New fight',
     tryAgain: 'Try again',
     listen: {

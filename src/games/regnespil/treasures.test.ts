@@ -5,6 +5,7 @@ import {
   chestHolds,
   chestOffers,
   gearOf,
+  inChests,
   isTreasure,
   treasurePictures,
   treasures,
@@ -28,11 +29,11 @@ describe('treasures', () => {
     expect(offered).toHaveLength(chestHolds);
     expect(new Set(offered).size).toBe(chestHolds);
     expect(chestOffers([], seeded(4))).toEqual(offered);
-    const after = chestOffers(['heartJar'], seeded(9));
-    expect(after).not.toContain('heartJar');
-    expect(after).toHaveLength(3);
-    expect(chestOffers(['heartJar', 'powerRing'], seeded(9))).toEqual(['goldPouch', 'guardCharm']);
-    expect(chestOffers([...treasures], seeded(9))).toEqual([]);
+    // Not the gold pouch, while there is nothing to buy.
+    expect(offered).not.toContain('goldPouch');
+    expect(chestOffers(['heartJar'], seeded(9))).toEqual(['powerRing', 'guardCharm']);
+    expect(chestOffers(['heartJar', 'powerRing', 'guardCharm'], seeded(9))).toEqual([]);
+    expect(inChests.every((treasure) => treasures.includes(treasure))).toBe(true);
   });
 
   it('are told from what is not one', () => {

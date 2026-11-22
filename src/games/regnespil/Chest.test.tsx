@@ -25,6 +25,7 @@ describe('Chest', () => {
         offers={['heartJar', 'powerRing', 'goldPouch']}
         onChoose={onChoose}
         onBack={onBack}
+        weapon="club.png"
         sound={engine}
       />,
     );
@@ -35,14 +36,26 @@ describe('Chest', () => {
     expect(screen.getByRole('heading', { name: 'Vælg én skat' })).toBeInTheDocument();
     const ring = screen.getByRole('button', { name: /Kraftringen/ });
     expect(ring).toHaveTextContent('Kraftslag allerede efter to rigtige i træk');
+    // What the ring does, with the weapon of the one choosing.
+    expect(ring.querySelector('.rs-treasure-shows img')).toHaveAttribute('src', 'club.png');
     expect(screen.getByRole('button', { name: /Guldpungen/ })).toHaveTextContent('×2');
+    // Picked, it can be changed, until the tick takes it.
+    fireEvent.click(screen.getByRole('button', { name: /^Hjertekrukken/ }));
+    expect(screen.getByRole('button', { name: /^Hjertekrukken/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     fireEvent.click(ring);
-    expect(screen.getByRole('status')).toHaveTextContent('I tog Kraftringen');
-    expect(ring).toHaveAttribute('data-chosen', 'true');
+    expect(ring).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: /Guldpungen/ })).toHaveAttribute(
       'data-other',
       'true',
     );
+    expect(effect).toHaveBeenCalledWith(sounds.choose.url, sounds.choose.gain);
+    fireEvent.click(screen.getByRole('button', { name: 'Tag Kraftringen' }));
+    expect(effect).toHaveBeenCalledWith(sounds.coin.url, sounds.coin.gain);
+    expect(screen.getByRole('status')).toHaveTextContent('I tog Kraftringen');
+    expect(ring).toBeDisabled();
     expect(onChoose).not.toHaveBeenCalled();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(chosenFor * 1000);
@@ -54,7 +67,15 @@ describe('Chest', () => {
 
   it('shows the guard charm as a shield before a heart', () => {
     const engine = new SoundEngine(fakeSoundBrowser().browser);
-    render(<Chest offers={['guardCharm']} onChoose={vi.fn()} onBack={vi.fn()} sound={engine} />);
+    render(
+      <Chest
+        offers={['guardCharm']}
+        onChoose={vi.fn()}
+        onBack={vi.fn()}
+        weapon="club.png"
+        sound={engine}
+      />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Åbn kisten' }));
     expect(screen.getByRole('button', { name: /Skjoldamuletten/ })).toBeInTheDocument();
   });
@@ -62,7 +83,9 @@ describe('Chest', () => {
   it('goes on when it holds nothing new to choose', () => {
     const onChoose = vi.fn();
     const engine = new SoundEngine(fakeSoundBrowser().browser);
-    render(<Chest offers={[]} onChoose={onChoose} onBack={vi.fn()} sound={engine} />);
+    render(
+      <Chest offers={[]} onChoose={onChoose} onBack={vi.fn()} weapon="club.png" sound={engine} />,
+    );
     fireEvent.click(screen.getByRole('button', { name: 'Åbn kisten' }));
     fireEvent.click(screen.getByRole('button', { name: 'Videre' }));
     expect(onChoose).toHaveBeenCalledWith();

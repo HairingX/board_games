@@ -24,7 +24,7 @@ function open(journey: Journey) {
   const view = render(
     <JourneyMap
       journey={journey}
-      hero="Knight"
+      heroes={['Knight', 'Monkey']}
       onGo={onGo}
       onBack={onBack}
       sound={engine}

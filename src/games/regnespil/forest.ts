@@ -1,6 +1,6 @@
 import floor from '../../../assets/ninja-adventure/Backgrounds/Tilesets/TilesetFloor.png';
 import nature from '../../../assets/ninja-adventure/Backgrounds/Tilesets/TilesetNature.png';
-import type { Scene } from '../../lib/scene/scene';
+import type { Scene, Thing } from '../../lib/scene/scene';
 
 /** The pictures the forest is drawn from, all from the Ninja Adventure pack. */
 export const forestSheets = { floor, nature } as const;
@@ -53,4 +53,20 @@ export const forest: Scene = {
     { sheet: 'nature', cut: smallBush, x: 4, y: 120 },
   ],
   figures: [],
+};
+
+/** The hollow tree of the story, at the top of the clearing, with the dark hole at its foot. */
+export const holeAt = { x: 112, y: 56 };
+const hollowTree: readonly Thing[] = [
+  { sheet: 'nature', cut: bigTree, x: 96, y: 16 },
+  { sheet: 'nature', cut: { x: 112, y: 208, width: 16, height: 16 }, ...holeAt },
+];
+
+/** Where a fight or a film takes place: the clearing, or the clearing by the hollow tree. */
+export type Scenery = 'clearing' | 'tree';
+
+/** What stands in each place. */
+export const sceneries: Readonly<Record<Scenery, readonly Thing[]>> = {
+  clearing: forest.things,
+  tree: [...forest.things.filter((thing) => thing.x < 100 || thing.y > 40), ...hollowTree],
 };

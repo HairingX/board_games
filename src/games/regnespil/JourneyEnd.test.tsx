@@ -30,10 +30,10 @@ function open(treasures: Parameters<typeof JourneyEnd>[0]['treasures']) {
 }
 
 describe('JourneyEnd', () => {
-  it('plays the end’s film, then shows the chapter done, the treasures found, and to play again', () => {
+  it('plays the end’s film, then shows the chapter done, the treasures found, and to play again', async () => {
     const { onAgain } = open(['heartJar', 'guardCharm']);
     expect(screen.getByRole('img', { name: 'Eventyrets film' })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Spring over/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }, { timeout: 4000 }));
     expect(screen.getByRole('heading', { name: 'Kapitel 1 er klaret!' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Skattene I fandt' })).toBeInTheDocument();
     expect(screen.getByText('Hjertekrukken')).toBeInTheDocument();
@@ -41,11 +41,13 @@ describe('JourneyEnd', () => {
     expect(onAgain).toHaveBeenCalledOnce();
   });
 
-  it('shows no treasures when none were found, and goes back', () => {
+  it('shows no treasures when none were found, and goes back', async () => {
     const { onBack } = open([]);
-    fireEvent.click(screen.getByRole('button', { name: /Spring over/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Spring over/ }, { timeout: 4000 }));
     expect(screen.queryByRole('heading', { name: 'Skattene I fandt' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Kapitel 2: sølvhunden venter/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Til start' }));
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
-    expect(onBack).toHaveBeenCalledOnce();
+    expect(onBack).toHaveBeenCalledTimes(2);
   });
 });

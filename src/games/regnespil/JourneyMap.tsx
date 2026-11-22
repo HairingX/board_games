@@ -15,8 +15,8 @@ import './regnespil.css';
 
 interface Props {
   journey: Journey;
-  /** The first player's hero, who leads the way on the map. */
-  hero: Hero;
+  /** The players' heroes, the first leading the way on the map. */
+  heroes: readonly Hero[];
   /** Goes on to a step ahead, once the heroes have walked there. */
   onGo: (step: string) => void;
   onBack: () => void;
@@ -40,7 +40,7 @@ const pageClock = () => performance.now() / 1000;
  */
 export function JourneyMap({
   journey,
-  hero,
+  heroes,
   onGo,
   onBack,
   aside,
@@ -53,8 +53,8 @@ export function JourneyMap({
   const c = useMessages(common);
   const [walk, setWalk] = useState<Walk>();
   const scene = useMemo(
-    () => mapScene(journey, hero, walk, chapter),
-    [journey, hero, walk, chapter],
+    () => mapScene(journey, heroes, walk, chapter),
+    [journey, heroes, walk, chapter],
   );
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
 

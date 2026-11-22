@@ -20,7 +20,12 @@ describe('the journey through the first chapter', () => {
   it('begins with the film, then the copper dog on the road, and its chest', () => {
     expect(screenOf(begun)).toEqual({ kind: 'film' });
     const road = filmSeen(begun);
-    expect(screenOf(road)).toEqual({ kind: 'fight', foe: 'copperDog', toughness: 1 });
+    expect(screenOf(road)).toEqual({
+      kind: 'fight',
+      foe: 'copperDog',
+      toughness: 1,
+      scenery: 'clearing',
+    });
     const friends = fightWon(road);
     expect(friends.done).toEqual(['hund']);
     const chest = screenOf(friends);
@@ -42,7 +47,12 @@ describe('the journey through the first chapter', () => {
     expect(ahead(path)).toEqual(['eng', 'krat']);
     expect(ahead(walkTo(path, 'krat'))).toEqual([]);
     const thicket = walkTo(path, 'krat');
-    expect(screenOf(thicket)).toEqual({ kind: 'fight', foe: 'slime', toughness: 2 });
+    expect(screenOf(thicket)).toEqual({
+      kind: 'fight',
+      foe: 'slime',
+      toughness: 2,
+      scenery: 'clearing',
+    });
     const toChest = walkTo(fightWon(thicket), 'kiste');
     expect(toChest.scene).toBe('chest');
     const offers = chestAt(toChest);
@@ -65,7 +75,12 @@ describe('the journey through the first chapter', () => {
     expect(stepsLeft(clearing)).toBe(1);
     expect(stepsLeft(begun)).toBe(4);
     const tree = walkTo(clearing, 'træet');
-    expect(screenOf(tree)).toEqual({ kind: 'fight', foe: 'giantSlime', toughness: 1 });
+    expect(screenOf(tree)).toEqual({
+      kind: 'fight',
+      foe: 'giantSlime',
+      toughness: 1,
+      scenery: 'tree',
+    });
     expect(fightWon(tree)).toMatchObject({ scene: 'end' });
     expect(screenOf(fightWon(tree))).toEqual({ kind: 'end' });
     // A chest that ended a chapter would end it too.

@@ -46,9 +46,9 @@ describe('the films', () => {
     }
   });
 
-  it('show the old woman’s pictures: the hollow tree, the riches and the three dogs', () => {
+  it('show the old woman’s pictures: the hollow tree and the three dogs', () => {
     const bubbles = prologue.flatMap((shot) => shot.bubbles);
-    expect(bubbles).toHaveLength(3);
+    expect(bubbles).toHaveLength(2);
     expect(bubbles.at(-1)?.pictures).toHaveLength(3);
   });
 });

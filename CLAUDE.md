@@ -261,37 +261,49 @@ game builds on them, and everything must stay smooth on a phone.
   eventyret forfra", which asks first; "En hurtig kamp" and the giant slime stay there to try.
   The adventure's steps share one address (`#/spil/regnespil/<players>/eventyr`): a story goes
   one way, so the back gesture leaves it for the setup, and it opens again where it stands.
-  - First a film of about half a minute (`film.ts`, `Film.tsx`), skippable at any time, told
-    in shots on the puppet theatre's stage with picture bubbles, babble and sound, each shot
-    told in words to screen readers: the heroes march in ("én, to!"); an old woman in a pointed
-    hat (the pack's `NinjaMageOrange`) shows a hollow tree with a spark down in it, riches,
-    and three dogs; a bark, and the copper dog bursts out, grumpy.
+  - First a film of under half a minute (`film.ts`, `Film.tsx`), told in shots on the puppet
+    theatre's stage with picture bubbles (their pictures drawn twice their size, so a child
+    sees them), babble and sound, each shot told in words to screen readers: the heroes march
+    in ("én, to!"); an old woman in a pointed hat (the pack's `NinjaMageOrange`) shows a hollow
+    tree with a spark down in it, and three dogs; a bark, and the copper dog bursts out,
+    grumpy. It can be skipped from a quiet button at the top that comes after three seconds
+    (`skipAfter`), so a child's first tap does not end it.
   - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
-    dog drawn twice its size, mirrored to face the heroes, half again as tough as a slime and
-    cross halfway. It is won over with treats, as the story has it: a right answer throws it a
-    bone, which it catches with a heart; a close one flies past as it leaps aside; at the last
-    it spins for joy, barks and runs to the heroes, and stays their friend. No flag falls.
-  - Its chest (`Chest.tsx`): tapped, it springs open with a jingle and offers three treasures
+    dog drawn twice its size, mirrored to face the heroes, half again as tough as a slime, at
+    least five treats (a boss has a `least` of lives, so it is no pushover for a child alone),
+    and cross halfway. It is won over with treats, as the story has it: the tab says "Godbid"
+    with a bone; a right answer throws it one, which it catches with a heart; a close one flies
+    past as it leaps aside; at the last it spins for joy, barks and runs to the heroes, and
+    stays their friend. No flag falls.
+  - Its chest (`Chest.tsx`): tapped, it springs open with a jingle and offers the treasures
     the heroes do not have, the same from the journey's seed, each with the pack's icon, what
-    it does as pictures, and its name and what it does in words; one is chosen and kept for
-    the rest of the journey (`treasures.ts`): the heart jar (a heart more), the power ring (a
-    power stroke after two right in a row), the gold pouch (each coin of a victory worth two)
-    and the guard charm (the first blow in each fight that would cost hearts glances off, in a
-    golden glow, its icon by the hearts greying once used).
+    it does as pictures (with the chooser's own weapon), and its name and what it does in
+    words; one is picked, and can be changed, until "Tag …" with a tick takes it, kept for the
+    rest of the journey (`treasures.ts`): the heart jar (a heart more), the power ring (a power
+    stroke after two right in a row) and the guard charm (the first blow in each fight that
+    would cost hearts glances off, in a golden glow, its icon by the hearts greying once used).
+    The gold pouch (each coin worth two) is kept out of chests (`inChests`) until there is a
+    shop, as coins have nothing to buy yet. A chest with nothing new is left with "Videre".
   - Then the map (`map.ts`, `JourneyMap.tsx`), as the owner asked, so it is plain the
     adventure is under way, where it goes and how far it is: the forest from the road up to
     the hollow tree, a monster waiting at each step, roads between them (walked ones whole),
-    a flag where a monster was beaten, the heroes and their friend the dog walking from step to
-    step, and pips over it for the steps done and left. The steps ahead bounce under an arrow.
-    At a fork the main road goes on to one fight, and a detour, shown by a sign with a chest,
-    as the owner described, leads past a tougher slime (drawn cross) to a chest and loops back
-    to the main road. Monsters further on have more lives (`toughness` per step).
-  - At the hollow tree the giant slime; beaten, a film shows the heroes and the dog jumping
-    down the hole, where eyes glint in the dark, and "Kapitel 1 er klaret!" shows the
-    treasures found and offers the chapter again (`JourneyEnd.tsx`).
-  - Each screen has its music, chosen by the game (`Regnespil.tsx`): the film the pack's
-    "1 - Adventure Begin", the map and chests "23 - Road", fights "17 - Fight", the end
-    "13 - Mystical", chosen by their titles, for the owner to hear.
+    a flag where a monster was beaten, every player's hero and their friend the dog walking
+    from step to step, and pips over it for the steps done and left. The steps ahead bounce
+    under an arrow, and give a sound when tapped. At a fork the main road goes on to one
+    fight, and a detour, shown by a sign with a chest, as the owner described, leads past a
+    tougher slime (drawn cross and twice its size) to a chest and loops back to the main road.
+    Monsters further on have more lives (`toughness` per step).
+  - At the hollow tree the giant slime, fought by the tree (the `tree` scenery in
+    `forest.ts`); beaten, a film shows the heroes and the dog jumping down the hole, where eyes
+    glint in the dark, and "Kapitel 1 er klaret!" shows the treasures found, the next chapter's
+    silver dog as a dark shape with a lock, "Til start", and, quieter, the chapter again
+    (`JourneyEnd.tsx`). The quick fight, the giant slime and the listening test are folded
+    away on the setup under "Prøv dele af spillet".
+  - Each screen has its music, chosen by the game (`Regnespil.tsx`), a fight its own as it
+    begins (`Fight.tsx`): the film the pack's "1 - Adventure Begin", the map and chests "23 -
+    Road", fights "17 - Fight", the end "13 - Mystical", chosen by their titles, for the owner
+    to hear. A journey's fight is saved with its journey (`fightPlaceOf`), so a journey begun
+    again never goes on with the fight of the one before.
 - The stage is the forest clearing (`forest.ts`, `clearing.ts`), ten tiles by nine. A big
   monster stands with its front where the slime's is and its feet on the same ground, however
   many times its size it is drawn (`foeAt`, `foeMiddle`).
@@ -454,7 +466,8 @@ game builds on them, and everything must stay smooth on a phone.
   recorded voice clips. A phone's small speaker gives almost nothing low down, so a soft tone
   there was all but silent, as the owner heard: each voice speaks in a tone rich in overtones,
   its vowel where a phone plays well, at a volume from its loudness measured through a filter
-  like a phone's speaker, all at `voiceLoudness`, just under the chimes. Sound starts only from a tap.
+  like a phone's speaker, all at `voiceLoudness`, just under the chimes. Sound starts only from a tap;
+  music a phone held back, begun after one, starts with the next sound (`unlock`).
   An answer is told by a chime of tones (`src/lib/sound/chimes.ts`), the same on every page and
   a shade higher or lower each time, telling how far off it was, as the owner chose by ear: up
   and landing for right; a half step down for close; four notes stepping down, the last

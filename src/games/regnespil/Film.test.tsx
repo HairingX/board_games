@@ -4,7 +4,7 @@ import { fakeSoundBrowser } from '../../../tests/audio';
 import { SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
 import { epilogue, prologue } from './film';
-import { Film } from './Film';
+import { Film, skipAfter } from './Film';
 import { sounds } from './sounds';
 import { text } from './text';
 
@@ -59,6 +59,8 @@ describe('Film', () => {
     expect(container.querySelector('.rs-bubble')).toBeNull();
     await pass(0.5);
     expect(container.querySelectorAll('.rs-bubble-picture')).toHaveLength(3);
+    // The arrow points down into the hollow tree.
+    expect(container.querySelectorAll('[data-upside-down="true"]')).toHaveLength(1);
     await pass(3.5);
     expect(container.querySelector('.rs-bubble')).toBeNull();
     // Shot by shot, as each begins once the one before has ended.
@@ -74,8 +76,10 @@ describe('Film', () => {
     expect(onDone).toHaveBeenCalledOnce();
   });
 
-  it('can be skipped, or left', () => {
+  it('can be skipped after its first moments, or left', async () => {
     const { onDone, onBack } = open(epilogue);
+    expect(screen.queryByRole('button', { name: /Spring over/ })).not.toBeInTheDocument();
+    await pass(skipAfter);
     fireEvent.click(screen.getByRole('button', { name: /Spring over/ }));
     expect(onDone).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));

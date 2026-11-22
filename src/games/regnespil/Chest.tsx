@@ -4,7 +4,7 @@ import { formatNumber } from '../../i18n/format';
 import { useLocale, useMessages } from '../../i18n/I18n';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { common } from '../../ui/text';
-import { hud, swordPictures, topFrames } from './art';
+import { hud, topFrames } from './art';
 import { clearingSheets } from './clearing';
 import { sounds } from './sounds';
 import { text } from './text';
@@ -17,6 +17,8 @@ interface Props {
   /** Keeps the treasure chosen; with none, as when the chest holds nothing new, goes on. */
   onChoose: (treasure?: Treasure) => void;
   onBack: () => void;
+  /** The weapon of the one choosing, shown in what the power ring does. */
+  weapon: string;
   aside?: ReactNode;
   sound?: SoundEngine;
 }
@@ -26,18 +28,21 @@ export const chosenFor = 1.4;
 
 /**
  * A chest, as the owner's design has it: tapped, it springs open with a jingle and three
- * treasures rise from it, each with its picture and, as pictures, what it does in a fight; one
- * is chosen, kept for the rest of the journey, and the journey goes on.
+ * treasures rise from it, each with its picture and, as pictures, what it does in a fight. One
+ * is picked, and can be changed, until the tick takes it: kept for the rest of the journey, and
+ * the journey goes on.
  */
-export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }: Props) {
+export function Chest({ offers, onChoose, onBack, weapon, aside, sound = defaultSound }: Props) {
   const t = useMessages(text);
   const c = useMessages(common);
   const locale = useLocale();
   const [open, setOpen] = useState(false);
+  /** The treasure picked, and whether it is taken. */
+  const [picked, setPicked] = useState<Treasure>();
   const [chosen, setChosen] = useState<Treasure>();
 
   useEffect(() => {
-    void sound.prepareEffects([sounds.chest.url, sounds.coin.url]);
+    void sound.prepareEffects([sounds.chest.url, sounds.coin.url, sounds.choose.url]);
   }, [sound]);
 
   const done = useEffectEvent((treasure: Treasure) => {
@@ -62,8 +67,8 @@ export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }:
     ),
     powerRing: (
       <>
-        <img src={swordPictures.jern} alt="" />
-        <img src={swordPictures.jern} alt="" />
+        <img src={weapon} alt="" />
+        <img src={weapon} alt="" />
         <span>⚡</span>
       </>
     ),
@@ -80,6 +85,7 @@ export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }:
       <>
         <img src={hud.guard} alt="" />
         <img src={hud.heartIcon} alt="" />
+        <span>✓</span>
       </>
     ),
   };
@@ -117,12 +123,13 @@ export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }:
                   <button
                     type="button"
                     className="rs-treasure"
-                    data-chosen={chosen === treasure}
-                    data-other={chosen !== undefined && chosen !== treasure}
+                    aria-pressed={picked === treasure}
+                    data-chosen={picked === treasure}
+                    data-other={picked !== undefined && picked !== treasure}
                     disabled={chosen !== undefined}
                     onClick={() => {
-                      setChosen(treasure);
-                      void sound.effect(sounds.coin.url, sounds.coin.gain);
+                      setPicked(treasure);
+                      void sound.effect(sounds.choose.url, sounds.choose.gain);
                     }}
                   >
                     <img src={treasurePictures[treasure]} alt="" className="rs-treasure-icon" />
@@ -135,6 +142,20 @@ export function Chest({ offers, onChoose, onBack, aside, sound = defaultSound }:
                 </li>
               ))}
             </ul>
+            {picked && (
+              <button
+                type="button"
+                className="rs-button rs-take"
+                disabled={chosen !== undefined}
+                onClick={() => {
+                  setChosen(picked);
+                  void sound.effect(sounds.coin.url, sounds.coin.gain);
+                }}
+              >
+                <span aria-hidden="true">✓ </span>
+                {t.chest.take(t.treasures[picked].name)}
+              </button>
+            )}
             {offers.length === 0 && (
               <button
                 type="button"
