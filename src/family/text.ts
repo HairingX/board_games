@@ -77,6 +77,11 @@ const da = {
       : `Vælg ${formatNumber('da', min)}–${formatNumber('da', max)} spillere.`,
   newPlayer: 'Ny spiller',
   addPlayer: 'Tilføj en ny spiller',
+  /** Whether the players chosen go on with their game or begin a new one, and the button. */
+  going: (names: string) => `${names} har et spil i gang. Det fortsætter, hvor det slap.`,
+  fresh: (names: string) => `${names} har ikke et spil i gang, så et nyt begynder.`,
+  carryOn: 'Fortsæt spillet',
+  startNew: 'Start et nyt spil',
 };
 
 export const familyText: Translations<typeof da> = {
@@ -156,5 +161,9 @@ export const familyText: Translations<typeof da> = {
         : `Choose ${formatNumber('en', min)}–${formatNumber('en', max)} players.`,
     newPlayer: 'New player',
     addPlayer: 'Add a new player',
+    going: (names) => `A game is going for ${names}. It carries on where it left off.`,
+    fresh: (names) => `No game is going for ${names}, so a new one begins.`,
+    carryOn: 'Carry on',
+    startNew: 'Start a new game',
   },
 };

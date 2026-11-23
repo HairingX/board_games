@@ -6,6 +6,11 @@ export interface GameFrame {
   icon: ReactNode;
   /** The players, once chosen. */
   players: readonly Profile[];
+  /**
+   * Opens "Hvem er med?" again, with these players chosen, so others can play instead; absent
+   * where there is no one else who could, or while the players are being chosen.
+   */
+  changePlayers?: () => void;
 }
 
 const GameFrameContext = createContext<GameFrame | null>(null);

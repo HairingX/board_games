@@ -16,6 +16,7 @@ import {
   fightPlaceOf,
   fightWon,
   filmSeen,
+  isUnderway,
   journeySaveKey,
   reviveJourney,
   screenOf,
@@ -266,7 +267,7 @@ export default function Regnespil({ players, saveKey, place, go }: GameProps) {
           settings={settings}
           onChange={change}
           aside={aside}
-          adventure={journey !== null && journey.scene !== 'end'}
+          adventure={isUnderway(journey)}
           onAdventure={() => {
             // A journey at its end is begun again; any other goes on where it stands.
             const goingOn = journey !== null && journey.scene !== 'end';

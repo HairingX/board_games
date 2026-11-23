@@ -82,6 +82,20 @@ export function journeySaveKey(saveKey: string, players: readonly { id: string }
     .join('+')}`;
 }
 
+/** Whether a journey is under way, to go on with: begun and not yet at its end. */
+export function isUnderway(journey: Journey | null): boolean {
+  return journey !== null && journey.scene !== 'end';
+}
+
+/** Whether these players have a journey under way in what is saved, as "Hvem er med?" asks. */
+export async function journeyGoing(
+  read: (key: string) => Promise<unknown>,
+  saveKey: string,
+  players: readonly { id: string }[],
+): Promise<boolean> {
+  return isUnderway(reviveJourney(await read(journeySaveKey(saveKey, players))));
+}
+
 /** What the journey shows: the film, the fight at its step, a chest, the map, or the end. */
 export type Scene = 'film' | 'fight' | 'chest' | 'map' | 'end';
 const scenes: readonly Scene[] = ['film', 'fight', 'chest', 'map', 'end'];

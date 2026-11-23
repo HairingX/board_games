@@ -75,6 +75,10 @@ describe('the messages that are made from values', () => {
     expect(t.howMany(1, 1)).toBe('Choose 1 player.');
     expect(t.howMany(2, 2)).toBe('Choose 2 players.');
     expect(t.howMany(1, 6)).toBe('Choose 1–6 players.');
+    expect(t.going('Mille and Oscar')).toBe(
+      'A game is going for Mille and Oscar. It carries on where it left off.',
+    );
+    expect(t.fresh('Mille')).toBe('No game is going for Mille, so a new one begins.');
 
     expect(t.switchFrom('Mille')).toBe('Mille, switch player');
     expect(t.players('Mille and Oscar')).toBe('Players: Mille and Oscar');

@@ -126,6 +126,15 @@ export function hasStarted(state: DeckState): boolean {
   return state.seen.length > 0 || state.later.length > 0 || state.flipped !== null;
 }
 
+/** Whether a couple has a round going in what is saved under the key, as "Hvem er med?" asks. */
+export async function roundGoing(
+  read: (key: string) => Promise<unknown>,
+  saveKey: string,
+): Promise<boolean> {
+  const deck = upgradeDeck(await read(saveKey));
+  return deck !== undefined && hasStarted(deck);
+}
+
 /** The deck with the card turned face up at the given time. */
 export function flip(state: DeckState, id: string, now: number): DeckState {
   return { ...state, flipped: id, playedAt: now };

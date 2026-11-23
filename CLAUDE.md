@@ -442,7 +442,16 @@ game builds on them, and everything must stay smooth on a phone.
   added there, but a child can add only children, so no one gets a grown-up's profile that way.
   When there is no choice, as two grown-ups and Parkort, the game starts at once with them.
   Players are chosen so the same game can be played by different groups, each going on where
-  they left off.
+  they left off. Once players are chosen, it says whether they have a game going, which goes on
+  where it left off, or a new one begins, and the button says which ("Fortsæt spillet" or
+  "Start et nyt spil"; `going` in `src/lib/games.tsx`), as the owner found it unclear whether
+  a new group went on with the game or began another.
+- Inside a game, as the owner asked, so the menus are not confusing: on a game's first screen
+  the button at the top left is a cross, "Luk spillet", which goes home, since it leaves the
+  game; further in it is a back arrow. On that first screen the players' pictures in the header
+  are a button, "Skift", that opens "Hvem er med?" with them chosen, so others can play
+  without closing the game first (`changePlayers` in `src/ui/GameFrame.tsx`). It is not offered
+  where no one else could play, as Parkort for the only two grown-ups.
 - A game's progress belongs either to the group (`players.progress: 'sammen'`), saved under
   one key per group whatever the order (`gameSaveKey`), or to each player (`'hver'`), saved
   under `playerSaveKey`. Parkort is for two grown-ups and saved per couple; the deck saved

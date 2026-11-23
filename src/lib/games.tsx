@@ -56,6 +56,16 @@ export interface GameInfo {
   /** Who may play it; children never see grown-ups' games. */
   audience: Audience;
   players: Players;
+  /**
+   * Whether these players have a game going, in what `read` gives for a key, so "Hvem er med?"
+   * can say whether they go on with it or begin a new one. It fetches the game's own code only
+   * when asked.
+   */
+  going?: (
+    read: (key: string) => Promise<unknown>,
+    saveKey: string,
+    players: readonly Profile[],
+  ) => Promise<boolean>;
   /** Where the game saved before players were chosen; the first group to play takes it over. */
   formerSaveKey?: string;
   /**
@@ -106,6 +116,8 @@ export const games: readonly GameInfo[] = [
     audience: 'voksne',
     players: { min: 2, max: 2, progress: 'sammen' },
     formerSaveKey: 'parkort',
+    going: async (read, saveKey) =>
+      (await import('../games/parkort/deck')).roundGoing(read, saveKey),
     colors: { card: '#3b2638', accent: '#c8a96b' },
     Screen: lazy(() => import('../games/parkort/Parkort')),
   },
@@ -121,6 +133,8 @@ export const games: readonly GameInfo[] = [
     players: { min: 1, max: 6, progress: 'hver' },
     colors: { card: '#1f4e5a', accent: '#e9c46a' },
     beta: true,
+    going: async (read, saveKey, players) =>
+      (await import('../games/regnespil/journey')).journeyGoing(read, saveKey, players),
     Screen: lazy(() => import('../games/regnespil/Regnespil')),
   },
   {

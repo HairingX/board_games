@@ -145,10 +145,18 @@
   font-size: 1.2rem;
 }
 
+/* Whether the players chosen go on with their game or begin a new one; its room is kept, so the
+   buttons below never jump as it comes. */
+.family-going {
+  min-height: 3lh;
+  margin: var(--space-6) 0 0;
+  color: var(--text-muted);
+}
+
 .family-footer {
   display: grid;
   gap: var(--space-2);
-  margin-top: var(--space-7);
+  margin-top: var(--space-3);
 }
 
 .family-actions {

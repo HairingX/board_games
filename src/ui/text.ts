@@ -5,6 +5,10 @@ import type { Translations } from '../i18n/locales';
 const da = {
   back: 'Tilbage',
   home: 'Til forsiden',
+  closeGame: 'Luk spillet',
+  /** On the players' pictures at the top of a game, which open "Hvem er med?". */
+  changePlayers: 'Skift spillere',
+  change: 'Skift',
   backHome: 'Tilbage til forsiden',
   cancel: 'Annullér',
   start: 'Start',
@@ -24,6 +28,9 @@ export const common: Translations<typeof da> = {
   en: {
     back: 'Back',
     home: 'Home',
+    closeGame: 'Close the game',
+    changePlayers: 'Change players',
+    change: 'Change',
     backHome: 'Back home',
     cancel: 'Cancel',
     start: 'Start',

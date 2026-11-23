@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { far, mille, mor } from '../../tests/family';
 import type { GameInfo } from '../lib/games';
@@ -110,5 +110,72 @@ describe('ChoosePlayers', () => {
     click('Gem');
     click('Start');
     expect(onStart).toHaveBeenCalledWith([far]);
+  });
+
+  it('says whether the players chosen go on with their game or begin a new one', async () => {
+    const going = vi.fn((players: readonly Profile[]) =>
+      Promise.resolve(players.some((player) => player.id === mille.id)),
+    );
+    const onStart = vi.fn();
+    render(
+      <ChoosePlayers
+        game={forAll}
+        family={family}
+        current={far}
+        onChange={vi.fn()}
+        onStart={onStart}
+        chosen={[far.id, mille.id]}
+        going={going}
+      />,
+    );
+    expect(
+      await screen.findByText('Far og Mille har et spil i gang. Det fortsætter, hvor det slap.'),
+    ).toBeInTheDocument();
+    click('Fortsæt spillet');
+    expect(onStart).toHaveBeenCalledWith([far, mille]);
+    click(/^Mille/);
+    expect(
+      await screen.findByText('Far har ikke et spil i gang, så et nyt begynder.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start et nyt spil' })).toBeEnabled();
+    // With no one chosen, nothing is asked or said.
+    click(/^Far/);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
+    });
+    expect(going).toHaveBeenCalledTimes(2);
+  });
+
+  it('says nothing while it is not known, or if it cannot be found out', async () => {
+    let answer: (going: boolean) => void = () => undefined;
+    const { unmount } = render(
+      <ChoosePlayers
+        game={forAll}
+        family={family}
+        current={far}
+        onChange={vi.fn()}
+        onStart={vi.fn()}
+        going={() =>
+          new Promise((resolve) => {
+            answer = resolve;
+          })
+        }
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
+    unmount();
+    answer(true);
+    render(
+      <ChoosePlayers
+        game={forAll}
+        family={family}
+        current={far}
+        onChange={vi.fn()}
+        onStart={vi.fn()}
+        going={() => Promise.reject(new Error('broken'))}
+      />,
+    );
+    await Promise.resolve();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled();
   });
 });

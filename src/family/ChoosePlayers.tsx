@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useMessages } from '../i18n/I18n';
+import { useEffect, useEffectEvent, useState } from 'react';
+import { formatList } from '../i18n/format';
+import { useLocale, useMessages } from '../i18n/I18n';
 import type { GameInfo } from '../lib/games';
 import { GameHeader } from '../ui/GameHeader';
 import { GameName } from '../ui/GameName';
@@ -17,22 +18,59 @@ interface Props {
   current: Profile;
   onChange: (family: Family) => void;
   onStart: (players: Profile[]) => void;
+  /** Who is chosen to begin with, as the players who just played; else whoever is on the home screen. */
+  chosen?: readonly string[];
+  /** Whether these players have a game going, so it is plain whether they go on or begin anew. */
+  going?: (players: readonly Profile[]) => Promise<boolean>;
 }
 
 /**
  * "Hvem er med?" before a game: the players are chosen from the family, without codes, and
  * someone new can be added to the family here. A child can add only children, so no one gets
- * a grown-up's profile this way.
+ * a grown-up's profile this way. Once they are chosen, it says whether they have a game going,
+ * which goes on where it left off, or a new one begins, and the button says which.
  */
-export function ChoosePlayers({ game, family, current, onChange, onStart }: Props) {
+export function ChoosePlayers({
+  game,
+  family,
+  current,
+  onChange,
+  onStart,
+  chosen: first = [current.id],
+  going,
+}: Props) {
   const t = useMessages(familyText);
   const { start } = useMessages(common);
-  const [chosen, setChosen] = useState<string[]>([current.id]);
+  const locale = useLocale();
+  const [chosen, setChosen] = useState<readonly string[]>(first);
   const [adding, setAdding] = useState(false);
   const { min, max } = game.players;
   const candidates = family.profiles.filter((profile) => mayPlay(profile.role, game.audience));
   const players = candidates.filter((profile) => chosen.includes(profile.id));
   const full = players.length >= max;
+  const ready = players.length >= min && players.length <= max;
+  const group = players.map((player) => player.id).join('+');
+  /** Whether the group chosen has a game going, once it is known, for that group. */
+  const [found, setFound] = useState<{ group: string; going: boolean }>();
+  const goingFor = useEffectEvent(() => (ready && going ? going(players) : undefined));
+  useEffect(() => {
+    const asked = goingFor();
+    if (!asked) return;
+    let current = true;
+    void asked
+      .then((answer) => {
+        if (current) setFound({ group, going: answer });
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, [group]);
+  const known = ready && found?.group === group ? found.going : undefined;
+  const names = formatList(
+    locale,
+    players.map((player) => player.name),
+  );
   const newRole =
     current.role === 'barn' ? 'barn' : game.audience === 'voksne' ? 'voksen' : undefined;
 
@@ -90,6 +128,9 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
               );
             })}
           </ul>
+          <p className="family-going" aria-live="polite">
+            {known === undefined ? '' : known ? t.going(names) : t.fresh(names)}
+          </p>
           <div className="family-footer">
             <button
               type="button"
@@ -103,12 +144,12 @@ export function ChoosePlayers({ game, family, current, onChange, onStart }: Prop
             <button
               type="button"
               className="btn btn-primary btn-block"
-              disabled={players.length < min || players.length > max}
+              disabled={!ready}
               onClick={() => {
                 onStart(players);
               }}
             >
-              {start}
+              {known === undefined ? start : known ? t.carryOn : t.startNew}
             </button>
           </div>
         </>

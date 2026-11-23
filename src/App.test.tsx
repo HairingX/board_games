@@ -145,6 +145,45 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
   });
 
+  it('lets others play instead from inside a game, saying whether they go on or begin', async () => {
+    await saves.write('testspil-i-gang/far+mille', true);
+    await startAs('Far', [
+      {
+        ...fakeGame,
+        id: 'testspil-i-gang',
+        players: { min: 1, max: 2, progress: 'sammen' },
+        going: async (read, saveKey) => (await read(saveKey)) === true,
+      },
+    ]);
+    goTo('#/spil/testspil-i-gang/far+mille');
+    expect(await screen.findByText('Et testspil')).toBeInTheDocument();
+    click('Skift spillere. Spillere: Far og Mille');
+    expect(await screen.findByRole('heading', { name: 'Hvem er med?' })).toBeInTheDocument();
+    // The players who just played are chosen, and go on with their game.
+    expect(screen.getByRole('button', { name: /^Mille/ })).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findByText(/Far og Mille har et spil i gang/)).toBeInTheDocument();
+    click(/^Mille/);
+    click(/^Mor/);
+    expect(await screen.findByText(/Far og Mor har ikke et spil i gang/)).toBeInTheDocument();
+    click('Start et nyt spil');
+    await waitFor(() => {
+      expect(window.location.hash).toBe('#/spil/testspil-i-gang/far+mor');
+    });
+    await saves.remove('testspil-i-gang/far+mille');
+  });
+
+  it('lets a couple who played before players were chosen go on with it', async () => {
+    await saves.write('parkort', { ...newDeck(cards), seen: ['os-to-1'] });
+    await seedFamily({ profiles: [far, mor, { ...mor, id: 'moster', name: 'Moster' }] });
+    render(<App />);
+    await playAs('Far');
+    await screen.findByRole('button', { name: 'Far, skift spiller' });
+    goTo('#/spil/parkort');
+    click(/^Mor/);
+    expect(await screen.findByText(/Far og Mor har et spil i gang/)).toBeInTheDocument();
+    await saves.remove('parkort');
+  });
+
   it.each([
     ['someone not in the family', '#/spil/testspil/far+oscar'],
     ['the same player twice', '#/spil/testspil/far+far'],

@@ -82,6 +82,8 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
   const { family, current, save, leave, place, notePlace } = useFamily();
   const route = useRoute();
   const [beta, setBeta] = useSaved(betaSaveKey, reviveBeta);
+  /** The players who last asked to change, so "Hvem er med?" begins with them chosen. */
+  const [lastPlayers, setLastPlayers] = useState<{ game: string; ids: readonly string[] }>();
   /** The games offered: those still being built only while beta is on. */
   const shown = games.filter((game) => game.beta !== true || beta === true);
   /** Whether the app opened on someone remembered, who stays on the address it opened on. */
@@ -224,11 +226,28 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
               );
             });
         };
-        const only = players ? undefined : onlyGroup(game, family);
+        const alone = onlyGroup(game, family);
+        const only = players ? undefined : alone;
+        /** Opens "Hvem er med?" with these players chosen, so others can play instead. */
+        const changePlayers =
+          players && !alone
+            ? () => {
+                setLastPlayers({ game: game.id, ids: players.map((player) => player.id) });
+                navigate({ name: 'game', id: game.id, players: null, place: [] });
+              }
+            : undefined;
+        const { going, formerSaveKey } = game;
+        /** What is saved under a key, or, while nothing is, what a group starting takes over. */
+        const readMoved = async (key: string) =>
+          (await saves.read(key)) ?? (formerSaveKey ? saves.read(formerSaveKey) : undefined);
         return (
           <ErrorBoundary key={game.id} fallback={<Message text={t.loadFailed} />}>
             <Suspense fallback={<p className="status">{t.loading}</p>}>
-              <GameFrameProvider icon={game.icon} players={players ?? []}>
+              <GameFrameProvider
+                icon={game.icon}
+                players={players ?? []}
+                {...(changePlayers ? { changePlayers } : {})}
+              >
                 <div className="game" style={gameTheme(game)}>
                   {only ? (
                     <StartAlone
@@ -254,6 +273,13 @@ function Shell({ games }: { games: readonly GameInfo[] }) {
                       onStart={(chosen) => {
                         start(chosen);
                       }}
+                      {...(lastPlayers?.game === game.id ? { chosen: lastPlayers.ids } : {})}
+                      {...(going
+                        ? {
+                            going: (chosen: readonly Profile[]) =>
+                              going(readMoved, gameSaveKey(game, chosen), chosen),
+                          }
+                        : {})}
                     />
                   )}
                 </div>
