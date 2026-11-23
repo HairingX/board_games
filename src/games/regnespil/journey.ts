@@ -7,9 +7,9 @@ import { chestOffers, isTreasure, type Treasure } from './treasures';
 /*
  * The adventure's journey through a chapter, as rules apart from how it is shown: a map of
  * steps the heroes walk, each a fight, a chest or the chapter's boss, joined by roads that
- * fork, so the players choose their way; a detour that loops back to the main road, shown by a
- * sign with what lies that way, tempts them with a chest. The journey is saved after every
- * step, so it goes on where it was.
+ * fork, so the players choose their way; a detour that loops back to the main road tempts them
+ * with a chest, seen on the map at its end. The journey is saved after every step, so it goes
+ * on where it was.
  *
  * The first chapter follows the story (`docs/regnespil-story.md`): the copper dog met on the
  * road, won over, with a chest of its own; then through the forest to the hollow tree, where a
@@ -31,14 +31,10 @@ export type Step = { x: number; y: number; next: readonly string[] } & (
     }
 );
 
-/** What a step on the map holds. */
-export type StepKind = Step['kind'];
-
-/** A chapter: its steps, the first, and a sign at a fork telling what lies down a road. */
+/** A chapter: its steps, and the first. */
 export interface Chapter {
   steps: Readonly<Record<string, Step>>;
   first: string;
-  signs: readonly { x: number; y: number; to: string; shows: StepKind }[];
 }
 
 /**
@@ -73,7 +69,6 @@ export const copperChapter: Chapter = {
       next: [],
     },
   },
-  signs: [{ x: 98, y: 176, to: 'krat', shows: 'chest' }],
 };
 
 /** Where the adventure of these players is saved, beside the game's other saves. */

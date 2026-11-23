@@ -56,9 +56,6 @@ const hollowTree: readonly Thing[] = [
   { sheet: 'nature', cut: cut(112, 208, 16, 16), x: 72, y: 36 },
 ];
 
-/** A wooden sign pointing the way, from the nature tiles. */
-const signpost = cut(80, 128, 16, 16);
-
 /**
  * The roads' dots, from the floor tiles: white and larger on the roads the heroes can take now,
  * so they stand out; light sand where they walked; earth on the others.
@@ -222,7 +219,7 @@ function atStep(
 }
 
 /**
- * The map as it stands on the journey: each step as it is, the signs, and the heroes at their
+ * The map as it stands on the journey: each step as it is, and the heroes at their
  * step, the first player's hero leading and the others behind, with their friend the dog;
  * walking to another step, if they are.
  */
@@ -259,7 +256,6 @@ export function mapScene(
       ...trees,
       ...hollowTree,
       ...roads(journey, chapter, walk).flatMap((road) => roadDots(road.from, road.to, road.state)),
-      ...chapter.signs.map((sign) => ({ sheet: 'nature', cut: signpost, x: sign.x, y: sign.y })),
       ...parts.flatMap((part) => part.things),
     ],
     figures: [

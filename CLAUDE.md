@@ -297,12 +297,10 @@ game builds on them, and everything must stay smooth on a phone.
     dotted larger in white (earth further on, light sand where they walked), and what waits at
     their ends hops, under a yellow marker pointing down at it (`markOver`); tapped, with a
     sound, the heroes walk there. No ring marks a step, which the owner took for where the
-    heroes stood. At a fork the main road goes on to one
-    fight, and a detour, shown by a wooden sign pointing down it, its bubble showing in
-    pictures what guards the road, an arrow and the chest past it, as the owner described and
-    then found unclear with the chest alone, leads past a tougher slime (drawn cross and twice its size) to a chest and
-    loops back to the main road. While its road lies ahead, the sign can be tapped and leads
-    the heroes down it, as the owner found a sign that could not be tapped puzzling.
+    heroes stood. At a fork the main road goes on to one fight, and a detour leads past a
+    tougher slime (drawn cross and twice its size) to a chest, seen on the map at its end, and
+    loops back to the main road. No sign stands at the fork, the owner decided: the map shows
+    the chest already, and a sign with a chest of its own read as a second chest.
     Monsters further on have more lives (`toughness` per step).
   - At the hollow tree the giant slime, fought by the tree (the `tree` scenery in
     `forest.ts`); beaten, a film shows the heroes and the dog jumping down the hole, where eyes

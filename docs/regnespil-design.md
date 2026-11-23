@@ -490,3 +490,7 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
 - How do you get the chest at the sign? I do not understand how to get it. The hero is huge
   now? (Fixed: the sign's bubble shows the cross slime guarding the detour, an arrow, and the
   chest past it; the heroes are their own size again, a pin with the leader's face over them.)
+- Why show the sign at all, when the chest can be seen on the map? A red chest after a big
+  slime reads plainly; the sign's blue chest, which seemed to have something to do with the
+  slime, is what confuses: you think there are two chests, a red and a blue. Remove the sign
+  entirely. (Decided and done: no sign; the map shows the chest at the end of the detour.)

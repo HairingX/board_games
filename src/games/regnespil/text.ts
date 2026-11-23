@@ -192,9 +192,6 @@ const da = {
     tough: (strong: string) => `Gå videre og kæmp mod ${strong}`,
     chest: 'Gå hen til kisten',
     boss: (the: string) => `Gå til det hule træ og kæmp mod ${the}`,
-    sign: 'Et skilt: ad denne vej ligger en kiste',
-    /** A sign down a road a monster guards, a chest past it. */
-    signPast: (guard: string) => `Et skilt: forbi ${guard} ligger en kiste ad denne vej`,
   },
   chest: {
     open: 'Åbn kisten',
@@ -392,8 +389,6 @@ export const text: Translations<typeof da> = {
       tough: (strong) => `Go on and fight ${strong}`,
       chest: 'Go to the chest',
       boss: (the) => `Go to the hollow tree and fight ${the}`,
-      sign: 'A sign: a chest lies this way',
-      signPast: (guard) => `A sign: past ${guard}, a chest lies this way`,
     },
     chest: {
       open: 'Open the chest',

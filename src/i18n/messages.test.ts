@@ -101,9 +101,6 @@ describe('the messages that are made from values', () => {
     expect(r.map.left(1)).toBe('1 step to the hollow tree');
     expect(r.map.left(3)).toBe('3 steps to the hollow tree');
     expect(r.map.fight(r.foes.slime.the)).toBe('Go on and fight the slime');
-    expect(r.map.signPast(r.foes.slime.strong)).toBe(
-      'A sign: past a strong slime, a chest lies this way',
-    );
     expect(r.map.tough(r.foes.slime.strong)).toBe('Go on and fight a strong slime');
     expect(r.map.boss(r.foes.giantSlime.the)).toBe(
       'Go to the hollow tree and fight the giant slime',

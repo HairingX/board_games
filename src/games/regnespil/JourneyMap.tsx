@@ -7,7 +7,6 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import littleChest from '../../../assets/ninja-adventure/Items/Treasure/LittleTreasureChest.png';
 import { useMessages } from '../../i18n/I18n';
 import { sound as defaultSound, type SoundEngine } from '../../lib/sound/engine';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
@@ -41,9 +40,10 @@ const pageClock = () => performance.now() / 1000;
 /**
  * The journey's map, as the owner asked, so it is plain the adventure is under way, where the
  * heroes are going and how far it is: the forest from the road to the hollow tree, the roads
- * between the steps, those walked in light sand, a flag where a monster was beaten, and a sign
- * at the fork pointing down the detour, with a chest over it. The heroes are drawn large, so
- * they are seen at once; the roads they can take now are dotted in white, and what waits at
+ * between the steps, those walked in light sand, a flag where a monster was beaten, and the
+ * chest at the end of the detour, which the map itself shows, so no sign is needed. A pin with
+ * the leader's face shows where the heroes are; the roads they can take now are dotted in
+ * white, and what waits at
  * their ends hops under a marker pointing down at it, as the owner asked; tapped, the heroes
  * walk there, and its fight or chest begins. Over the map, a pip for each step done and each
  * left, the last the boss's portrait.
@@ -117,60 +117,6 @@ export function JourneyMap({
 
   const overlay = (
     <div className="rs-hud">
-      {chapter.signs.map((sign) => {
-        const place = { left: px(sign.x + 8), top: px(sign.y) };
-        // What lies down the road, past the monster that guards it, if one does.
-        const guard = chapter.steps[sign.to] as Step;
-        const label =
-          guard.kind === 'chest'
-            ? t.map.sign
-            : t.map.signPast(isTough(guard) ? t.foes[guard.foe].strong : t.foes[guard.foe].the);
-        const shows = (
-          <>
-            {guard.kind !== 'chest' && (
-              <>
-                <img
-                  src={
-                    isTough(guard)
-                      ? monsters[guard.foe].face.enraged
-                      : monsters[guard.foe].face.calm
-                  }
-                  alt=""
-                  className="rs-sign-guard"
-                />
-                <span className="rs-sign-arrow" />
-              </>
-            )}
-            <img src={littleChest} alt="" className="rs-sign-chest" />
-          </>
-        );
-        // While its road lies ahead, the sign leads the heroes down it, as the step does.
-        return ahead(journey, chapter).includes(sign.to) ? (
-          <button
-            key={sign.to}
-            type="button"
-            className="rs-bubble rs-sign"
-            aria-label={`${label}. ${goTo(guard)}`}
-            disabled={walk !== undefined}
-            style={place}
-            onClick={() => {
-              go(sign.to);
-            }}
-          >
-            {shows}
-          </button>
-        ) : (
-          <p
-            key={sign.to}
-            className="rs-bubble rs-sign"
-            role="img"
-            aria-label={label}
-            style={place}
-          >
-            {shows}
-          </p>
-        );
-      })}
       <span
         // Placed anew as the heroes set out, so it goes with them.
         key={walk?.to ?? journey.at}
