@@ -494,3 +494,9 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   slime reads plainly; the sign's blue chest, which seemed to have something to do with the
   slime, is what confuses: you think there are two chests, a red and a blue. Remove the sign
   entirely. (Decided and done: no sign; the map shows the chest at the end of the detour.)
+- It is all very fine, but can we not get nicer graphics? It is very hard to make the
+  adventure exciting with these graphics. (Idea, to decide with the owner. Options weighed:
+  making more of the Ninja Adventure pack, with close-ups, the pack's larger portraits, light
+  and darkness, weather and camera moves; another free pack, few of which are CC0 and none
+  found with as many monsters and bosses; a paid pack, which a public repository cannot hold,
+  as it would hand out the files; or painted pictures for the story's scenes only.)
