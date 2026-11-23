@@ -6,7 +6,7 @@ import { useWakeLock } from '../../lib/wakeLock';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { common } from '../../ui/text';
 import { topFrames } from './art';
-import { filmSheets, type Shot } from './film';
+import { filmSheets, type Picture, type Shot } from './film';
 import type { Hero } from './heroes';
 import { sounds } from './sounds';
 import { text } from './text';
@@ -30,12 +30,28 @@ interface Props {
 const pageClock = () => performance.now() / 1000;
 
 /**
- * How many times their size the pictures in bubbles are drawn, so a child sees what they show
- * on a phone; and how long, in seconds, before the film can be skipped, so a child's first tap
- * does not end it.
+ * How many times their size the pictures in a dialog box are drawn, where there is room, so a
+ * child sees what they show on a phone; and how long, in seconds, before the film can be
+ * skipped, so a child's first tap does not end it.
  */
 const bubbleZoom = 2;
 export const skipAfter = 3;
+
+/**
+ * How large a dialog box may draw its pictures: twice their size, or their own if three of them
+ * side by side would not fit beside the portrait on a stage this wide, in its pixels.
+ */
+export function dialogZoom(pictures: readonly Picture[], width: number): number {
+  const room = width - dialogRoom;
+  const across = pictures.reduce(
+    (sum, picture) => sum + ('arrow' in picture ? 0 : picture.cut.width),
+    0,
+  );
+  return across * bubbleZoom <= room ? bubbleZoom : 1;
+}
+
+/** What a dialog box takes of the stage's width besides its pictures: the portrait, margins. */
+const dialogRoom = 64;
 
 /** The voices the films' characters babble in. */
 const filmVoices = { hero: voices.hero, crone: voices.crone, dog: voices.dog } as const;
@@ -123,39 +139,43 @@ export function Film({
 
   const scene = useMemo(() => shot.scene(playing.at, heroes), [shot, playing.at, heroes]);
   const px = (pixels: number) => `calc(var(--px) * ${String(pixels)})`;
-  /** A size in a bubble's picture, drawn larger. */
-  const zoomed = (pixels: number) => px(pixels * bubbleZoom);
-  const bubbles = shot.bubbles.filter(
+  const showing = shot.bubbles.filter(
     (bubble) => bubble.at <= into && into < bubble.at + bubble.lasts,
   );
+  const width = scene.columns * 16;
 
-  const overlay = (
-    <div className="rs-hud">
-      {bubbles.map((bubble) => (
-        <p
-          key={bubble.at}
-          className="rs-bubble"
-          aria-hidden="true"
-          style={{ left: px(bubble.over.x), top: px(bubble.over.y) }}
-        >
-          {bubble.pictures.map((picture, index) => (
-            <span
-              key={index}
-              className="rs-bubble-picture"
-              data-upside-down={picture.upsideDown === true}
-              style={{
-                width: zoomed(picture.cut.width),
-                height: zoomed(picture.cut.height),
-                backgroundImage: `url("${picture.url}")`,
-                backgroundPosition: `${zoomed(-picture.cut.x)} ${zoomed(-picture.cut.y)}`,
-                backgroundSize: `${zoomed(picture.image.width)} ${zoomed(picture.image.height)}`,
-              }}
-            />
-          ))}
-        </p>
-      ))}
+  /** A bubble's pictures, each drawn `zoom` times larger, an arrow plainly. */
+  const drawn = (pictures: readonly Picture[], zoom: number) =>
+    pictures.map((picture, index) => {
+      if ('arrow' in picture) {
+        return <span key={index} className="rs-bubble-arrow" />;
+      }
+      const zoomed = (pixels: number) => px(pixels * zoom);
+      return (
+        <span
+          key={index}
+          className="rs-bubble-picture"
+          style={{
+            width: zoomed(picture.cut.width),
+            height: zoomed(picture.cut.height),
+            backgroundImage: `url("${picture.url}")`,
+            backgroundPosition: `${zoomed(-picture.cut.x)} ${zoomed(-picture.cut.y)}`,
+            backgroundSize: `${zoomed(picture.image.width)} ${zoomed(picture.image.height)}`,
+          }}
+        />
+      );
+    });
+
+  // What is said in a dialog box at the foot of the screen, with the portrait of who says it,
+  // the pictures as large as the box has room for.
+  const front = showing.map((bubble) => (
+    <div key={bubble.at} className="rs-dialog" aria-hidden="true">
+      <img src={bubble.speaks} alt="" className="rs-dialog-face" />
+      <p className="rs-dialog-pictures">
+        {drawn(bubble.pictures, dialogZoom(bubble.pictures, width))}
+      </p>
     </div>
-  );
+  ));
 
   return (
     <section className="rs-fight rs-film">
@@ -181,7 +201,7 @@ export function Film({
           scene={scene}
           sheets={filmSheets}
           label={t.film.label}
-          overlay={overlay}
+          front={front}
           fit="box"
           {...(load ? { load } : {})}
         />

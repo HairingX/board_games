@@ -500,3 +500,6 @@ Kept as close to the owner's words as possible, newest last, so none is forgotte
   and darkness, weather and camera moves; another free pack, few of which are CC0 and none
   found with as many monsters and bosses; a paid pack, which a public repository cannot hold,
   as it would hand out the files; or painted pictures for the story's scenes only.)
+- 1, go: make more of the pack we have. (Decided: built first in the film, with the camera's
+  close-ups and pans, a dialog box with the old woman's portrait, the evening light, faint
+  rays of sun and drifting leaves, for the owner to see before the fights and the map follow.)

@@ -5,6 +5,9 @@ import {
   drawScene,
   signSize,
   stageSize,
+  viewAt,
+  viewCorner,
+  wholeStage,
   type Effect,
   type Figure,
   type Scene,
@@ -462,5 +465,83 @@ describe('figures acting', () => {
     ]);
     expect(drawScene(withEffect, at + 2 / fps + eps)).toEqual([]);
     expect(drawScene(withEffect, at, true)).toEqual([]);
+  });
+});
+
+describe('the camera', () => {
+  const stage: Scene = { ...scene, columns: 10, rows: 9, ground: [], things: [], figures: [] };
+
+  it('shows the whole stage unless told otherwise', () => {
+    expect(viewAt(stage, 5)).toEqual({ x: 80, y: 72, zoom: 1 });
+    expect(wholeStage(stage)).toEqual({ x: 80, y: 72, zoom: 1 });
+  });
+
+  it('moves from view to view, setting off and coming to rest gently, or cuts', () => {
+    const filmed: Scene = {
+      ...stage,
+      camera: {
+        start: { x: 80, y: 72, zoom: 1 },
+        moves: [
+          { at: 10, to: { x: 100, y: 72, zoom: 3 }, seconds: 2 },
+          { at: 20, to: { x: 40, y: 40, zoom: 2 }, seconds: 0 },
+        ],
+      },
+    };
+    expect(viewAt(filmed, 9)).toEqual({ x: 80, y: 72, zoom: 1 });
+    expect(viewAt(filmed, 11)).toEqual({ x: 90, y: 72, zoom: 2 });
+    // A quarter of the way in time, less than a quarter of the way: easing in.
+    expect(viewAt(filmed, 10.5).zoom).toBeLessThan(1.5);
+    expect(viewAt(filmed, 15)).toEqual({ x: 100, y: 72, zoom: 3 });
+    expect(viewAt(filmed, 20)).toEqual({ x: 40, y: 40, zoom: 2 });
+    // With motion stilled it keeps to its first view.
+    expect(viewAt(filmed, 15, true)).toEqual({ x: 80, y: 72, zoom: 1 });
+    expect(viewAt({ ...filmed, camera: { start: { x: 1, y: 2, zoom: 1 } } }, 3)).toEqual({
+      x: 1,
+      y: 2,
+      zoom: 1,
+    });
+  });
+
+  it('keeps what it shows inside the stage', () => {
+    expect(viewCorner(stage, { x: 108, y: 92, zoom: 3 })).toEqual({
+      x: 108 - 160 / 6,
+      y: 92 - 144 / 6,
+    });
+    expect(viewCorner(stage, { x: 0, y: 0, zoom: 2 })).toEqual({ x: 0, y: 0 });
+    expect(viewCorner(stage, { x: 160, y: 144, zoom: 2 })).toEqual({ x: 80, y: 72 });
+  });
+});
+
+describe('effects that drift and shine', () => {
+  const drift = (seconds: number) =>
+    drawScene(
+      {
+        ...scene,
+        ground: [],
+        things: [],
+        figures: [],
+        effects: [
+          {
+            sheet: 'leaf',
+            width: 12,
+            height: 7,
+            frames: 6,
+            x: 100,
+            y: 0,
+            at: 0,
+            cycle: 4,
+            arc: { dx: -40, height: 0, seconds: 4 },
+            opacity: 0.5,
+          },
+        ],
+      },
+      seconds,
+    )[0];
+
+  it('begins all over again every cycle, its frames turning all the while', () => {
+    expect(drift(2)).toMatchObject({ x: 80, opacity: 0.5 });
+    expect(drift(6)).toMatchObject({ x: 80 });
+    const frames = new Set(Array.from({ length: 20 }, (_, step) => drift(step / 10)?.cut.x));
+    expect(frames.size).toBe(6);
   });
 });

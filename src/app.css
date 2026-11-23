@@ -138,6 +138,9 @@
   --pixel-close: #f2c94c;
   --pixel-bad: #f29a80;
   --pixel-life: #e43b44;
+  /* The light laid over a scene: warm at evening, blue at night, multiplied over it. */
+  --scene-evening: #fbe0c4;
+  --scene-night: #8f9ccc;
 
   font-family: var(--font-body);
   font-optical-sizing: auto;

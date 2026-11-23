@@ -1,6 +1,13 @@
 import { useReducedMotionConfig } from 'motion/react';
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
-import { drawScene, stageSize, type Draw, type Scene } from '../lib/scene/scene';
+import {
+  drawScene,
+  stageSize,
+  viewAt,
+  viewCorner,
+  type Draw,
+  type Scene,
+} from '../lib/scene/scene';
 import './SceneCanvas.css';
 
 /** Loads a picture for drawing; the tests give their own. */
@@ -23,20 +30,33 @@ export function loadPicture(
   });
 }
 
-/** Draws what is to be drawn, enlarged by the whole number given, every pixel sharp. */
+/**
+ * Draws what is to be drawn, enlarged by the whole number given, every pixel sharp; through the
+ * camera's view, enlarged as many times again from its corner (`corner`, in the stage's pixels).
+ */
 export function paint(
   context: CanvasRenderingContext2D,
   draws: readonly Draw[],
   pictures: ReadonlyMap<string, CanvasImageSource>,
   size: { width: number; height: number },
   scale: number,
+  view: { zoom: number; corner: { x: number; y: number } } = {
+    zoom: 1,
+    corner: { x: 0, y: 0 },
+  },
 ): void {
-  context.setTransform(scale, 0, 0, scale, 0, 0);
+  const k = scale * view.zoom;
+  // Taken from nought, so a corner at nought gives nought, not a signed one.
+  const left = 0 - view.corner.x * k;
+  const top = 0 - view.corner.y * k;
+  context.setTransform(1, 0, 0, 1, 0, 0);
+  context.clearRect(0, 0, size.width * scale, size.height * scale);
+  context.setTransform(k, 0, 0, k, left, top);
   context.imageSmoothingEnabled = false;
-  context.clearRect(0, 0, size.width, size.height);
-  for (const { sheet, cut, x, y, turn, grow, flip } of draws) {
+  for (const { sheet, cut, x, y, turn, grow, flip, opacity } of draws) {
     const picture = pictures.get(sheet);
     if (!picture) continue;
+    context.globalAlpha = opacity ?? 1;
     const { width, height } = cut;
     if (turn === undefined && grow === undefined && !flip) {
       context.drawImage(picture, cut.x, cut.y, width, height, x, y, width, height);
@@ -50,15 +70,15 @@ export function paint(
     const cos = Math.round(Math.cos(((turn ?? 0) * Math.PI) / 2));
     const middle = { x: x + width / 2, y: y + height - (height * size) / 2 };
     context.setTransform(
-      scale * cos * size * mirror,
-      scale * sin * size * mirror,
-      -scale * sin * size,
-      scale * cos * size,
-      middle.x * scale,
-      middle.y * scale,
+      k * cos * size * mirror,
+      k * sin * size * mirror,
+      -k * sin * size,
+      k * cos * size,
+      middle.x * k + left,
+      middle.y * k + top,
     );
     context.drawImage(picture, cut.x, cut.y, width, height, -width / 2, -height / 2, width, height);
-    context.setTransform(scale, 0, 0, scale, 0, 0);
+    context.setTransform(k, 0, 0, k, left, top);
   }
 }
 
@@ -129,6 +149,11 @@ interface Props {
    */
   overlay?: ReactNode;
   /**
+   * What lies in front of the scene and stays put while the camera moves, as a film's dialog
+   * box, placed in the stage's pixels with `--px` too.
+   */
+  front?: ReactNode;
+  /**
    * "width" (the default) to fill the box's width, the box as tall as the stage then is;
    * "box" to fit inside a box whose height is set from outside, as a screen with little
    * height makes it, smaller on a low phone.
@@ -148,10 +173,13 @@ export function SceneCanvas({
   label,
   load = loadPicture,
   overlay,
+  front,
   fit = 'width',
 }: Props) {
   const [box, setBox] = useState<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  /** What lies over the scene, moved with the camera. */
+  const [layer, setLayer] = useState<HTMLDivElement | null>(null);
   const size = stageSize(scene);
   const density = Math.max(1, Math.round(window.devicePixelRatio));
   const scale = useDeviceScale(box, size, density, fit);
@@ -161,20 +189,27 @@ export function SceneCanvas({
   const pixel = scale / density;
 
   useEffect(() => {
-    if (!canvas || !pictures) return;
+    if (!canvas || !layer || !pictures) return;
     const context = canvas.getContext('2d');
     if (!context) return;
     const pen = context;
     const loaded = pictures;
+    const over = layer;
     const stage = stageSize(scene);
     let frame = 0;
     let drawn = '';
     function tick(now: number): void {
       const draws = drawScene(scene, now / 1000, still);
-      const picture = JSON.stringify(draws);
+      const view = viewAt(scene, now / 1000, still);
+      const corner = viewCorner(scene, view);
+      const picture = JSON.stringify([draws, view]);
       if (picture !== drawn) {
         drawn = picture;
-        paint(pen, draws, loaded, stage, scale);
+        paint(pen, draws, loaded, stage, scale, { zoom: view.zoom, corner });
+        // What lies over the scene goes with the camera, in step with the picture.
+        over.style.transform = `translate(${String(-corner.x * pixel * view.zoom)}px, ${String(
+          -corner.y * pixel * view.zoom,
+        )}px) scale(${String(view.zoom)})`;
       }
       frame = requestAnimationFrame(tick);
     }
@@ -182,7 +217,7 @@ export function SceneCanvas({
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [canvas, scene, pictures, scale, still]);
+  }, [canvas, layer, scene, pictures, scale, pixel, still]);
 
   return (
     <div ref={setBox} className="scene" data-fit={fit}>
@@ -203,7 +238,13 @@ export function SceneCanvas({
           width={size.width * scale}
           height={size.height * scale}
         />
-        {overlay}
+        {scene.light !== undefined && scene.light !== 'day' && (
+          <div className="scene-light" data-light={scene.light} aria-hidden="true" />
+        )}
+        <div ref={setLayer} className="scene-over">
+          {overlay}
+        </div>
+        {front}
       </div>
     </div>
   );

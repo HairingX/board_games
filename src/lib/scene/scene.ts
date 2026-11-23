@@ -101,7 +101,33 @@ export interface Effect {
    * there; in its own time, in seconds, or the effects' usual flight.
    */
   arc?: { dx: number; dy?: number; height: number; seconds?: number };
+  /**
+   * Begins all over again every so many seconds, its frames turning all the while, as a leaf
+   * drifting across the stage again and again.
+   */
+  cycle?: number;
+  /** How much it shows, from 0 to 1, if it is to let what is behind it through, as light. */
+  opacity?: number;
 }
+
+/** What the camera shows: the stage's point at its middle, and how many times enlarged. */
+export interface View {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+/**
+ * Where the camera looks: from its first view, moving to the next at `at` over `seconds`
+ * (a cut at none), one move after another, as a film's close-ups and pans.
+ */
+export interface Camera {
+  start: View;
+  moves?: readonly { at: number; to: View; seconds: number }[];
+}
+
+/** The light over the stage: by day as it is drawn, warm at evening, or blue at night. */
+export type Light = 'day' | 'evening' | 'night';
 
 export interface Scene {
   /** The stage's size in tiles. */
@@ -114,6 +140,9 @@ export interface Scene {
   things: readonly Thing[];
   figures: readonly Figure[];
   effects?: readonly Effect[];
+  /** Where the camera looks; the whole stage if not said. */
+  camera?: Camera;
+  light?: Light;
 }
 
 /** One image to draw: a cut of a sheet, at a place on the stage. */
@@ -128,6 +157,8 @@ export interface Draw {
   grow?: number;
   /** Whether it is drawn mirrored, as a figure spinning round shows its other side. */
   flip?: boolean;
+  /** How much it shows, from 0 to 1, if not wholly. */
+  opacity?: number;
 }
 
 /** The stage's size in pixels. */
@@ -341,13 +372,16 @@ function drawSign(figure: Figure, seconds: number, size: Cut): Draw | undefined 
 /** An effect's frame at the moment, while it plays. */
 function drawEffect(effect: Effect, seconds: number): Draw | undefined {
   const { framesPerSecond, flight } = motionTokens.effect;
-  const into = since(seconds, effect.at);
-  if (into < 0 || (effect.lasts !== undefined && into >= effect.lasts)) return undefined;
-  // Played once, once every `repeat` seconds, or over and over while it lasts.
+  const begun = since(seconds, effect.at);
+  if (begun < 0 || (effect.lasts !== undefined && begun >= effect.lasts)) return undefined;
+  // A cycling effect begins all over again, every cycle.
+  const into = effect.cycle === undefined ? begun : begun % effect.cycle;
+  // Played once, once every `repeat` seconds, or over and over while it lasts or cycles.
   const step = Math.floor(
     (effect.repeat === undefined ? into : into % effect.repeat) * framesPerSecond,
   );
-  const looping = effect.lasts !== undefined && effect.repeat === undefined;
+  const looping =
+    (effect.lasts !== undefined || effect.cycle !== undefined) && effect.repeat === undefined;
   if (!looping && step >= effect.frames) return undefined;
   const index = step % effect.frames;
   let { x, y } = effect;
@@ -365,6 +399,49 @@ function drawEffect(effect: Effect, seconds: number): Draw | undefined {
     cut: { x: index * effect.width, y: 0, width: effect.width, height: effect.height },
     x,
     y,
+    ...(effect.opacity === undefined ? {} : { opacity: effect.opacity }),
+  };
+}
+
+/** The whole stage in view, as the camera shows it unless told otherwise. */
+export function wholeStage(scene: Scene): View {
+  const { width, height } = stageSize(scene);
+  return { x: width / 2, y: height / 2, zoom: 1 };
+}
+
+/** Easing in and out, so the camera sets off and comes to rest gently. */
+const ease = (share: number) => share * share * (3 - 2 * share);
+
+/**
+ * What the camera shows at a moment: its first view, and each move begun so far, part of the
+ * way through one still going on. With motion stilled, it shows its first view.
+ */
+export function viewAt(scene: Scene, seconds: number, still = false): View {
+  const camera = scene.camera;
+  if (!camera) return wholeStage(scene);
+  if (still) return camera.start;
+  return (camera.moves ?? []).reduce<View>((view, move) => {
+    const into = seconds - move.at;
+    if (into < 0) return view;
+    const share = move.seconds <= 0 ? 1 : ease(Math.min(1, into / move.seconds));
+    return {
+      x: view.x + (move.to.x - view.x) * share,
+      y: view.y + (move.to.y - view.y) * share,
+      zoom: view.zoom + (move.to.zoom - view.zoom) * share,
+    };
+  }, camera.start);
+}
+
+/**
+ * The stage's top left corner in view, in its pixels, so the view's middle is where the camera
+ * looks, kept inside the stage.
+ */
+export function viewCorner(scene: Scene, view: View): { x: number; y: number } {
+  const { width, height } = stageSize(scene);
+  const clamp = (value: number, most: number) => Math.min(Math.max(value, 0), most);
+  return {
+    x: clamp(view.x - width / (2 * view.zoom), width - width / view.zoom),
+    y: clamp(view.y - height / (2 * view.zoom), height - height / view.zoom),
   };
 }
 
@@ -402,7 +479,7 @@ export function drawScene(scene: Scene, seconds: number, still = false): Draw[] 
     ),
   ].map((draw: Draw): Draw => {
     // Only what is drawn: a thing's other fields, as which sheet it is from, are left out.
-    const { sheet, cut, x, y, turn, grow, flip } = draw;
+    const { sheet, cut, x, y, turn, grow, flip, opacity } = draw;
     return {
       sheet,
       cut,
@@ -411,6 +488,7 @@ export function drawScene(scene: Scene, seconds: number, still = false): Draw[] 
       ...(turn === undefined ? {} : { turn }),
       ...(grow === undefined ? {} : { grow }),
       ...(flip === undefined ? {} : { flip }),
+      ...(opacity === undefined ? {} : { opacity }),
     };
   });
 }

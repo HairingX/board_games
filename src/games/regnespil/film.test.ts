@@ -54,6 +54,15 @@ describe('the films', () => {
     }
   });
 
+  it('are filmed at evening and the end at night, close on whoever acts, leaves drifting', () => {
+    const lights = [...prologue, ...epilogue].map((shot) => shot.scene(100, ['Knight']).light);
+    expect(lights).toEqual([...prologue.map(() => 'evening'), ...epilogue.map(() => 'night')]);
+    // The old woman is shown close as she tells what lies in the hollow tree.
+    const quest = (prologue[1] as Shot).scene(100, ['Knight']);
+    expect(quest.camera?.start.zoom).toBe(3);
+    expect(quest.effects?.some((effect) => effect.sheet === 'leaf')).toBe(true);
+  });
+
   it('show the old woman’s pictures: the hollow tree and the three dogs', () => {
     const bubbles = prologue.flatMap((shot) => shot.bubbles);
     expect(bubbles).toHaveLength(2);

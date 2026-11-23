@@ -4,7 +4,7 @@ import { fakeSoundBrowser } from '../../../tests/audio';
 import { SoundEngine } from '../../lib/sound/engine';
 import { voices } from '../../lib/sound/voices';
 import { epilogue, prologue } from './film';
-import { Film, skipAfter } from './Film';
+import { dialogZoom, Film, skipAfter } from './Film';
 import { sounds } from './sounds';
 import { text } from './text';
 
@@ -56,13 +56,15 @@ describe('Film', () => {
     expect(told()).toBe(text.da.film.shots.quest);
     expect(babble).toHaveBeenCalledWith(voices.crone, 6, undefined, 0.2);
     // The old woman's picture bubbles come and go.
-    expect(container.querySelector('.rs-bubble')).toBeNull();
+    expect(container.querySelector('.rs-dialog')).toBeNull();
     await pass(0.5);
-    expect(container.querySelectorAll('.rs-bubble-picture')).toHaveLength(3);
-    // The arrow points down into the hollow tree.
-    expect(container.querySelectorAll('[data-upside-down="true"]')).toHaveLength(1);
+    // In a dialog box with her portrait: the hollow tree, an arrow down, and a flame.
+    const dialog = container.querySelector('.rs-dialog');
+    expect(dialog?.querySelector('.rs-dialog-face')).toBeInTheDocument();
+    expect(dialog?.querySelectorAll('.rs-bubble-picture')).toHaveLength(2);
+    expect(dialog?.querySelectorAll('.rs-bubble-arrow')).toHaveLength(1);
     await pass(3.5);
-    expect(container.querySelector('.rs-bubble')).toBeNull();
+    expect(container.querySelector('.rs-dialog')).toBeNull();
     // Shot by shot, as each begins once the one before has ended.
     await pass((prologue[1]?.seconds ?? 0) - 4);
     await pass(prologue[2]?.seconds ?? 0);
@@ -84,5 +86,16 @@ describe('Film', () => {
     expect(onDone).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole('button', { name: 'Tilbage' }));
     expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it('draws the pictures in a dialog box twice their size where there is room, else their own', () => {
+    const picture = (width: number) =>
+      ({
+        url: 'x.png',
+        cut: { x: 0, y: 0, width, height: 8 },
+        image: { width, height: 8 },
+      }) as const;
+    expect(dialogZoom([picture(16), { arrow: 'down' }, picture(8)], 160)).toBe(2);
+    expect(dialogZoom([picture(18), picture(18), picture(21)], 160)).toBe(1);
   });
 });

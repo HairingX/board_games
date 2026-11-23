@@ -14,6 +14,31 @@
 .scene-frame {
   position: relative;
   max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+/* What lies over the scene, in the stage's pixels, moved with the camera from its corner. */
+.scene-over {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+/* The light over the stage: one colour laid over it, warm at evening, blue at night. */
+.scene-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.scene-light[data-light='evening'] {
+  background: var(--scene-evening);
+}
+
+.scene-light[data-light='night'] {
+  background: var(--scene-night);
 }
 
 .scene canvas {

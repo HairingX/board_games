@@ -262,10 +262,14 @@ game builds on them, and everything must stay smooth on a phone.
   The adventure's steps share one address (`#/spil/regnespil/<players>/eventyr`): a story goes
   one way, so the back gesture leaves it for the setup, and it opens again where it stands.
   - First a film of under half a minute (`film.ts`, `Film.tsx`), told in shots on the puppet
-    theatre's stage with picture bubbles (their pictures drawn twice their size, so a child
-    sees them), babble and sound, each shot told in words to screen readers: the heroes march
+    theatre's stage, as the owner chose to make more of the pack's art rather than change it:
+    the camera cuts to close-ups and pans between who acts, the evening light lies over the
+    forest with faint rays of sun, leaves drift through it, and what the old woman means is
+    shown in a dialog box at the foot of the screen with her portrait, its pictures twice their
+    size where there is room (`dialogZoom`); babble and sound, each shot told in words to
+    screen readers: the heroes march
     in ("én, to!"); an old woman in a pointed hat (the pack's `NinjaMageOrange`) shows a hollow
-    tree with a spark down in it, and three dogs; a bark, and the copper dog bursts out,
+    tree, an arrow down into it and a flame (the tinderbox), and three dogs; a bark, and the copper dog bursts out,
     grumpy. It can be skipped from a quiet button at the top that comes after three seconds
     (`skipAfter`), so a child's first tap does not end it.
   - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
@@ -535,6 +539,14 @@ game builds on them, and everything must stay smooth on a phone.
   that faces one way is mirrored to face the other (`big.faces`), a step may take its own
   time (`lasts`, as heroes walking on the map), and one lies down for good (`lie`). One paint
   transform grows, mirrors and turns a draw (`paint` in `SceneCanvas.tsx`).
+- A scene may have a camera (`camera`: a first view and moves, a view being the point in the
+  middle and how many times enlarged, eased in and out, or a cut), so a film shows close-ups;
+  what lies over the scene moves with it, and what lies in front (`front`, as a dialog box)
+  stays put. While the camera moves between whole enlargements the pixels are briefly uneven;
+  at rest they are whole. A scene may have a light (`light`: evening or night, one colour
+  multiplied over it, `--scene-evening` and `--scene-night`), and effects may be faint
+  (`opacity`, as rays of light) or begin again every cycle while their frames turn (`cycle`,
+  as drifting leaves).
   Times are on the page's clock, so a screen starts an act the moment it happens; with
   reduced motion nothing moves, but what vanished stays gone.
 

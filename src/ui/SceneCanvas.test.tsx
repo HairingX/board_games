@@ -94,8 +94,50 @@ describe('SceneCanvas', () => {
     // 100 page pixels are 300 of the phone's; 300 / 32 gives 9 for each of the stage's pixels.
     expect(canvas).toHaveAttribute('width', String(32 * 9));
     expect(canvas.parentElement).toHaveStyle({ width: '96px', '--px': '3px' });
-    expect(screen.getByText('Hjerter').parentElement).toBe(canvas.parentElement);
+    // Over the scene, in a layer the camera moves.
+    expect(screen.getByText('Hjerter').parentElement?.parentElement).toBe(canvas.parentElement);
     vi.unstubAllGlobals();
+  });
+
+  it('lays the light over the scene, keeps what is in front still, and moves the overlay with the camera', async () => {
+    const context = fakeContext();
+    drawWith(context);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(64);
+    const filmed: Scene = {
+      ...scene,
+      light: 'evening',
+      camera: { start: { x: 24, y: 8, zoom: 2 } },
+    };
+    const { container, rerender } = render(
+      <SceneCanvas
+        scene={filmed}
+        sheets={sheets}
+        label="En skov"
+        load={loadAll}
+        overlay={<span>Hjerter</span>}
+        front={<p>Konen siger</p>}
+      />,
+    );
+    expect(container.querySelector('.scene-light')).toHaveAttribute('data-light', 'evening');
+    expect(screen.getByText('Konen siger').parentElement).toHaveClass('scene-frame');
+    await waitFor(() => {
+      expect(context.drawImage).toHaveBeenCalled();
+    });
+    // Twice enlarged, its corner at 16 across and 4 down of the stage's 32 by 16 pixels, at a
+    // scale of 2.
+    expect(context.setTransform).toHaveBeenCalledWith(4, 0, 0, 4, -64, -16);
+    expect(screen.getByText('Hjerter').parentElement).toHaveStyle({
+      transform: 'translate(-64px, -16px) scale(2)',
+    });
+    rerender(
+      <SceneCanvas
+        scene={{ ...scene, light: 'day' }}
+        sheets={sheets}
+        label="En skov"
+        load={loadAll}
+      />,
+    );
+    expect(container.querySelector('.scene-light')).toBeNull();
   });
 
   it('fits inside a low box both ways when asked', () => {
@@ -207,6 +249,7 @@ describe('paint', () => {
       2,
     );
     expect(context.setTransform.mock.calls).toEqual([
+      [1, 0, 0, 1, 0, 0],
       [2, 0, 0, 2, 0, 0],
       [0, 2, -2, 0, 36, 56],
       [2, 0, 0, 2, 0, 0],
@@ -233,6 +276,7 @@ describe('paint', () => {
       (call as number[]).map((n) => n + 0),
     );
     expect(unsigned).toEqual([
+      [1, 0, 0, 1, 0, 0],
       [2, 0, 0, 2, 0, 0],
       [3, 0, 0, 3, 40, 45],
       [2, 0, 0, 2, 0, 0],
@@ -240,6 +284,29 @@ describe('paint', () => {
       [2, 0, 0, 2, 0, 0],
     ]);
     expect(context.drawImage.mock.calls[0]?.slice(5)).toEqual([-10, -5, 20, 10]);
+  });
+
+  it('draws a faint picture faintly, and the next wholly', () => {
+    const context = fakeContext();
+    const alphas: number[] = [];
+    const picture = document.createElement('canvas');
+    const drawing = {
+      ...context,
+      drawImage: vi.fn(() => {
+        alphas.push((drawing as unknown as { globalAlpha: number }).globalAlpha);
+      }),
+    };
+    paint(
+      drawing as unknown as CanvasRenderingContext2D,
+      [
+        { sheet: 'rays', cut: { x: 0, y: 0, width: 8, height: 8 }, x: 0, y: 0, opacity: 0.2 },
+        { sheet: 'rays', cut: { x: 0, y: 0, width: 8, height: 8 }, x: 8, y: 0 },
+      ],
+      new Map([['rays', picture]]),
+      { width: 16, height: 8 },
+      1,
+    );
+    expect(alphas).toEqual([0.2, 1]);
   });
 
   it('leaves out a picture it does not have', () => {

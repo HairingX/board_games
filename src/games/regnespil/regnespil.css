@@ -1020,32 +1020,7 @@
   gap: var(--space-3);
 }
 
-/* A picture bubble over someone's head, its tail pointing down at them. */
-.rs-bubble {
-  position: absolute;
-  display: flex;
-  gap: calc(var(--px) * 3);
-  align-items: center;
-  margin: 0;
-  padding: calc(var(--px) * 3) calc(var(--px) * 4);
-  background: var(--pixel-text);
-  border: calc(var(--px) * 1) solid var(--pixel-ink);
-  border-radius: calc(var(--px) * 4);
-  transform: translate(-50%, calc(-100% - var(--px) * 4));
-}
-
-.rs-bubble::after {
-  position: absolute;
-  bottom: calc(var(--px) * -4);
-  left: 50%;
-  width: calc(var(--px) * 6);
-  height: calc(var(--px) * 4);
-  content: '';
-  background: var(--pixel-ink);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform: translateX(-50%);
-}
-
+/* A picture in a dialog box, cut from its sheet and drawn larger, every pixel sharp. */
 .rs-bubble-picture {
   display: block;
   flex-shrink: 0;
@@ -1053,8 +1028,50 @@
   image-rendering: pixelated;
 }
 
-.rs-bubble-picture[data-upside-down='true'] {
-  transform: rotate(180deg);
+/* An arrow between a bubble's pictures, drawn plainly, pointing down into something. */
+.rs-bubble-arrow {
+  flex-shrink: 0;
+  width: calc(var(--px) * 9);
+  height: calc(var(--px) * 12);
+  background: var(--pixel-ink);
+  clip-path: polygon(30% 0, 70% 0, 70% 50%, 100% 50%, 50% 100%, 0 50%, 30% 50%);
+}
+
+/*
+ * A dialog box at the foot of the film's screen, as games tell what is said: the speaker's
+ * portrait in a frame, and the pictures of what they mean, large.
+ */
+.rs-dialog {
+  position: absolute;
+  right: calc(var(--px) * 4);
+  bottom: calc(var(--px) * 4);
+  left: calc(var(--px) * 4);
+  display: flex;
+  gap: calc(var(--px) * 4);
+  align-items: center;
+  padding: calc(var(--px) * 3);
+  background: var(--pixel-text);
+  border: calc(var(--px) * 1) solid var(--pixel-ink);
+  border-radius: calc(var(--px) * 3);
+  box-shadow: 0 calc(var(--px) * 1) 0 var(--pixel-ink);
+}
+
+.rs-dialog-face {
+  flex-shrink: 0;
+  width: calc(var(--px) * 38);
+  height: calc(var(--px) * 38);
+  image-rendering: pixelated;
+  border: calc(var(--px) * 1) solid var(--pixel-ink);
+  border-radius: calc(var(--px) * 2);
+}
+
+.rs-dialog-pictures {
+  display: flex;
+  flex: 1;
+  gap: calc(var(--px) * 4);
+  align-items: center;
+  justify-content: center;
+  margin: 0;
 }
 
 /* The film is shown as at the cinema: the stage in the middle of the dark. */
