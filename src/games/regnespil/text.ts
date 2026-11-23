@@ -176,12 +176,14 @@ const da = {
     shots: {
       road: 'Heltene går ad vejen gennem skoven: én, to! én, to! De møder en gammel kone med en spids hat.',
       quest:
-        'Konen viser dem i billeder et hult træ, hvor der nede i hullet ligger et fyrtøj, der slår gnister.',
-      dogs: 'Men dernede vogter tre hunde, den ene større end den anden. Heltene bliver lidt bange, og konen klapper dem.',
-      bark: 'Så lyder et gø, og den gamle kone skynder sig væk.',
-      dog: 'Kobberhunden med øjne så store som tekopper springer frem og knurrer. Heltene gør sig klar.',
-      tree: 'Heltene og deres ven kobberhunden kommer til det hule træ. Hunden snuser ved hullet, og nede i mørket lyser to øjne.',
-      down: 'Heltene tager mod til sig og springer ned i hullet, og hunden springer efter. Fortsættes …',
+        'Konen viser dem i billeder et stort hult træ, hvor der nede i hullet ligger et fyrtøj med en lille flamme.',
+      dogs: 'Men dernede vogter tre hunde, den ene større end den anden. Helten bliver lidt bekymret.',
+      treats:
+        'Konen viser, hvordan man vinder en hund: giv den en godbid, så bliver den glad for dig. Helten holder en godbid op, og konen vinker farvel og forsvinder i en sky af røg.',
+      bark: 'Det bliver stille. Så lyder et gø!',
+      dog: 'Kobberhunden med øjne så store som tekopper springer frem og knurrer. Helten holder godbidden frem, hunden undrer sig, men knurrer igen.',
+      tree: 'Heltene og deres ven kobberhunden kommer til det hule træ. Hunden gør ad hullet, og nede i mørket lyser to øjne.',
+      down: 'Heltene tager mod til sig og springer ned i hullet, én efter én, og hunden springer efter. Fortsættes …',
     } satisfies Record<Telling, string>,
   },
   map: {
@@ -373,12 +375,14 @@ export const text: Translations<typeof da> = {
       shots: {
         road: 'The heroes march along the road through the forest: one, two! one, two! They meet an old woman in a pointed hat.',
         quest:
-          'In pictures, she shows them a hollow tree with a tinderbox down in its hole, striking sparks.',
-        dogs: 'But down there, three dogs keep watch, each bigger than the last. The heroes grow a little scared, and the old woman pats them.',
-        bark: 'Then a bark is heard, and the old woman hurries away.',
-        dog: 'The copper dog, with eyes as big as teacups, bursts out, growling. The heroes make ready.',
-        tree: 'The heroes and their friend the copper dog come to the hollow tree. The dog sniffs at the hole, and down in the dark two eyes glint.',
-        down: 'The heroes take heart and jump down the hole, and the dog jumps after them. To be continued …',
+          'In pictures, she shows them a big hollow tree with a tinderbox down in its hole, a little flame burning.',
+        dogs: 'But down there, three dogs keep watch, each bigger than the last. The hero grows a little worried.',
+        treats:
+          'The old woman shows how to win a dog over: give it a treat, and it will love you. The hero holds a treat up, and the old woman waves goodbye and vanishes in a puff of smoke.',
+        bark: 'All goes quiet. Then a bark!',
+        dog: 'The copper dog, with eyes as big as teacups, bursts out, growling. The hero holds out the treat; the dog wonders, but growls again.',
+        tree: 'The heroes and their friend the copper dog come to the hollow tree. The dog barks at the hole, and down in the dark two eyes glint.',
+        down: 'The heroes take heart and jump down the hole, one after another, and the dog jumps after them. To be continued …',
       },
     },
     map: {

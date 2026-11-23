@@ -340,6 +340,21 @@ built (`CLAUDE.md`). These change something the owner decided, or are bigger, an
    chooser's face shown.
 9. **The film resumes at the shot it was left on**, rather than from its start.
 
+## 10b. From the review of the film (proposed, for the owner)
+
+A film director and an expert in children's media reviewed the prologue, as the owner asked
+("film koreografisk korrekt og giver en super følelse"). Their must-haves are built
+(`CLAUDE.md`): the real tree, pictures one at a time, the dogs each bigger, the treat that
+wins a dog, the old woman vanishing in a puff rather than fleeing, a moment's quiet before the
+bark, cuts rather than pans, and the jump down the hole. These wait for the owner:
+
+1. **A kinder face for the old woman.** The pack's `NinjaMageOrange` portrait wears a black
+   mask, which children may read as a bandit. Proposed: the `OldWoman` figure and portrait (no
+   pointed hat), or a portrait cut below the mask.
+2. **A title card** of a second and a half before the film, with the flame and the chapter's
+   number and a short sting of music: the "once upon a time" moment.
+3. **The music marking the fight**: the fight's music starting on the film's last cut.
+
 ## 11. The owner's ideas, as raised
 
 Kept as close to the owner's words as possible, newest last, so none is forgotten.

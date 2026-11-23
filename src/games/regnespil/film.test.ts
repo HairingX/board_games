@@ -63,9 +63,32 @@ describe('the films', () => {
     expect(quest.effects?.some((effect) => effect.sheet === 'leaf')).toBe(true);
   });
 
-  it('show the old woman’s pictures: the hollow tree and the three dogs', () => {
+  it('show the old woman’s pictures: the hollow tree, the three dogs, and how to win one', () => {
     const bubbles = prologue.flatMap((shot) => shot.bubbles);
-    expect(bubbles).toHaveLength(2);
-    expect(bubbles.at(-1)?.pictures).toHaveLength(3);
+    // The tree with the flame down in it; the dogs one at a time, each bigger; dog, treat, heart.
+    expect(bubbles.map((bubble) => bubble.pictures.length)).toEqual([3, 1, 1, 1, 4]);
+    const dogs = bubbles.slice(1, 4).map((bubble) => bubble.pictures[0]);
+    expect(dogs.map((dog) => (dog && 'zoom' in dog ? dog.zoom : 0))).toEqual([2, 3, 4]);
+    expect(dogs.map((dog) => (dog && 'dark' in dog ? dog.dark : false))).toEqual([
+      false,
+      true,
+      true,
+    ]);
+    // One picture follows straight on the last, never leaving the box empty a moment.
+    for (const [before, after] of bubbles
+      .slice(1, 4)
+      .map((one, index, all) => [one, all[index + 1]])) {
+      if (before && after) expect(after.at).toBeCloseTo(before.at + before.lasts);
+    }
+  });
+
+  it('send the old woman off in a puff of smoke, and the heroes and the dog down the hole', () => {
+    const party = ['Knight', 'Samurai', 'Monkey'] as const;
+    const treats = (prologue[3] as Shot).scene(100, party);
+    expect(treats.effects?.some((effect) => effect.sheet === 'smoke')).toBe(true);
+    const down = (epilogue[1] as Shot).scene(100, party);
+    // At the end, everyone has gone down the hole, wherever they stood.
+    const gone = drawScene(down, 100 + (epilogue[1] as Shot).seconds);
+    expect(gone.filter((draw) => [...party, 'dog'].includes(draw.sheet))).toEqual([]);
   });
 });

@@ -241,6 +241,18 @@ describe('figures acting', () => {
     expect(one(sinking, at + down + under + up + 1)).toMatchObject({ y: 20, cut: { height: 16 } });
   });
 
+  it('dives into a hole where it is told, drops out of sight, and stays gone', () => {
+    const diving = { acts: [{ kind: 'dive', at, to: { x: 18, y: -6 } }] } as const;
+    const { out, height, down } = act.dive;
+    expect(one(diving, at + out / 2)).toMatchObject({ x: 29, y: 17 - height });
+    expect(one(diving, at + out + down / 2)).toMatchObject({ x: 38, y: 22, cut: { height: 8 } });
+    expect(one(diving, at + out + down + eps)).toBeUndefined();
+    expect(one(diving, at + 10)).toBeUndefined();
+    // A dive with nowhere to go drops where the figure stands; with motion stilled it is gone.
+    expect(one({ acts: [{ kind: 'dive', at }] }, at + out)?.x).toBe(20);
+    expect(one(diving, at - 1, true)).toBeUndefined();
+  });
+
   it('steps into place from where it was', () => {
     const stepping = { acts: [{ kind: 'step', at, from: { x: -20, y: 10 } }] } as const;
     expect(one(stepping, at + eps)).toMatchObject({ x: 0, y: 30 });

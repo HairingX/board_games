@@ -84,6 +84,11 @@ export const motionTokens = {
     leap: { seconds: 0.55, height: 16 },
     /** Burrowing into the ground, a moment under it, and up again. */
     sink: { down: 0.15, under: 0.4, up: 0.2 },
+    /**
+     * Jumping to where the act says (`to`), into a hole, and dropping out of sight in it for
+     * good, as the heroes go down the hollow tree.
+     */
+    dive: { out: 0.45, height: 14, down: 0.2 },
   },
   /** How long a sign over a figure's head shows, in seconds. */
   sign: { seconds: 1.6 },

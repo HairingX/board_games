@@ -27,6 +27,8 @@ import bone from '../../../assets/ninja-adventure/Items/Weapons/Bone/Sprite.png'
 import question from '../../../assets/ninja-adventure/Ui/Emote/emote23.png';
 import worried from '../../../assets/ninja-adventure/Ui/Emote/emote17.png';
 import determined from '../../../assets/ninja-adventure/Ui/Emote/emote19.png';
+import gasp from '../../../assets/ninja-adventure/Ui/Emote/emote1.png';
+import grumpy from '../../../assets/ninja-adventure/Ui/Emote/emote9.png';
 import {
   tile,
   type Act,
@@ -75,10 +77,23 @@ export const clearingSheets = {
   question,
   worried,
   determined,
+  gasp,
+  grumpy,
 } as const;
 
 export type Sign =
-  'alert' | 'dizzy' | 'sleepy' | 'star' | 'heart' | 'angry' | 'question' | 'worried' | 'determined';
+  | 'alert'
+  | 'dizzy'
+  | 'sleepy'
+  | 'star'
+  | 'heart'
+  | 'angry'
+  | 'question'
+  | 'worried'
+  | 'determined'
+  /** A gasp, mouth open, as at a sudden bark; and a scowl, as the copper dog's. */
+  | 'gasp'
+  | 'grumpy';
 
 /**
  * Where the hero whose turn it is and the slime stand, facing each other, in the forest's

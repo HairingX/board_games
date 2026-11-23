@@ -261,17 +261,25 @@ game builds on them, and everything must stay smooth on a phone.
   eventyret forfra", which asks first; "En hurtig kamp" and the giant slime stay there to try.
   The adventure's steps share one address (`#/spil/regnespil/<players>/eventyr`): a story goes
   one way, so the back gesture leaves it for the setup, and it opens again where it stands.
-  - First a film of under half a minute (`film.ts`, `Film.tsx`), told in shots on the puppet
-    theatre's stage, as the owner chose to make more of the pack's art rather than change it:
-    the camera cuts to close-ups and pans between who acts, the evening light lies over the
-    forest with faint rays of sun, leaves drift through it, and what the old woman means is
-    shown in a dialog box at the foot of the screen with her portrait, its pictures twice their
-    size where there is room (`dialogZoom`); babble and sound, each shot told in words to
-    screen readers: the heroes march
-    in ("én, to!"); an old woman in a pointed hat (the pack's `NinjaMageOrange`) shows a hollow
-    tree, an arrow down into it and a flame (the tinderbox), and three dogs; a bark, and the copper dog bursts out,
-    grumpy. It can be skipped from a quiet button at the top that comes after three seconds
-    (`skipAfter`), so a child's first tap does not end it.
+  - First a film of about half a minute (`film.ts`, `Film.tsx`), told in shots on the puppet
+    theatre's stage, as the owner chose to make more of the pack's art rather than change it,
+    and staged after a director's and a children's-media review, as the owner asked: evening
+    light over the forest with faint rays of sun, leaves drifting; the camera pushes in once
+    where the heroes meet the old woman and otherwise cuts between close-ups, each figure on
+    its own third looking across the cut, heroes left facing right; what the old woman means
+    is shown in a dialog box at the foot of the screen with her portrait, its pictures popping
+    up one after another (`reveal`) with a tap, twice their size where there is room
+    (`dialogZoom`); babble and sound, each shot told in words to screen readers. The heroes
+    march in ("én, to!"), already in sight; an old woman in a pointed hat (the pack's
+    `NinjaMageOrange`) shows the hollow tree with its hole, an arrow down and a flame (the
+    tinderbox); then the three dogs one at a time, each bigger, the silver and gold still dark
+    shapes as at the chapter's end; the hero is worried, and she shows how a dog is won: dog,
+    treat, heart, so the fight with treats makes sense; the hero holds a treat up, glad, and she
+    waves and vanishes in a puff, not fleeing. A moment's quiet, a bark that shakes the stage,
+    the hero gasps; the copper dog bursts in from the right, scowls and swells, the hero offers
+    the treat with a heart, and the dog lunges, growling, as the fight begins. It can be
+    skipped from a quiet button at the top that comes after three seconds (`skipAfter`), so a
+    child's first tap does not end it.
   - The first boss at once, the copper dog (`copperDog` in `monsters.ts`): the pack's running
     dog drawn twice its size, mirrored to face the heroes, standing still on its first frame
     and running through its two only as it moves (`stands`), as the owner found it running on
@@ -307,8 +315,9 @@ game builds on them, and everything must stay smooth on a phone.
     the chest already, and a sign with a chest of its own read as a second chest.
     Monsters further on have more lives (`toughness` per step).
   - At the hollow tree the giant slime, fought by the tree (the `tree` scenery in
-    `forest.ts`); beaten, a film shows the heroes and the dog jumping down the hole, where eyes
-    glint in the dark, and "Kapitel 1 er klaret!" shows the treasures found, the next chapter's
+    `forest.ts`); beaten, a film shows the heroes and the dog at the tree, the dog barking at
+    the hole, the camera going close as eyes glint in the dark, the heroes starting, then
+    diving down it one by one (the `dive` act) and the dog after them, the hole left glinting, and "Kapitel 1 er klaret!" shows the treasures found, the next chapter's
     silver dog as a dark shape with a lock, "Til start", and, quieter, the chapter again
     (`JourneyEnd.tsx`). The quick fight, the giant slime and the listening test are folded
     away on the setup under "Prøv dele af spillet".
@@ -546,7 +555,8 @@ game builds on them, and everything must stay smooth on a phone.
   `Ui/Emote` balloons), and effects such as a sword's sweep or a puff play over the stage.
   A figure can be drawn a whole number of times larger (`size`, about its feet), a big sheet
   that faces one way is mirrored to face the other (`big.faces`), a step may take its own
-  time (`lasts`, as heroes walking on the map), and one lies down for good (`lie`). One paint
+  time (`lasts`, as heroes walking on the map), one lies down for good (`lie`), and one dives
+  into a hole where it is told (`dive`, `to`), dropping out of sight for good. One paint
   transform grows, mirrors and turns a draw (`paint` in `SceneCanvas.tsx`).
 - A scene may have a camera (`camera`: a first view and moves, a view being the point in the
   middle and how many times enlarged, eased in and out, or a cut), so a film shows close-ups;

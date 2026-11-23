@@ -47,6 +47,8 @@ export interface Act {
   lasts?: number;
   /** Where a figure stepping into place comes from, in pixels from its place. */
   from?: { x: number; y: number };
+  /** Where a figure diving into a hole lands, in pixels from its place. */
+  to?: { x: number; y: number };
   /** Done again every so many seconds, for good, as a hero cheering after a victory. */
   repeat?: number;
 }
@@ -219,7 +221,7 @@ function pose(figure: Figure, seconds: number, still: boolean): Draw | undefined
   const sinceBegun = current ? since(seconds, current.at) : Infinity;
   const into = current?.repeat === undefined ? sinceBegun : sinceBegun % current.repeat;
   const kind = current?.kind;
-  const vanished = (figure.acts ?? []).some((one) => one.kind === 'vanish');
+  const vanished = (figure.acts ?? []).some((one) => one.kind === 'vanish' || one.kind === 'dive');
   if (vanished && still) return undefined;
   if (kind === 'vanish' && into >= act.vanish.seconds) return undefined;
   if (still) {
@@ -323,6 +325,18 @@ function pose(figure: Figure, seconds: number, still: boolean): Draw | undefined
     const height = Math.round(tall * share);
     if (height === 0) return undefined;
     return { sheet: figure.sheet, cut: { ...cutOf(row), height }, x, y: y + tall - height };
+  }
+  if (kind === 'dive') {
+    const { out, height, down } = act.dive;
+    const to = current?.to ?? { x: 0, y: 0 };
+    const flown = Math.min(1, into / out);
+    x += Math.round(to.x * flown);
+    y += Math.round(to.y * flown - height * Math.sin(Math.PI * flown));
+    // Landed, it drops into the hole from its feet up, and is gone.
+    const left = into < out ? 1 : 1 - (into - out) / down;
+    const shown = Math.round(tall * left);
+    if (shown <= 0) return undefined;
+    return { sheet: figure.sheet, cut: { ...cutOf(row), height: shown }, x, y: y + tall - shown };
   }
   if (kind === 'spin' && into < act.spin.seconds) {
     // Spinning round like a top: its other side and back, quicker and quicker.

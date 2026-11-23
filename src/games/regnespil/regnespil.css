@@ -1020,12 +1020,41 @@
   gap: var(--space-3);
 }
 
-/* A picture in a dialog box, cut from its sheet and drawn larger, every pixel sharp. */
+/*
+ * A picture in a dialog box, made of parts cut from their sheets and drawn larger, every pixel
+ * sharp; dark, as a shape still to come; popping up in turn where the box shows them so.
+ */
 .rs-bubble-picture {
+  position: relative;
   display: block;
   flex-shrink: 0;
+}
+
+.rs-bubble-part {
+  position: absolute;
   background-repeat: no-repeat;
   image-rendering: pixelated;
+}
+
+.rs-bubble-picture[data-dark='true'] {
+  filter: brightness(0);
+}
+
+.rs-bubble-picture[data-reveal='true'],
+.rs-bubble-arrow[data-reveal='true'] {
+  animation: rs-pop var(--duration-reveal) var(--ease-spring) both;
+}
+
+@keyframes rs-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* An arrow between a bubble's pictures, drawn plainly, pointing down into something. */
@@ -1035,6 +1064,11 @@
   height: calc(var(--px) * 12);
   background: var(--pixel-ink);
   clip-path: polygon(30% 0, 70% 0, 70% 50%, 100% 50%, 50% 100%, 0 50%, 30% 50%);
+}
+
+/* An arrow pointing on, from one picture to the next. */
+.rs-bubble-arrow[data-arrow='on'] {
+  rotate: -90deg;
 }
 
 /*

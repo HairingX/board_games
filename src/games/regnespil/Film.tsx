@@ -6,7 +6,7 @@ import { useWakeLock } from '../../lib/wakeLock';
 import { SceneCanvas, type LoadPicture } from '../../ui/SceneCanvas';
 import { common } from '../../ui/text';
 import { topFrames } from './art';
-import { filmSheets, type Picture, type Shot } from './film';
+import { filmSheets, type Bubble, type Picture, type Shot } from './film';
 import type { Hero } from './heroes';
 import { sounds } from './sounds';
 import { text } from './text';
@@ -38,13 +38,14 @@ const bubbleZoom = 2;
 export const skipAfter = 3;
 
 /**
- * How large a dialog box may draw its pictures: twice their size, or their own if three of them
- * side by side would not fit beside the portrait on a stage this wide, in its pixels.
+ * How large a dialog box draws its pictures, beyond the size each says: twice that, or as it
+ * is if they would not then fit side by side beside the portrait on a stage this wide, in its
+ * pixels.
  */
 export function dialogZoom(pictures: readonly Picture[], width: number): number {
   const room = width - dialogRoom;
   const across = pictures.reduce(
-    (sum, picture) => sum + ('arrow' in picture ? 0 : picture.cut.width),
+    (sum, picture) => sum + ('arrow' in picture ? 0 : picture.width * (picture.zoom ?? 1)),
     0,
   );
   return across * bubbleZoom <= room ? bubbleZoom : 1;
@@ -77,6 +78,8 @@ export function Film({
   /** Which shot plays, from when on the page's clock, and how far into it the bubbles are. */
   const [playing, setPlaying] = useState(() => ({ index: 0, at: now() }));
   const [into, setInto] = useState(0);
+  /** Whether the stage has shaken in this shot, as at a sudden bark; once a shot at most. */
+  const [shaking, setShaking] = useState(false);
   /** Whether the film may be skipped yet: not in its first moments, so a tap does not end it. */
   const [skippable, setSkippable] = useState(false);
   useEffect(() => {
@@ -100,6 +103,7 @@ export function Film({
     if (index + 1 < shots.length) {
       setPlaying({ index: index + 1, at: now() });
       setInto(0);
+      setShaking(false);
     } else {
       onDone();
     }
@@ -128,11 +132,17 @@ export function Film({
         setInto(mark);
       }, mark * 1000),
     );
+    const shakes = (played.shake === undefined ? [] : [played.shake]).map((mark) =>
+      setTimeout(() => {
+        setShaking(true);
+      }, mark * 1000),
+    );
     const next = setTimeout(() => {
       advance(playing.index);
     }, played.seconds * 1000);
     return () => {
       timers.forEach(clearTimeout);
+      shakes.forEach(clearTimeout);
       clearTimeout(next);
     };
   }, [playing, shots]);
@@ -144,25 +154,51 @@ export function Film({
   );
   const width = scene.columns * 16;
 
-  /** A bubble's pictures, each drawn `zoom` times larger, an arrow plainly. */
-  const drawn = (pictures: readonly Picture[], zoom: number) =>
-    pictures.map((picture, index) => {
+  /**
+   * A bubble's pictures, each drawn as many times larger as it says and `zoom` times again, an
+   * arrow plainly; one after another, `reveal` seconds apart, if the bubble says.
+   */
+  const drawn = (bubble: Bubble, zoom: number) =>
+    bubble.pictures.map((picture, index) => {
+      const delay = { animationDelay: `${String(index * (bubble.reveal ?? 0))}s` };
+      const reveals = bubble.reveal !== undefined;
       if ('arrow' in picture) {
-        return <span key={index} className="rs-bubble-arrow" />;
+        return (
+          <span
+            key={index}
+            className="rs-bubble-arrow"
+            data-arrow={picture.arrow}
+            data-reveal={reveals}
+            style={delay}
+          />
+        );
       }
-      const zoomed = (pixels: number) => px(pixels * zoom);
+      const k = zoom * (picture.zoom ?? 1);
+      const zoomed = (pixels: number) => px(pixels * k);
       return (
         <span
           key={index}
           className="rs-bubble-picture"
-          style={{
-            width: zoomed(picture.cut.width),
-            height: zoomed(picture.cut.height),
-            backgroundImage: `url("${picture.url}")`,
-            backgroundPosition: `${zoomed(-picture.cut.x)} ${zoomed(-picture.cut.y)}`,
-            backgroundSize: `${zoomed(picture.image.width)} ${zoomed(picture.image.height)}`,
-          }}
-        />
+          data-dark={picture.dark === true}
+          data-reveal={reveals}
+          style={{ ...delay, width: zoomed(picture.width), height: zoomed(picture.height) }}
+        >
+          {picture.parts.map((part, at) => (
+            <span
+              key={at}
+              className="rs-bubble-part"
+              style={{
+                left: zoomed(part.x),
+                top: zoomed(part.y),
+                width: zoomed(part.cut.width),
+                height: zoomed(part.cut.height),
+                backgroundImage: `url("${part.url}")`,
+                backgroundPosition: `${zoomed(-part.cut.x)} ${zoomed(-part.cut.y)}`,
+                backgroundSize: `${zoomed(part.image.width)} ${zoomed(part.image.height)}`,
+              }}
+            />
+          ))}
+        </span>
       );
     });
 
@@ -171,9 +207,7 @@ export function Film({
   const front = showing.map((bubble) => (
     <div key={bubble.at} className="rs-dialog" aria-hidden="true">
       <img src={bubble.speaks} alt="" className="rs-dialog-face" />
-      <p className="rs-dialog-pictures">
-        {drawn(bubble.pictures, dialogZoom(bubble.pictures, width))}
-      </p>
+      <p className="rs-dialog-pictures">{drawn(bubble, dialogZoom(bubble.pictures, width))}</p>
     </div>
   ));
 
@@ -195,6 +229,7 @@ export function Film({
       </header>
       <div
         className="rs-stage"
+        data-shake={shaking}
         style={{ aspectRatio: `${String(scene.columns)} / ${String(scene.rows)}` }}
       >
         <SceneCanvas

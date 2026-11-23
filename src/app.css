@@ -98,6 +98,8 @@
   --duration-struck: 450ms;
   /* How long the scene shakes when a hero is hurt, or a power stroke lands. */
   --duration-shake: 300ms;
+  /* How long a picture in a film's dialog box takes to pop up. */
+  --duration-reveal: 280ms;
   /* How long the lives a stroke took float up over the monster. */
   --duration-damage: 1000ms;
   /* How long a coin takes to turn once, lying to be picked up, and to fly up to the purse. */
